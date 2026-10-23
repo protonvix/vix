@@ -85,40 +85,6 @@
     countEls.forEach(animateCount);
   }
 
-  // Testimonial slider
-  var slider = document.querySelector("[data-slider]");
-  if (slider) {
-    var slides = slider.querySelectorAll(".testimonial");
-    var dotsWrap = slider.querySelector(".slider-dots");
-    var current = 0;
-    var timer;
-    var dots = Array.prototype.map.call(slides, function (_, i) {
-      var b = document.createElement("button");
-      b.type = "button";
-      b.setAttribute("role", "tab");
-      b.setAttribute("aria-label", "Show testimonial " + (i + 1));
-      b.addEventListener("click", function () { go(i); restart(); });
-      dotsWrap.appendChild(b);
-      return b;
-    });
-    function go(i) {
-      slides[current].classList.remove("is-active");
-      dots[current].setAttribute("aria-selected", "false");
-      current = i;
-      slides[current].classList.add("is-active");
-      dots[current].setAttribute("aria-selected", "true");
-    }
-    function restart() {
-      clearInterval(timer);
-      if (!reduceMotion) timer = setInterval(function () { go((current + 1) % slides.length); }, 6000);
-    }
-    dots.forEach(function (d) { d.setAttribute("aria-selected", "false"); });
-    go(0);
-    restart();
-    slider.addEventListener("mouseenter", function () { clearInterval(timer); });
-    slider.addEventListener("mouseleave", restart);
-  }
-
   // Contact form
   // Set FORM_ENDPOINT to a HighLevel inbound webhook, Formspree, or your own API.
   // Leave it empty to fall back to opening the visitor's email client.
