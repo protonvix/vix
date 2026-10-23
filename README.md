@@ -15,7 +15,7 @@ python3 -m http.server 8000
 ```
 
 ## Customize before launch
-1. **Brand**: replace "Vix Automations" and `hello@vixautomations.com` throughout.
+1. **Brand**: replace "Vix Automations" throughout. The contact email is set to `peopleandenterpriseglobal@gmail.com`.
 2. **Proof**: the case studies, testimonials and headline stats are **sample placeholders**. Swap in real client results.
 3. **Pricing**: adjust packages in the `#pricing` section.
 4. **Contact form**: set `FORM_ENDPOINT` in `script.js` to a HighLevel inbound-webhook URL (or Formspree, etc.). If it's left empty, the form opens the visitor's email client. You can also replace the form with a HighLevel form or calendar embed.
