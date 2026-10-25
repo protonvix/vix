@@ -75,9 +75,7 @@ p { margin: 0 0 1em; }
 .site-header.scrolled { border-color: var(--border); box-shadow: 0 4px 20px -12px rgba(15, 23, 42, .2); }
 .nav { display: flex; align-items: center; justify-content: space-between; height: 100%; }
 .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 1.2rem; }
-.brand-mark svg { width: 34px; height: 34px; }
-.brand-mark rect { fill: var(--primary); }
-.brand-mark path { stroke: #fff; stroke-width: 3; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.brand-mark { width: 34px; height: 34px; flex: none; }
 .brand-name span { font-weight: 500; color: var(--text-muted); margin-left: 4px; }
 .nav-menu { display: flex; align-items: center; gap: 30px; }
 .nav-menu a:not(.btn) { font-weight: 500; font-size: .96rem; color: var(--text-muted); transition: color .2s; }
@@ -260,7 +258,7 @@ p { margin: 0 0 1em; }
 
 /* Footer */
 .site-footer { background: #070b17; color: var(--muted-on-dark); padding: 70px 0 30px; }
-.footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 40px; }
+.footer-grid { display: grid; grid-template-columns: 2fr 1fr 1.5fr; gap: 40px; }
 .site-footer .brand-name { color: #fff; }
 .site-footer .brand-name span { color: var(--muted-on-dark); }
 .footer-tag { margin-top: 16px; max-width: 340px; font-size: .95rem; }

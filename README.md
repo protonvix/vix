@@ -6,6 +6,7 @@ A fast, responsive one-page marketing site for a GoHighLevel (HighLevel) consult
 - `index.html`: page content (hero, services, process, example builds, founding-client offer, about, pricing, FAQ, contact)
 - `styles.css`: all styling and responsive breakpoints
 - `script.js`: mobile nav, scroll reveals, counters, contact form
+- `brand/`: logo (SVG + PNG, light and dark), icon, favicons, LinkedIn profile picture and banner
 
 ## Preview locally
 Open `index.html` in a browser, or run:
