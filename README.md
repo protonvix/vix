@@ -4,6 +4,7 @@ A fast, responsive one-page marketing site for a GoHighLevel (HighLevel) consult
 
 ## Files
 - `index.html`: home page content (hero, services, process, example builds, founding-client offer, about, pricing, FAQ, contact)
+- `tiktok.html`: TikTok marketing services page (video creation, 4 posts/week, account management, packages)
 - `pricing.html`: pricing page with currency switcher and founding-client discount
 - `pricing.js`: currency detection and conversion, discount, live exchange rates
 - `chatbot.js`: floating WhatsApp button and the chat assistant (answers, keywords and WhatsApp number are at the top of the file)

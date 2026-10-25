@@ -145,7 +145,7 @@ p { margin: 0 0 1em; }
 .stats-band { padding: 40px 0; }
 .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; background: var(--bg-dark); color: var(--text-on-dark); border-radius: 24px; padding: 40px; }
 .stat { text-align: center; }
-.stat strong { display: block; font-size: clamp(2rem, 3.6vw, 2.8rem); font-weight: 800; background: linear-gradient(120deg, #8ea8ff, var(--accent)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.stat strong { display: block; font-size: clamp(1.6rem, 2.7vw, 2.5rem); font-weight: 800; background: linear-gradient(120deg, #8ea8ff, var(--accent)); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .stat span { color: var(--muted-on-dark); font-size: .95rem; }
 
 /* ===== Sections ===== */
@@ -287,7 +287,7 @@ p { margin: 0 0 1em; }
   .price-card.featured { transform: none; }
 }
 
-@media (max-width: 860px) {
+@media (max-width: 960px) {
   .nav-toggle { display: block; }
   .nav-menu {
     position: fixed; inset: var(--header-h) 0 auto; flex-direction: column; align-items: stretch; gap: 0;
@@ -448,4 +448,60 @@ p { margin: 0 0 1em; }
 }
 @media (prefers-reduced-motion: reduce) {
   .vx-typing i { animation: none; }
+}
+
+/* ===== TikTok page ===== */
+.tt-hero { padding-bottom: 70px; }
+.tt-phone { width: 290px; margin: 0 auto; padding: 12px; border-radius: 44px; background: #0b1020; box-shadow: var(--shadow-lg), 0 0 0 1px rgba(255, 255, 255, .06) inset; transform: rotate(3deg); }
+.tt-screen { position: relative; border-radius: 34px; overflow: hidden; background: #000; aspect-ratio: 9 / 18; }
+.tt-video { position: absolute; inset: 0; background: linear-gradient(160deg, #1d2b64 0%, #4f7cff 45%, #7b5cff 75%, #22d3a6 130%); }
+.tt-video-glow { position: absolute; inset: 0; background: radial-gradient(240px 240px at 30% 30%, rgba(255, 255, 255, .25), transparent 60%); }
+.tt-hook { position: absolute; top: 28%; left: 16px; right: 64px; margin: 0; color: #fff; font-weight: 800; font-size: 1.25rem; line-height: 1.25; text-shadow: 0 2px 12px rgba(0, 0, 0, .35); }
+.tt-side { position: absolute; right: 10px; bottom: 90px; display: flex; flex-direction: column; align-items: center; gap: 14px; color: #fff; font-size: 1.2rem; }
+.tt-avatar { width: 42px; height: 42px; border-radius: 50%; border: 2px solid #fff; overflow: hidden; background: #fff; }
+.tt-avatar img { width: 100%; height: 100%; }
+.tt-act { display: flex; flex-direction: column; align-items: center; line-height: 1; }
+.tt-act small { font-size: .62rem; font-weight: 700; margin-top: 3px; }
+.tt-caption { position: absolute; left: 14px; right: 64px; bottom: 22px; color: #fff; font-size: .78rem; display: flex; flex-direction: column; gap: 3px; }
+.tt-watermark { position: absolute; top: 14px; left: 14px; display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px 5px 5px; border-radius: 999px; background: rgba(0, 0, 0, .35); color: #fff; font-size: .7rem; font-weight: 700; backdrop-filter: blur(6px); }
+.tt-watermark img { width: 20px; height: 20px; border-radius: 6px; }
+.tt-week { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
+.tt-day { background: #fff; border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; display: flex; flex-direction: column; gap: 6px; box-shadow: var(--shadow); }
+.tt-day-name { align-self: flex-start; font-size: .8rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: #fff; background: linear-gradient(135deg, var(--primary), #7b5cff); padding: 4px 12px; border-radius: 999px; margin-bottom: 8px; }
+.tt-day b { font-size: 1.08rem; }
+.tt-day small { color: var(--text-muted); font-size: .92rem; }
+.tt-week-note { text-align: center; color: var(--text-muted); margin-top: 28px; }
+.tt-quote { font-size: 1.9rem; }
+.tt-card-highlight { border-color: rgba(79, 124, 255, .45); background: linear-gradient(160deg, #f1f5ff, #f6f1ff); }
+.icon img { display: block; }
+.promise-logo img { width: 56px; height: 56px; margin-bottom: 20px; border-radius: 16px; box-shadow: 0 10px 24px -10px rgba(79, 124, 255, .8); }
+.cta-logo { width: 64px; height: 64px; margin: 0 auto 22px; border-radius: 18px; box-shadow: 0 14px 30px -10px rgba(79, 124, 255, .7); }
+.contact-logo { width: 48px; height: 48px; margin-bottom: 18px; border-radius: 14px; }
+
+/* TikTok teaser on home page */
+.tt-teaser-actions { justify-content: flex-start; margin-top: 8px; }
+.tt-teaser-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 14px; }
+.tt-teaser-list li { display: flex; flex-direction: column; gap: 2px; padding: 18px 22px; border-radius: var(--radius); background: var(--bg-dark-2); border: 1px solid var(--border-dark); }
+.tt-teaser-list b { color: #fff; }
+.tt-teaser-list span { color: var(--muted-on-dark); font-size: .93rem; }
+.section-dark h2 { color: #fff; }
+
+/* About: logo in place of a photo */
+.about-logo { background: #fff; padding: 0; }
+.about-logo img { width: 100%; height: 100%; object-fit: contain; }
+
+@media (max-width: 1180px) {
+  .nav-menu { gap: 22px; }
+}
+@media (max-width: 1024px) {
+  .tt-week { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 640px) {
+  .tt-week { grid-template-columns: 1fr; }
+  .tt-phone { width: 250px; transform: none; }
+  .tt-teaser-actions .btn { width: 100%; }
+}
+.stats-grid > * { min-width: 0; }
+@media (max-width: 640px) {
+  .stat strong { font-size: 1.55rem; overflow-wrap: anywhere; }
 }
