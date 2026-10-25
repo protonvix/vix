@@ -10,7 +10,7 @@
   var PRICES = { quick: 499, growth: 689, agency: 876, retainer: 299, discount: 20 };
 
   // Pages live side by side, so links work from both index.html and pricing.html.
-  var HOME = /pricing\.html$/.test(location.pathname) ? "index.html" : "";
+  var HOME = /(pricing|tiktok)(\.html)?$/.test(location.pathname) ? "index.html" : "";
 
   function waLink(text) {
     return "https://wa.me/" + WHATSAPP_NUMBER + "?text=" + encodeURIComponent(text || WHATSAPP_GREETING + "your GoHighLevel services.");
@@ -36,8 +36,12 @@
       reply: "You can pay by <b>Payoneer</b>, <b>Cleva</b>, <b>Wise</b>, or <b>bank transfer</b> to accounts in Nigeria, the UK and the USA. Payment details are included on your invoice." },
     { id: "currency", keys: ["currency", "naira", "ngn", "pounds", "gbp", "euro", "eur", "dollar", "usd", "cedi", "rand", "exchange"],
       reply: "Prices are set in US dollars. The <a href=\"pricing.html\">pricing page</a> shows them in your local currency as an estimate, and your invoice shows the exact amount before you pay." },
+    { id: "tiktok", keys: ["tiktok", "tik tok", "tt", "video", "videos", "editing", "edit", "followers", "views", "viral", "reels", "shorts", "content creation", "social media", "engagement", "posting", "upload"],
+      reply: "Yes! Our <b>TikTok Marketing</b> service includes:<br>• Quality video creation & editing<br>• <b>4 videos posted every week</b> for your niche<br>• Account & engagement management (comments and DMs)<br>• Growth in views, followers and engagement, organically<br>• Optional TikTok Ads, TikTok Shop and Reels/Shorts repurposing<br>TikTok packages are monthly and quoted for your niche. <a href=\"tiktok.html\">See TikTok packages</a> or ask for a free TikTok audit." },
+    { id: "tiktok_guarantee", keys: ["guarantee followers", "guarantee views", "buy followers", "fake followers", "bots", "how many followers"],
+      reply: "We don't buy followers or use bots, which breaks TikTok's rules and doesn't bring customers. No one can honestly guarantee TikTok numbers, but we guarantee the work: 4 quality videos every week, daily engagement and a monthly growth report." },
     { id: "services", keys: ["service", "services", "what do you do", "help with", "do you do"],
-      reply: "We set up and automate GoHighLevel for you:<br>• CRM & pipeline setup<br>• Funnels & websites<br>• Workflow automation<br>• Reputation & review requests<br>• SaaS mode & white label<br>• Integrations & API<br>• Conversation AI & Voice AI bots<br>• Snapshots & migrations<br>• Ongoing support<br><a href=\"" + HOME + "#services\">See all services</a>." },
+      reply: "We set up and automate GoHighLevel for you:<br>• CRM & pipeline setup<br>• Funnels & websites<br>• Workflow automation<br>• Reputation & review requests<br>• SaaS mode & white label<br>• Integrations & API<br>• Conversation AI & Voice AI bots<br>• Snapshots & migrations<br>• TikTok marketing (4 videos/week)<br>• Ongoing support<br><a href=\"" + HOME + "#services\">See all services</a>." },
     { id: "ghl", keys: ["gohighlevel", "highlevel", "ghl", "what is", "crm"],
       reply: "GoHighLevel is an all-in-one platform for CRM, funnels, websites, email & SMS marketing, calendars, reviews and automation. We set it up so leads are captured, followed up and booked automatically." },
     { id: "automation", keys: ["automation", "automate", "workflow", "workflows", "follow up", "follow-up", "nurture", "missed call", "text back", "reminder", "no show"],
@@ -73,6 +77,7 @@
   var QUICK = [
     ["Pricing", "How much does it cost?"],
     ["Services", "What services do you offer?"],
+    ["TikTok", "Tell me about TikTok marketing"],
     ["How to pay", "How can I pay?"],
     ["Timeline", "How long does it take?"],
     ["Book a call", "I want to book a call"],
@@ -89,6 +94,8 @@
         if (t.indexOf(" " + k + " ") !== -1) score += k.split(" ").length * 2;
         else if (k.length > 4 && t.indexOf(k) !== -1) score += 1;
       });
+      // Any mention of TikTok should get a TikTok answer.
+      if (score && /^tiktok/.test(topic.id) && /\btik ?tok\b/.test(t)) score += 6;
       // Small talk shouldn't win over a real question in the same message.
       if (/^(greeting|thanks|bye)$/.test(topic.id)) score *= 0.5;
       if (score > bestScore) { best = topic; bestScore = score; }
