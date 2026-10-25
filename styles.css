@@ -347,7 +347,8 @@ p { margin: 0 0 1em; }
 .currency-picker select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 4px rgba(79, 124, 255, .15); }
 .pricing-page { padding-top: 56px; }
 .price-block { margin: 6px 0 22px; min-height: 104px; }
-.price-block .price { margin: 0; }
+.price-block .price { margin: 0; font-size: clamp(1.9rem, 8.5vw, 2.6rem); }
+.pricing-grid > * { min-width: 0; }
 .price .price-now { font-size: inherit; font-weight: inherit; color: var(--text); letter-spacing: inherit; margin: 0; }
 .price-old { display: block; min-height: 1.4em; color: var(--text-muted); text-decoration: line-through; font-weight: 600; font-size: 1.05rem; }
 .price-save { display: inline-block; margin-top: 6px; font-size: .82rem; font-weight: 700; color: #0b8f6c; background: rgba(34, 211, 166, .12); padding: 3px 10px; border-radius: 999px; }
