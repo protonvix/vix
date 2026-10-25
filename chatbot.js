@@ -10,7 +10,7 @@
   var PRICES = { quick: 499, growth: 689, agency: 876, retainer: 299, discount: 20 };
 
   // Pages live side by side, so links work from both index.html and pricing.html.
-  var HOME = /(pricing|tiktok)(\.html)?$/.test(location.pathname) ? "index.html" : "";
+  var HOME = /(pricing|tiktok|web-design)(\.html)?$/.test(location.pathname) ? "index.html" : "";
 
   function waLink(text) {
     return "https://wa.me/" + WHATSAPP_NUMBER + "?text=" + encodeURIComponent(text || WHATSAPP_GREETING + "your GoHighLevel services.");
@@ -40,8 +40,12 @@
       reply: "Yes! Our <b>TikTok Marketing</b> service includes:<br>• Quality video creation & editing<br>• <b>4 videos posted every week</b> for your niche<br>• Account & engagement management (comments and DMs)<br>• Growth in views, followers and engagement, organically<br>• Optional TikTok Ads, TikTok Shop and Reels/Shorts repurposing<br>TikTok packages are monthly and quoted for your niche. <a href=\"tiktok.html\">See TikTok packages</a> or ask for a free TikTok audit." },
     { id: "tiktok_guarantee", keys: ["guarantee followers", "guarantee views", "buy followers", "fake followers", "bots", "how many followers"],
       reply: "We don't buy followers or use bots, which breaks TikTok's rules and doesn't bring customers. No one can honestly guarantee TikTok numbers, but we guarantee the work: 4 quality videos every week, daily engagement and a monthly growth report." },
+    { id: "webdesign", boost: 3, keys: ["website", "web design", "web designer", "redesign", "landing page", "wordpress", "shopify", "wix", "squarespace", "webflow", "site", "web page", "webpage", "online store", "ecommerce", "e-commerce"],
+      reply: "Yes! Our <b>Web Design</b> service covers:<br>• New websites for new and existing brands<br>• Fixing website errors on coded sites and no-code builders (WordPress, Shopify, Wix, Squarespace, Webflow)<br>• GoHighLevel websites & funnels<br>Packages: <b>Starter</b>, <b>Business Growth</b> and <b>Premium Brand & E-commerce</b>, each with a custom quote. <a href=\"web-design.html#quote\">Get a custom website quote</a>." },
+    { id: "webfix", boost: 6, keys: ["fix", "fixing", "repair", "broken", "error", "errors", "not loading", "not working", "bug", "hacked", "slow website", "fix my website", "fix my site", "404"],
+      reply: "We fix website errors on any platform: broken layouts, forms not sending, slow pages, 404s, SSL warnings, plugin conflicts and hacked sites. <a href=\"web-design.html#quote\">Request a website fix quote</a> and tell us what's wrong." },
     { id: "services", keys: ["service", "services", "what do you do", "help with", "do you do"],
-      reply: "We set up and automate GoHighLevel for you:<br>• CRM & pipeline setup<br>• Funnels & websites<br>• Workflow automation<br>• Reputation & review requests<br>• SaaS mode & white label<br>• Integrations & API<br>• Conversation AI & Voice AI bots<br>• Snapshots & migrations<br>• TikTok marketing (4 videos/week)<br>• Ongoing support<br><a href=\"" + HOME + "#services\">See all services</a>." },
+      reply: "We set up and automate GoHighLevel for you:<br>• CRM & pipeline setup<br>• Funnels & websites<br>• Workflow automation<br>• Reputation & review requests<br>• SaaS mode & white label<br>• Integrations & API<br>• Conversation AI & Voice AI bots<br>• Snapshots & migrations<br>• Website design & error fixes<br>• TikTok marketing (4 videos/week)<br>• Ongoing support<br><a href=\"" + HOME + "#services\">See all services</a>." },
     { id: "ghl", keys: ["gohighlevel", "highlevel", "ghl", "what is", "crm"],
       reply: "GoHighLevel is an all-in-one platform for CRM, funnels, websites, email & SMS marketing, calendars, reviews and automation. We set it up so leads are captured, followed up and booked automatically." },
     { id: "automation", keys: ["automation", "automate", "workflow", "workflows", "follow up", "follow-up", "nurture", "missed call", "text back", "reminder", "no show"],
@@ -78,6 +82,7 @@
     ["Pricing", "How much does it cost?"],
     ["Services", "What services do you offer?"],
     ["TikTok", "Tell me about TikTok marketing"],
+    ["Websites", "Do you design websites?"],
     ["How to pay", "How can I pay?"],
     ["Timeline", "How long does it take?"],
     ["Book a call", "I want to book a call"],
@@ -94,6 +99,8 @@
         if (t.indexOf(" " + k + " ") !== -1) score += k.split(" ").length * 2;
         else if (k.length > 4 && t.indexOf(k) !== -1) score += 1;
       });
+      // Specialised topics win over general ones when they match at all.
+      if (score && topic.boost) score += topic.boost;
       // Any mention of TikTok should get a TikTok answer.
       if (score && /^tiktok/.test(topic.id) && /\btik ?tok\b/.test(t)) score += 6;
       // Small talk shouldn't win over a real question in the same message.
