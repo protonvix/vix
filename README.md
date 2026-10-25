@@ -28,4 +28,6 @@ python3 -m http.server 8000
 7. **Contact form**: set `FORM_ENDPOINT` in `script.js` to a HighLevel inbound-webhook URL (or Formspree, etc.). If it's left empty, the form opens the visitor's email client. You can also replace the form with a HighLevel form or calendar embed.
 
 ## Deploy
+**Cloudflare Workers (connected to GitHub):** `wrangler.jsonc` tells Cloudflare to serve this folder as a static site, and `.assetsignore` keeps repo files (README, licence, config) off the website. In the Cloudflare setup, leave the build command empty and keep the deploy command `npx wrangler deploy`. The project name in Cloudflare must match `name` in `wrangler.jsonc` (`vix`).
+
 Upload the three files to any static host (Netlify, Vercel, GitHub Pages, Cloudflare Pages), or paste them into a HighLevel website page using custom code.
