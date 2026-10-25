@@ -1,0 +1,12 @@
+# Files in this repo that should not be published on the website
+.git
+.git/**
+.gitignore
+.assetsignore
+wrangler.jsonc
+README.md
+LICENSE
+node_modules
+.wrangler
+.wrangler/**
+brand/concepts.html
