@@ -4,7 +4,8 @@
   var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   // Footer year
-  document.getElementById("year").textContent = new Date().getFullYear();
+  var year = document.getElementById("year");
+  if (year) year.textContent = new Date().getFullYear();
 
   // Header shadow + mobile sticky CTA on scroll
   var header = document.querySelector(".site-header");
@@ -13,8 +14,8 @@
   function onScroll() {
     var y = window.scrollY;
     header.classList.toggle("scrolled", y > 10);
-    var contactTop = contact.getBoundingClientRect().top;
-    mobileCta.classList.toggle("show", y > 600 && contactTop > window.innerHeight);
+    var contactBelow = !contact || contact.getBoundingClientRect().top > window.innerHeight;
+    mobileCta.classList.toggle("show", y > 600 && contactBelow);
   }
   window.addEventListener("scroll", onScroll, { passive: true });
   onScroll();
@@ -92,6 +93,7 @@
   var CONTACT_EMAIL = "peopleandenterpriseglobal@gmail.com";
 
   var form = document.getElementById("contact-form");
+  if (!form) return;
   var status = form.querySelector(".form-status");
 
   function setStatus(msg, type) {
