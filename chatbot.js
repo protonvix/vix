@@ -10,7 +10,7 @@
   var PRICES = { quick: 499, growth: 689, agency: 876, retainer: 299, discount: 20 };
 
   // Pages live side by side, so links work from both index.html and pricing.html.
-  var HOME = /(pricing|tiktok|web-design|guide)(\.html)?$/.test(location.pathname) ? "index.html" : "";
+  var HOME = /(pricing|tiktok|web-design)(\.html)?$/.test(location.pathname) ? "index.html" : "";
 
   function waLink(text) {
     return "https://wa.me/" + WHATSAPP_NUMBER + "?text=" + encodeURIComponent(text || WHATSAPP_GREETING + "your GoHighLevel services.");
@@ -44,8 +44,6 @@
       reply: "Yes! Our <b>Web Design</b> service covers:<br>• New websites for new and existing brands<br>• Fixing website errors on coded sites and no-code builders (WordPress, Shopify, Wix, Squarespace, Webflow)<br>• GoHighLevel websites & funnels<br>Packages: <b>Starter</b>, <b>Business Growth</b> and <b>Premium Brand & E-commerce</b>, each with a custom quote. <a href=\"web-design.html#quote\">Get a custom website quote</a>." },
     { id: "webfix", boost: 6, keys: ["fix", "fixing", "repair", "broken", "error", "errors", "not loading", "not working", "bug", "hacked", "slow website", "fix my website", "fix my site", "404"],
       reply: "We fix website errors on any platform: broken layouts, forms not sending, slow pages, 404s, SSL warnings, plugin conflicts and hacked sites. <a href=\"web-design.html#quote\">Request a website fix quote</a> and tell us what's wrong." },
-    { id: "guide", boost: 3, keys: ["how to use", "how do i use", "use this website", "use the website", "use your website", "use this site", "how does this website work", "how does it work", "how it works", "navigate", "guide", "tour", "where do i start", "where to start", "help me use", "new here"],
-      reply: "Here's a quick tour of the website, step by step: finding services, checking prices in your currency, getting a quote, booking a call and paying. <a href=\"guide.html\">See how it works</a>." },
     { id: "services", keys: ["service", "services", "what do you do", "help with", "do you do"],
       reply: "We set up and automate GoHighLevel for you:<br>• CRM & pipeline setup<br>• Funnels & websites<br>• Workflow automation<br>• Reputation & review requests<br>• SaaS mode & white label<br>• Integrations & API<br>• Conversation AI & Voice AI bots<br>• Snapshots & migrations<br>• Website design & error fixes<br>• TikTok marketing (4 videos/week)<br>• Ongoing support<br><a href=\"" + HOME + "#services\">See all services</a>." },
     { id: "ghl", keys: ["gohighlevel", "highlevel", "ghl", "what is", "crm"],
@@ -85,7 +83,6 @@
     ["Services", "What services do you offer?"],
     ["TikTok", "Tell me about TikTok marketing"],
     ["Websites", "Do you design websites?"],
-    ["How it works", "How do I use this website?"],
     ["How to pay", "How can I pay?"],
     ["Timeline", "How long does it take?"],
     ["Book a call", "I want to book a call"],
