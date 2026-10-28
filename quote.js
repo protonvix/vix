@@ -2,7 +2,7 @@
   "use strict";
 
   var WHATSAPP_NUMBER = "447868242781";
-  var EMAIL = "peopleandenterpriseglobal@gmail.com";
+  var EMAIL = "vixautomations@gmail.com";
 
   var form = document.getElementById("quote-form");
   if (!form) return;

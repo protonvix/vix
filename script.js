@@ -90,7 +90,7 @@
   // Set FORM_ENDPOINT to a HighLevel inbound webhook, Formspree, or your own API.
   // Leave it empty to fall back to opening the visitor's email client.
   var FORM_ENDPOINT = "";
-  var CONTACT_EMAIL = "peopleandenterpriseglobal@gmail.com";
+  var CONTACT_EMAIL = "vixautomations@gmail.com";
 
   var form = document.getElementById("contact-form");
   if (!form) return;
