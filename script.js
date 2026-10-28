@@ -122,7 +122,7 @@
       window.location.href = "mailto:" + CONTACT_EMAIL +
         "?subject=" + encodeURIComponent("Strategy call request from " + data.name) +
         "&body=" + encodeURIComponent(body);
-      setStatus("Opening your email app. Hit send and I'll be in touch within 1 business day.", "ok");
+      setStatus("Opening your email app. Hit send and we'll be in touch within 1 business day.", "ok");
       return;
     }
 

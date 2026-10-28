@@ -24,7 +24,7 @@
   // Each topic: keywords that trigger it, and the reply (trusted HTML).
   var TOPICS = [
     { id: "greeting", keys: ["hi", "hello", "hey", "good morning", "good afternoon", "good evening", "howdy"],
-      reply: "Hi there! 👋 I can answer questions about our GoHighLevel services, pricing, payment and timelines. What would you like to know?" },
+      reply: "Hi there! 👋 We can answer questions about our GoHighLevel services, pricing, payment and timelines. What would you like to know?" },
     { id: "pricing", keys: ["price", "pricing", "cost", "how much", "package", "packages", "plan", "plans", "quote", "fee", "fees", "rate", "rates", "charge", "budget", "expensive", "cheap"],
       reply: "We have three fixed-price packages:<br>• <b>Quick Start</b>: " + usd(PRICES.quick) + "<br>• <b>Growth System</b>: " + usd(PRICES.growth) + " (most popular)<br>• <b>Agency / SaaS</b>: " + usd(PRICES.agency) +
         "<br>Founding clients currently get <b>" + PRICES.discount + "% off</b>, so from " + off(PRICES.quick) + ". <a href=\"pricing.html\">See full pricing in your currency</a>." },
@@ -73,7 +73,7 @@
     { id: "human", keys: ["human", "person", "real", "agent", "talk", "speak", "whatsapp", "contact", "email", "phone", "number", "reach"],
       reply: "Of course! Message us on <a href=\"" + waLink() + "\" target=\"_blank\" rel=\"noopener\">WhatsApp</a> or email <a href=\"mailto:" + EMAIL + "\">" + EMAIL + "</a>. We usually reply within 1 business day." },
     { id: "thanks", keys: ["thanks", "thank you", "thx", "cheers", "great", "awesome", "ok", "okay", "cool"],
-      reply: "You're welcome! Anything else I can help with?" },
+      reply: "You're welcome! Anything else we can help with?" },
     { id: "bye", keys: ["bye", "goodbye", "see you", "later"],
       reply: "Thanks for stopping by! If you think of anything else, we're one WhatsApp message away. 👋" }
   ];
@@ -111,7 +111,7 @@
   }
 
   function fallback(question) {
-    return "I'm not sure about that one, but a real person can help. " +
+    return "We're not sure about that one, but a real person on our team can help. " +
       "<a class=\"vx-wa-inline\" href=\"" + waLink(WHATSAPP_GREETING + "this: " + question) + "\" target=\"_blank\" rel=\"noopener\">Ask on WhatsApp</a> " +
       "or email <a href=\"mailto:" + EMAIL + "\">" + EMAIL + "</a>.";
   }
@@ -194,7 +194,7 @@
     if (open) {
       if (!started) {
         started = true;
-        addMessage("bot", "Hi! 👋 I'm the Vix Automations assistant. Ask me anything about our GoHighLevel services, pricing, payment or timelines, or tap a topic below.", true);
+        addMessage("bot", "Hi! 👋 Welcome to Vix Automations. Ask us anything about our services, pricing, payment or timelines, or tap a topic below.", true);
       }
       setTimeout(function () { input.focus(); }, 50);
     }
