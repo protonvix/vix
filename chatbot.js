@@ -4,7 +4,7 @@
   // ===== Settings you can change =====
   var WHATSAPP_NUMBER = "447868242781"; // international format, digits only
   var WHATSAPP_GREETING = "Hi Vix Automations! I found you on your website and I'd like to ask about ";
-  var EMAIL = "peopleandenterpriseglobal@gmail.com";
+  var EMAIL = "vixautomations@gmail.com";
 
   // Keep these in sync with pricing.html / pricing.js.
   var PRICES = { quick: 499, growth: 689, agency: 876, retainer: 299, discount: 20 };
