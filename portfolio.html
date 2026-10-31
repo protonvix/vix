@@ -1,0 +1,428 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Promise Felix · Product and web designer</title>
+<meta name="description" content="Portfolio of Promise Felix, a UI/UX and web designer in Nigeria. Case studies covering website design, multi currency pricing, quote flows, chat assistants and brand systems.">
+<meta property="og:title" content="Promise Felix · Product and web designer">
+<meta property="og:description" content="Websites and interfaces that turn visitors into clients. Case studies, process and contact.">
+<meta property="og:image" content="https://vix.vixautomation.workers.dev/portfolio/home.jpg">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="brand/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="brand/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
+<style>
+:root{
+  --bg:#181818;--surface:#1F1F1F;--raised:#272727;--line:#313131;
+  --text:#FFFFFF;--muted:#A3A3A3;--soft:#8A8A8A;--accent:#7B6CFF;--accent-2:#1FD1A0;
+  --ease:cubic-bezier(0.22,1,0.36,1);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Geist,system-ui,sans-serif;font-size:16px;line-height:24px;-webkit-font-smoothing:antialiased}
+img{display:block;max-width:100%;height:auto}
+a{color:inherit}
+h1,h2,h3{margin:0;font-weight:600;text-wrap:balance}
+p{margin:0;text-wrap:pretty}
+.wrap{max-width:1152px;margin:0 auto;padding:0 24px}
+.skip{position:absolute;left:16px;top:-64px;background:var(--text);color:#000;padding:8px 12px;border-radius:8px;font-weight:600;z-index:100;transition:transform 300ms var(--ease)}
+.skip:focus{transform:translateY(80px)}
+:focus-visible{outline:2px solid var(--accent-2);outline-offset:4px;border-radius:8px}
+
+/* Nav */
+.nav{position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:50;display:flex;align-items:center;gap:24px;padding:8px 8px 8px 16px;border-radius:9999px;background:rgba(31,31,31,.72);border:1px solid rgba(255,255,255,.08);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);max-width:calc(100% - 32px)}
+.nav .me{font-weight:600;font-size:14px;line-height:20px;text-decoration:none;white-space:nowrap;display:flex;align-items:center;gap:8px}
+.nav .me span{width:8px;height:8px;border-radius:9999px;background:var(--accent-2)}
+.nav ul{display:flex;gap:4px;list-style:none;margin:0;padding:0}
+.nav ul a{display:block;padding:8px 12px;border-radius:9999px;font-size:14px;line-height:20px;color:var(--muted);text-decoration:none;transition:color 300ms var(--ease),background-color 300ms var(--ease)}
+.nav ul a:hover,.nav ul a[aria-current="true"]{color:var(--text);background:rgba(255,255,255,.06)}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:9999px;font-weight:600;font-size:16px;line-height:24px;text-decoration:none;border:1px solid transparent;cursor:pointer;transition:transform 500ms var(--ease),background-color 300ms var(--ease),border-color 300ms var(--ease)}
+.btn:hover{transform:translateY(-2px)}
+.btn:active{transform:translateY(1px) scale(.98)}
+.btn-primary{background:var(--text);color:#000}
+.btn-primary:hover{background:#E6E6E6}
+.btn-ghost{border-color:var(--line);color:var(--text)}
+.btn-ghost:hover{background:var(--raised)}
+.btn-sm{font-size:14px;line-height:20px}
+.menu-btn{display:none;width:40px;height:40px;border-radius:9999px;border:0;background:transparent;color:var(--text);cursor:pointer;position:relative}
+.menu-btn i{position:absolute;left:12px;width:16px;height:2px;background:currentColor;border-radius:2px;transition:transform 500ms var(--ease),opacity 300ms var(--ease)}
+.menu-btn i:nth-child(1){top:15px}.menu-btn i:nth-child(2){top:23px}
+.menu-open .menu-btn i:nth-child(1){transform:translateY(4px) rotate(45deg)}
+.menu-open .menu-btn i:nth-child(2){transform:translateY(-4px) rotate(-45deg)}
+.panel{position:fixed;inset:0;z-index:40;background:rgba(24,24,24,.94);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);display:flex;flex-direction:column;justify-content:center;padding:96px 32px;gap:8px;opacity:0;pointer-events:none;transition:opacity 500ms var(--ease)}
+.panel a{font-size:30px;line-height:36px;font-weight:600;text-decoration:none;padding:8px 0;opacity:0;transform:translateY(24px);transition:transform 500ms var(--ease),opacity 500ms var(--ease)}
+.menu-open .panel{opacity:1;pointer-events:auto}
+.menu-open .panel a{opacity:1;transform:none}
+
+/* Hero */
+.hero{padding:160px 0 64px}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:14px;line-height:20px;color:var(--muted);padding:4px 12px;border:1px solid var(--line);border-radius:9999px;margin-bottom:24px}
+.eyebrow i{color:var(--accent-2)}
+.hero h1{max-width:680px;font-size:60px;line-height:1;letter-spacing:-.03em;background:linear-gradient(90deg,#FFFFFF,#9B9B9B);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero .sub{max-width:680px;margin-top:24px;font-size:20px;line-height:28px;color:var(--muted)}
+.actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:32px}
+.proof{display:flex;flex-wrap:wrap;gap:24px;margin-top:32px;font-size:14px;line-height:20px;color:var(--soft)}
+.proof>span{display:block}
+.proof i{vertical-align:-2px;margin-right:8px}
+.proof b{color:var(--text);font-weight:600}
+.showcase{position:relative;margin-top:64px}
+.frame{border-radius:16px;border:1px solid var(--line);background:var(--surface);padding:8px;overflow:hidden}
+.frame .bar{display:flex;gap:8px;padding:4px 8px 12px}
+.frame .bar i{width:12px;height:12px;border-radius:9999px;background:var(--line)}
+.frame img{border-radius:8px}
+.phone{position:absolute;right:-8px;bottom:-40px;width:22%;min-width:140px;border-radius:24px;border:1px solid var(--line);background:#000;padding:8px}
+.phone img{border-radius:16px}
+
+/* Sections */
+section{scroll-margin-top:96px}
+.block{padding:96px 0}
+.label{font-size:14px;line-height:20px;font-weight:600;color:var(--accent-2);letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px}
+.h2{font-size:36px;line-height:40px;letter-spacing:-.02em;max-width:680px}
+.lead{margin-top:16px;max-width:680px;color:var(--muted);font-size:18px;line-height:28px}
+
+/* Case studies */
+.case{display:grid;grid-template-columns:5fr 7fr;gap:48px;align-items:center;padding:64px 0;border-top:1px solid var(--line)}
+.case:nth-of-type(even) .case-media{order:-1}
+.case h3{font-size:30px;line-height:36px;letter-spacing:-.02em}
+.tags{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 24px}
+.tags span{font-size:12px;line-height:16px;color:var(--muted);padding:4px 12px;border-radius:9999px;background:var(--raised)}
+.case dl{margin:0;display:grid;gap:16px}
+.case dt{font-size:14px;line-height:20px;font-weight:600;color:var(--text);display:flex;align-items:center;gap:8px}
+.case dt i{color:var(--accent);font-size:18px}
+.case dd{margin:4px 0 0;color:var(--muted)}
+.case ul{margin:4px 0 0;padding-left:20px;color:var(--muted)}
+.case ul li{margin-top:4px}
+.stats{display:flex;flex-wrap:wrap;gap:32px;margin-top:24px}
+.stats div{font-size:14px;line-height:20px;color:var(--soft)}
+.stats b{display:block;font-size:30px;line-height:36px;color:var(--text);font-weight:600}
+.case-link{display:inline-flex;align-items:center;gap:8px;margin-top:24px;font-weight:600;text-decoration:none;color:var(--text);border-bottom:1px solid var(--line);padding-bottom:2px;transition:border-color 300ms var(--ease)}
+.case-link:hover{border-color:var(--text)}
+.duo{display:grid;grid-template-columns:3fr 1fr;gap:16px;align-items:end}
+.duo .frame{padding:8px}
+.mob{border-radius:24px;border:1px solid var(--line);background:#000;padding:8px}
+.mob img{border-radius:16px}
+.stack{display:grid;gap:16px}
+.brand-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.brand-grid img{border-radius:12px;border:1px solid var(--line)}
+.brand-grid .wide{grid-column:span 3}
+
+/* Tagline reveal */
+.reveal-text{font-size:60px;line-height:1;letter-spacing:-.03em;font-weight:600;max-width:880px}
+.reveal-text .w{color:rgba(255,255,255,.28);transition:color 500ms var(--ease)}
+.reveal-text .w.on{color:var(--text)}
+
+/* Process + skills */
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:48px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:24px;transition:transform 500ms var(--ease),border-color 300ms var(--ease)}
+.card:hover{transform:translateY(-4px);border-color:#444}
+.card .ic{width:40px;height:40px;border-radius:8px;display:grid;place-items:center;background:var(--raised);color:var(--accent-2);font-size:20px;margin-bottom:16px}
+.card h3{font-size:20px;line-height:28px}
+.card p{margin-top:8px;color:var(--muted)}
+.skills{display:flex;flex-wrap:wrap;gap:12px;margin-top:48px}
+.skills span{display:inline-flex;align-items:center;gap:8px;padding:8px 16px;border-radius:9999px;background:var(--surface);border:1px solid var(--line);font-size:14px;line-height:20px}
+.skills i{color:var(--accent);font-size:16px}
+
+/* Contact */
+.contact{background:var(--surface);border:1px solid var(--line);border-radius:24px;padding:64px 48px;text-align:center}
+.contact .h2{margin:0 auto}
+.contact .lead{margin:16px auto 0}
+.contact .actions{justify-content:center}
+.contact-list{display:flex;flex-wrap:wrap;justify-content:center;gap:24px;margin-top:32px;font-size:14px;line-height:20px;color:var(--muted)}
+.contact-list a{display:inline-flex;align-items:center;gap:8px;text-decoration:none;transition:color 300ms var(--ease)}
+.contact-list a:hover{color:var(--text)}
+footer{padding:48px 0 64px;color:var(--soft);font-size:14px;line-height:20px}
+footer .wrap{display:flex;flex-wrap:wrap;justify-content:space-between;gap:16px}
+footer a{text-decoration:none}footer a:hover{color:var(--text)}
+
+/* Scroll reveal */
+.rv{opacity:0;transform:translateY(32px);transition:opacity 700ms var(--ease),transform 700ms var(--ease)}
+.rv.in{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  .rv{transform:none;transition:opacity 300ms linear}
+  .btn,.card,.panel a,.menu-btn i{transition:none}
+}
+
+@media (max-width:900px){
+  .case{grid-template-columns:1fr;gap:32px}
+  .case:nth-of-type(even) .case-media{order:0}
+  .steps{grid-template-columns:1fr}
+  .reveal-text{font-size:36px;line-height:40px}
+}
+@media (max-width:760px){
+  .nav ul,.nav .btn{display:none}
+  .menu-btn{display:block}
+  .nav{gap:8px;padding:4px 4px 4px 16px}
+  .hero{padding-top:128px}
+  .hero h1{font-size:36px;line-height:40px}
+  .hero .sub{font-size:18px;line-height:28px}
+  .h2{font-size:30px;line-height:36px}
+  .case h3{font-size:24px;line-height:32px}
+  .phone{width:30%;bottom:-24px}
+  .contact{padding:48px 24px}
+  .brand-grid{grid-template-columns:1fr 1fr}
+  .brand-grid .wide{grid-column:span 2}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<nav class="nav" aria-label="Main">
+  <a class="me" href="#top"><span aria-hidden="true"></span>Promise Felix</a>
+  <ul>
+    <li><a href="#work">Work</a></li>
+    <li><a href="#process">Process</a></li>
+    <li><a href="#skills">Skills</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+  <a class="btn btn-primary btn-sm" href="mailto:vixautomations@gmail.com?subject=Hello%20Promise">Email me</a>
+  <button class="menu-btn" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="panel"><i></i><i></i></button>
+</nav>
+<div class="panel" id="panel" aria-hidden="true">
+  <a href="#work">Work</a>
+  <a href="#process">Process</a>
+  <a href="#skills">Skills</a>
+  <a href="#contact">Contact</a>
+  <a href="mailto:vixautomations@gmail.com?subject=Hello%20Promise">Email me</a>
+</div>
+
+<main id="main">
+  <header class="hero" id="top">
+    <div class="wrap">
+      <div class="eyebrow"><i class="ph ph-map-pin" aria-hidden="true"></i>UI/UX and web designer · Nigeria · Open to roles</div>
+      <h1>Websites that turn<br>visitors into clients</h1>
+      <p class="sub">I'm Promise Felix, a product and web designer. I take products from first sketch to a live, responsive site, and I design the flows that help people understand an offer, trust it and take the next step.</p>
+      <div class="actions">
+        <a class="btn btn-primary" href="mailto:vixautomations@gmail.com?subject=Hello%20Promise">Email me <i class="ph ph-arrow-right" aria-hidden="true"></i></a>
+        <a class="btn btn-ghost" href="#work">See my work</a>
+      </div>
+      <div class="proof">
+        <span><i class="ph ph-check-circle" aria-hidden="true"></i><b>Founder</b> of Vix Automations</span>
+        <span><i class="ph ph-check-circle" aria-hidden="true"></i>Designed and built a <b>5 page</b> business site</span>
+        <span><i class="ph ph-check-circle" aria-hidden="true"></i>Design, front end and automation</span>
+      </div>
+      <div class="showcase rv">
+        <div class="frame"><div class="bar" aria-hidden="true"><i></i><i></i><i></i></div>
+          <img src="portfolio/home.jpg" width="1440" height="900" alt="Vix Automations home page on desktop, with the headline Turn GoHighLevel into your 24/7 revenue engine">
+        </div>
+        <div class="phone"><img src="portfolio/home-mobile.jpg" width="600" height="1298" alt="Vix Automations home page on a phone"></div>
+      </div>
+    </div>
+  </header>
+
+  <section class="block" id="work" aria-labelledby="work-title">
+    <div class="wrap">
+      <div class="label">Selected work</div>
+      <h2 class="h2" id="work-title">Four projects, from page structure to pixels</h2>
+      <p class="lead">Each one started with a real problem a visitor had, not with a layout.</p>
+
+      <article class="case rv">
+        <div>
+          <h3>Vix Automations website</h3>
+          <div class="tags"><span>Product design</span><span>UI design</span><span>Front end build</span><span>2026</span></div>
+          <dl>
+            <div><dt><i class="ph ph-warning-circle" aria-hidden="true"></i>The problem</dt>
+              <dd>A new agency offering four services, with no reviews yet, needed a site that explains the offer in seconds and earns trust honestly.</dd></div>
+            <div><dt><i class="ph ph-pencil-simple-line" aria-hidden="true"></i>What I did</dt>
+              <dd><ul>
+                <li>Mapped the structure: home, pricing, web design and TikTok pages, each with one clear next step</li>
+                <li>Replaced fake social proof with honest trust builders: a clear process, fixed prices and a founding client programme</li>
+                <li>Designed a responsive layout and navigation that stays readable from 1440px desktops down to small phones</li>
+              </ul></dd></div>
+          </dl>
+          <div class="stats"><div><b>5</b>pages</div><div><b>2</b>contact routes, WhatsApp and email</div><div><b>0</b>frameworks, plain HTML, CSS, JS</div></div>
+          <a class="case-link" href="index.html">View the live site <i class="ph ph-arrow-up-right" aria-hidden="true"></i></a>
+        </div>
+        <div class="case-media duo">
+          <div class="frame"><img src="portfolio/home.jpg" width="1440" height="900" loading="lazy" alt="Vix Automations home page hero section"></div>
+          <div class="mob"><img src="portfolio/home-mobile.jpg" width="600" height="1298" loading="lazy" alt="Vix Automations home page on mobile"></div>
+        </div>
+      </article>
+
+      <article class="case rv">
+        <div>
+          <h3>Pricing in the visitor's own currency</h3>
+          <div class="tags"><span>UX design</span><span>Interaction design</span><span>Front end build</span></div>
+          <dl>
+            <div><dt><i class="ph ph-warning-circle" aria-hidden="true"></i>The problem</dt>
+              <dd>Clients in Nigeria, the UK and the US saw prices in dollars and had to convert them in their heads before deciding.</dd></div>
+            <div><dt><i class="ph ph-pencil-simple-line" aria-hidden="true"></i>What I did</dt>
+              <dd><ul>
+                <li>The page picks a currency from the visitor's time zone and language, with no tracking or location prompt</li>
+                <li>Live exchange rates, with a built in fallback so prices never break</li>
+                <li>A manual currency switcher, plus the founding discount shown as a clear saving on every package</li>
+              </ul></dd></div>
+          </dl>
+          <div class="stats"><div><b>11</b>currencies</div><div><b>3</b>fixed price packages</div><div><b>20%</b>discount shown per plan</div></div>
+          <a class="case-link" href="pricing.html">Try the pricing page <i class="ph ph-arrow-up-right" aria-hidden="true"></i></a>
+        </div>
+        <div class="case-media duo">
+          <div class="frame"><img src="portfolio/pricing.jpg" width="1440" height="900" loading="lazy" alt="Pricing page showing three packages in British pounds with a currency selector"></div>
+          <div class="mob"><img src="portfolio/pricing-mobile.jpg" width="600" height="1298" loading="lazy" alt="Pricing page on mobile showing prices in Nigerian naira"></div>
+        </div>
+      </article>
+
+      <article class="case rv">
+        <div>
+          <h3>Custom quote flow and chat assistant</h3>
+          <div class="tags"><span>Form design</span><span>Conversation design</span><span>UX writing</span></div>
+          <dl>
+            <div><dt><i class="ph ph-warning-circle" aria-hidden="true"></i>The problem</dt>
+              <dd>Web design projects vary too much for one price, and visitors had questions they did not want to email about.</dd></div>
+            <div><dt><i class="ph ph-pencil-simple-line" aria-hidden="true"></i>What I did</dt>
+              <dd><ul>
+                <li>A guided quote form that asks only what is needed: package, platform, features, budget and timeline</li>
+                <li>The finished request is sent through WhatsApp or email, whichever the visitor prefers</li>
+                <li>A chat assistant with quick reply chips for common questions, and a handoff to a real person on WhatsApp</li>
+              </ul></dd></div>
+          </dl>
+          <a class="case-link" href="web-design.html#quote-form">Open the quote form <i class="ph ph-arrow-up-right" aria-hidden="true"></i></a>
+        </div>
+        <div class="case-media stack">
+          <div class="frame"><img src="portfolio/quote.jpg" width="1440" height="900" loading="lazy" alt="Custom quote form with package, platform, feature checkboxes, budget and timeline fields"></div>
+          <div class="frame"><img src="portfolio/chatbot.jpg" width="1440" height="900" loading="lazy" alt="Chat assistant open on the home page answering a pricing question"></div>
+        </div>
+      </article>
+
+      <article class="case rv">
+        <div>
+          <h3>Brand identity and social design system</h3>
+          <div class="tags"><span>Brand design</span><span>Visual systems</span><span>Content design</span></div>
+          <dl>
+            <div><dt><i class="ph ph-warning-circle" aria-hidden="true"></i>The problem</dt>
+              <dd>The brand needed to feel credible on LinkedIn and fun on Instagram and TikTok, without looking like two different companies.</dd></div>
+            <div><dt><i class="ph ph-pencil-simple-line" aria-hidden="true"></i>What I did</dt>
+              <dd><ul>
+                <li>Designed the Flow V logo and a shared colour and type system</li>
+                <li>Built two tones on one system: structured carousels for LinkedIn, bold colour blocks for Instagram and TikTok</li>
+                <li>Banners and covers sized to each platform's safe area, so nothing gets cropped on any device</li>
+              </ul></dd></div>
+          </dl>
+        </div>
+        <div class="case-media brand-grid">
+          <img src="portfolio/li3.jpg" width="720" height="900" loading="lazy" alt="LinkedIn carousel slide explaining the speed to lead automation step by step">
+          <img src="portfolio/ig1.jpg" width="720" height="900" loading="lazy" alt="Instagram carousel cover reading Your leads aren't ghosting you, your follow up is">
+          <img src="portfolio/ig3.jpg" width="720" height="900" loading="lazy" alt="Instagram carousel slide on replying to leads in 60 seconds">
+          <img class="wide" src="portfolio/yt.jpg" width="1600" height="900" loading="lazy" alt="YouTube channel banner for Vix Automations">
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section class="block" aria-label="Design belief">
+    <div class="wrap">
+      <p class="reveal-text" id="tagline">Good design is not decoration. It is how a stranger decides to trust you.</p>
+    </div>
+  </section>
+
+  <section class="block" id="process" aria-labelledby="process-title">
+    <div class="wrap">
+      <div class="label">How I work</div>
+      <h2 class="h2" id="process-title">Three steps, every project</h2>
+      <div class="steps">
+        <div class="card rv"><div class="ic"><i class="ph ph-magnifying-glass" aria-hidden="true"></i></div><h3>Understand the user</h3><p>Who is visiting, what they need to know and what stops them from acting. I write this down before I open a design tool.</p></div>
+        <div class="card rv"><div class="ic"><i class="ph ph-layout" aria-hidden="true"></i></div><h3>Design the flow</h3><p>Structure first, then layout, then visual detail. Every screen gets one clear job and one obvious next step.</p></div>
+        <div class="card rv"><div class="ic"><i class="ph ph-rocket-launch" aria-hidden="true"></i></div><h3>Build, test, ship</h3><p>I build it, test it on real phones and desktops, fix what breaks and refine with real feedback.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="skills" aria-labelledby="skills-title">
+    <div class="wrap">
+      <div class="label">Skills</div>
+      <h2 class="h2" id="skills-title">What I bring to a product team</h2>
+      <div class="skills rv">
+        <span><i class="ph ph-cursor-click" aria-hidden="true"></i>UI and UX design</span>
+        <span><i class="ph ph-devices" aria-hidden="true"></i>Responsive web design</span>
+        <span><i class="ph ph-squares-four" aria-hidden="true"></i>Wireframes and prototypes</span>
+        <span><i class="ph ph-palette" aria-hidden="true"></i>Design systems</span>
+        <span><i class="ph ph-code" aria-hidden="true"></i>HTML, CSS and JavaScript</span>
+        <span><i class="ph ph-chat-text" aria-hidden="true"></i>UX writing and conversion copy</span>
+        <span><i class="ph ph-flow-arrow" aria-hidden="true"></i>GoHighLevel funnels and automation</span>
+        <span><i class="ph ph-image" aria-hidden="true"></i>Brand and social design</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="contact" aria-labelledby="contact-title">
+    <div class="wrap">
+      <div class="contact rv">
+        <h2 class="h2" id="contact-title">Hiring a designer? Let's talk.</h2>
+        <p class="lead">I'm open to product and UI design roles, remote or hybrid, and I reply within one business day.</p>
+        <div class="actions"><a class="btn btn-primary" href="mailto:vixautomations@gmail.com?subject=Design%20role%20for%20Promise">Email me <i class="ph ph-arrow-right" aria-hidden="true"></i></a></div>
+        <div class="contact-list">
+          <a href="mailto:vixautomations@gmail.com"><i class="ph ph-envelope-simple" aria-hidden="true"></i>vixautomations@gmail.com</a>
+          <a href="https://wa.me/447868242781" target="_blank" rel="noopener"><i class="ph ph-whatsapp-logo" aria-hidden="true"></i>WhatsApp +44 7868 242781</a>
+          <a href="https://www.linkedin.com/in/promise-felix-a491a7233/" target="_blank" rel="noopener"><i class="ph ph-linkedin-logo" aria-hidden="true"></i>LinkedIn</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>© <span id="yr">2026</span> Promise Felix</span>
+    <a href="index.html">Vix Automations</a>
+  </div>
+</footer>
+
+<script>
+(function () {
+  var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  document.getElementById("yr").textContent = new Date().getFullYear();
+
+  // Mobile menu
+  var btn = document.querySelector(".menu-btn"), panel = document.getElementById("panel");
+  function setMenu(open) {
+    document.body.classList.toggle("menu-open", open);
+    btn.setAttribute("aria-expanded", String(open));
+    btn.setAttribute("aria-label", open ? "Close menu" : "Open menu");
+    panel.setAttribute("aria-hidden", String(!open));
+    panel.querySelectorAll("a").forEach(function (a, i) { a.style.transitionDelay = open ? Math.min(i * 60, 400) + "ms" : "0ms"; });
+  }
+  btn.addEventListener("click", function () { setMenu(btn.getAttribute("aria-expanded") !== "true"); });
+  panel.addEventListener("click", function (e) { if (e.target.closest("a")) setMenu(false); });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape") setMenu(false); });
+
+  if (!("IntersectionObserver" in window)) {
+    document.querySelectorAll(".rv").forEach(function (el) { el.classList.add("in"); });
+    return;
+  }
+
+  // Scroll reveals, once per element
+  var ro = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add("in"); ro.unobserve(e.target); } });
+  }, { threshold: 0.12 });
+  document.querySelectorAll(".rv").forEach(function (el) { ro.observe(el); });
+
+  // Tagline: words light up one by one as they cross the trigger line
+  var tag = document.getElementById("tagline");
+  tag.innerHTML = tag.textContent.trim().split(/\s+/).map(function (w) { return '<span class="w">' + w + "</span>"; }).join(" ");
+  var words = tag.querySelectorAll(".w");
+  if (reduce) { words.forEach(function (w) { w.classList.add("on"); }); }
+  else {
+    var wo = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add("on"); wo.unobserve(e.target); } });
+    }, { rootMargin: "0px 0px -40% 0px" });
+    words.forEach(function (w) { wo.observe(w); });
+  }
+
+  // Current section in the nav
+  var links = document.querySelectorAll('.nav ul a');
+  var so = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) {
+      if (e.isIntersecting) links.forEach(function (a) { a.setAttribute("aria-current", String(a.getAttribute("href") === "#" + e.target.id)); });
+    });
+  }, { rootMargin: "-45% 0px -50% 0px" });
+  ["top", "work", "process", "skills", "contact"].forEach(function (id) { so.observe(document.getElementById(id)); });
+})();
+</script>
+</body>
+</html>
