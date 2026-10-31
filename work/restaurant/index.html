@@ -1,0 +1,340 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ember &amp; Salt · Open fire kitchen in Shoreditch</title>
+<meta name="description" content="Ember & Salt cooks seasonal British produce over open fire in Shoreditch, London. See the menu, book a table and plan private dining.">
+<meta name="robots" content="noindex">
+<meta property="og:title" content="Ember & Salt · Shoreditch">
+<meta property="og:image" content="img/hero.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='16' fill='%23B4441C'/%3E%3Cpath d='M16 7c3 4 6 6 6 11a6 6 0 0 1-12 0c0-3 2-5 3-7 1 2 2 3 3 3 0-3-1-5 0-7z' fill='%23FBF6EE'/%3E%3C/svg%3E">
+<style>
+:root{--bg:#FBF6EE;--paper:#FFFFFF;--sand:#F3EBDD;--line:#E6DBC8;--text:#1C1917;--muted:#6B635A;--accent:#B4441C;--accent-d:#8F3414;--ok:#2F7D4F;--err:#B42318;--ease:cubic-bezier(0.22,1,0.36,1)}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Manrope,system-ui,sans-serif;font-size:16px;line-height:24px;-webkit-font-smoothing:antialiased}
+img{display:block;max-width:100%}a{color:inherit}h1,h2,h3{margin:0;font-weight:700;text-wrap:balance}p{margin:0;text-wrap:pretty}
+.wrap{max-width:1200px;margin:0 auto;padding:0 24px}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:8px}
+.skip{position:absolute;left:16px;top:-64px;background:var(--text);color:#fff;padding:8px 12px;border-radius:8px;font-weight:600;z-index:200}.skip:focus{top:16px}
+.concept{background:var(--text);color:#D6CFC4;font-size:12px;line-height:16px;text-align:center;padding:8px 16px}.concept a{color:#fff}
+.nav{position:sticky;top:12px;z-index:50;margin:12px auto 0;max-width:1152px;width:calc(100% - 32px);display:flex;align-items:center;justify-content:space-between;gap:16px;padding:8px 8px 8px 20px;border-radius:9999px;background:rgba(251,246,238,.82);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid var(--line)}
+.logo{display:flex;align-items:center;gap:8px;font-weight:700;font-size:18px;line-height:28px;text-decoration:none;letter-spacing:-.01em}
+.logo i{color:var(--accent);font-size:24px}
+.nav ul{display:flex;gap:4px;list-style:none;margin:0;padding:0}
+.nav ul a{display:block;padding:8px 12px;border-radius:9999px;font-size:14px;line-height:20px;color:var(--muted);text-decoration:none;font-weight:500;transition:color 300ms var(--ease),background-color 300ms var(--ease)}
+.nav ul a:hover{color:var(--text);background:var(--sand)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:8px 12px;border-radius:9999px;font-weight:600;font-size:16px;line-height:24px;text-decoration:none;border:1px solid transparent;cursor:pointer;font-family:inherit;transition:transform 500ms var(--ease),background-color 300ms var(--ease),border-color 300ms var(--ease)}
+.btn:hover{transform:translateY(-2px)}.btn:active{transform:translateY(1px) scale(.98)}
+.btn-acc{background:var(--accent);color:#fff}.btn-acc:hover{background:var(--accent-d)}
+.btn-line{border-color:var(--text);color:var(--text)}.btn-line:hover{background:var(--sand)}
+.btn-sm{font-size:14px;line-height:20px}
+.burger{display:none;background:none;border:0;color:var(--text);font-size:24px;width:40px;height:40px;border-radius:9999px;cursor:pointer}
+/* hero */
+.hero{padding:64px 0 48px}
+.hero-grid{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center}
+.kicker{display:inline-flex;align-items:center;gap:8px;font-size:14px;line-height:20px;font-weight:600;color:var(--accent);margin-bottom:16px}
+.hero h1{max-width:680px;font-size:60px;line-height:1;letter-spacing:-.03em;background:linear-gradient(90deg,#000000,#666666);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero .sub{max-width:680px;margin-top:24px;font-size:20px;line-height:28px;color:var(--muted)}
+.cta-row{display:flex;flex-wrap:wrap;gap:12px;margin-top:32px}
+.hero-img{position:relative}
+.hero-img img{border-radius:24px;aspect-ratio:4/5;object-fit:cover;width:100%}
+.hero-card{position:absolute;left:-24px;bottom:32px;background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:16px;display:flex;gap:12px;align-items:center;box-shadow:0 16px 40px rgba(28,25,23,.12)}
+.hero-card i{font-size:24px;color:var(--accent)}
+.hero-card b{display:block;font-size:14px;line-height:20px}.hero-card span{font-size:12px;line-height:16px;color:var(--muted)}
+.strip{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:48px}
+.strip>div{display:flex;gap:12px;align-items:flex-start;padding:16px;border:1px solid var(--line);border-radius:16px;background:var(--paper)}
+.strip i{font-size:24px;color:var(--accent)}
+.strip b{display:block;font-size:14px;line-height:20px}.strip span{font-size:14px;line-height:20px;color:var(--muted)}
+/* sections */
+.block{padding:96px 0}
+.label{font-size:14px;line-height:20px;font-weight:600;color:var(--accent);margin-bottom:12px}
+.h2{font-size:36px;line-height:40px;letter-spacing:-.02em;max-width:680px}
+.lead{margin-top:16px;color:var(--muted);font-size:18px;line-height:28px;max-width:680px}
+/* menu */
+.tabs{display:flex;flex-wrap:wrap;gap:8px;margin-top:32px}
+.tab{font:inherit;font-size:14px;line-height:20px;font-weight:600;padding:8px 16px;border-radius:9999px;border:1px solid var(--line);background:var(--paper);color:var(--muted);cursor:pointer;transition:background-color 300ms var(--ease),color 300ms var(--ease),border-color 300ms var(--ease)}
+.tab:hover{color:var(--text)}
+.tab[aria-selected="true"]{background:var(--text);color:#fff;border-color:var(--text)}
+.menu{display:grid;grid-template-columns:1fr 1fr;gap:0 48px;margin-top:32px}
+.dish{display:flex;justify-content:space-between;gap:24px;padding:20px 0;border-bottom:1px solid var(--line)}
+.dish h3{font-size:18px;line-height:28px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.dish p{margin-top:4px;color:var(--muted);font-size:14px;line-height:20px}
+.dish .pr{font-weight:700;font-size:18px;line-height:28px;white-space:nowrap}
+.tag{font-size:12px;line-height:16px;font-weight:600;padding:2px 8px;border-radius:9999px;background:var(--sand);color:var(--accent-d)}
+.menu-note{margin-top:24px;font-size:14px;line-height:20px;color:var(--muted);display:flex;align-items:center;gap:8px}
+/* gallery */
+.gallery{display:grid;grid-template-columns:repeat(4,1fr);grid-auto-rows:240px;gap:16px;margin-top:40px}
+.gallery figure{margin:0;position:relative;border-radius:16px;overflow:hidden}
+.gallery figure.big{grid-column:span 2;grid-row:span 2}
+.gallery img{width:100%;height:100%;object-fit:cover;transition:transform 500ms var(--ease)}
+.gallery figure:hover img{transform:scale(1.04)}
+.gallery figcaption{position:absolute;left:12px;bottom:12px;background:rgba(255,255,255,.92);font-size:14px;line-height:20px;font-weight:600;padding:4px 12px;border-radius:9999px}
+/* booking */
+.book{display:grid;grid-template-columns:5fr 7fr;gap:48px;align-items:start}
+.book-side dl{margin:32px 0 0;display:grid;gap:20px}
+.book-side dt{display:flex;align-items:center;gap:8px;font-weight:700}.book-side dt i{color:var(--accent);font-size:20px}
+.book-side dd{margin:4px 0 0 28px;color:var(--muted)}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:24px;padding:32px}
+.card h3{font-size:24px;line-height:32px}
+.fields{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:24px}
+.fields .half{grid-column:span 1}.fields .wide{grid-column:span 2}.fields .full{grid-column:1/-1}
+label{display:block;font-size:12px;line-height:16px;color:var(--muted);margin-bottom:4px;font-weight:600}
+select,input,textarea{width:100%;font:inherit;font-size:16px;line-height:24px;color:var(--text);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 12px;transition:border-color 300ms var(--ease)}
+select:focus,input:focus,textarea:focus{outline:none;border-color:var(--accent)}
+.slots{display:flex;flex-wrap:wrap;gap:8px}
+.slot{font:inherit;font-size:14px;line-height:20px;font-weight:600;padding:8px 12px;border-radius:8px;border:1px solid var(--line);background:var(--bg);cursor:pointer;transition:background-color 300ms var(--ease),border-color 300ms var(--ease)}
+.slot:hover{border-color:var(--text)}
+.slot[aria-pressed="true"]{background:var(--text);color:#fff;border-color:var(--text)}
+.slot:disabled{opacity:.4;cursor:not-allowed;text-decoration:line-through}
+.msg{margin-top:16px;font-size:14px;line-height:20px;min-height:20px}.msg.ok{color:var(--ok)}.msg.err{color:var(--err)}
+.invalid{border-color:var(--err)!important}
+/* private */
+.private{display:grid;grid-template-columns:1fr 1fr;gap:0;border-radius:24px;overflow:hidden;background:var(--text);color:#fff}
+.private img{width:100%;height:100%;object-fit:cover;min-height:420px}
+.private .txt{padding:48px}
+.private .label{color:#F2A57E}
+.private .lead{color:#D6CFC4}
+.private ul{list-style:none;padding:0;margin:24px 0 0;display:grid;gap:12px}
+.private li{display:flex;gap:12px;align-items:center}.private li i{color:#F2A57E;font-size:20px}
+.private .btn-acc{margin-top:32px}
+/* reviews */
+.quotes{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:40px}
+.quote{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:24px}
+.quote p{font-size:18px;line-height:28px}
+.quote footer{margin-top:16px;font-size:14px;line-height:20px;color:var(--muted)}.quote b{color:var(--text)}
+footer.site{border-top:1px solid var(--line);padding:32px 0 48px;color:var(--muted);font-size:14px;line-height:20px}
+footer.site .wrap{display:flex;flex-wrap:wrap;justify-content:space-between;gap:16px}footer.site a{text-decoration:none}footer.site a:hover{color:var(--text)}
+.rv{opacity:0;transform:translateY(32px);transition:opacity 700ms var(--ease),transform 700ms var(--ease)}.rv.in{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.rv{transform:none}.btn,.gallery img{transition:none}}
+@media (max-width:960px){.hero-grid,.book,.private{grid-template-columns:1fr}.gallery{grid-template-columns:repeat(2,1fr)}.quotes{grid-template-columns:1fr}.hero-card{left:16px}}
+@media (max-width:800px){
+  .nav ul,.nav .btn{display:none}.burger{display:block}
+  .nav.open{border-radius:16px;flex-wrap:wrap}.nav.open ul{display:flex;flex-direction:column;width:100%;order:3;padding-bottom:8px}
+  .hero h1{font-size:48px;line-height:1}.menu{grid-template-columns:1fr}.strip{grid-template-columns:1fr}
+  .h2{font-size:30px;line-height:36px}.block{padding:64px 0}.private .txt{padding:32px 24px}
+}
+@media (max-width:520px){.hero h1{font-size:36px;line-height:40px}.fields{grid-template-columns:1fr 1fr}.fields .wide,.fields .full{grid-column:1/-1}.card{padding:24px}.gallery{grid-auto-rows:180px}}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<div class="concept">Concept website designed by <a href="../../portfolio.html">Promise Felix</a> · Ember &amp; Salt is a fictional restaurant</div>
+
+<nav class="nav" aria-label="Main">
+  <a class="logo" href="#top"><i class="ph ph-fire" aria-hidden="true"></i>Ember &amp; Salt</a>
+  <ul>
+    <li><a href="#menu">Menu</a></li>
+    <li><a href="#gallery">Gallery</a></li>
+    <li><a href="#private">Private dining</a></li>
+    <li><a href="#book">Find us</a></li>
+  </ul>
+  <a class="btn btn-acc btn-sm" href="#book">Book a table</a>
+  <button class="burger" type="button" aria-label="Open menu" aria-expanded="false"><i class="ph ph-list" aria-hidden="true"></i></button>
+</nav>
+
+<main id="main">
+<header class="hero" id="top">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="kicker"><i class="ph ph-fire" aria-hidden="true"></i>Open fire kitchen · Shoreditch, London</div>
+      <h1>Seasonal plates,<br>cooked over<br>open flame</h1>
+      <p class="sub">British produce from farms within 90 miles, grilled over oak and served to share. Dinner Tuesday to Sunday, long lunch at the weekend.</p>
+      <div class="cta-row">
+        <a class="btn btn-acc" href="#book">Book a table <i class="ph ph-arrow-right" aria-hidden="true"></i></a>
+        <a class="btn btn-line" href="#menu">See the menu</a>
+      </div>
+    </div>
+    <div class="hero-img">
+      <img src="img/hero.jpg" alt="Plated dish being served at a candlelit dinner table with wine glasses">
+      <div class="hero-card"><i class="ph ph-star" aria-hidden="true"></i><div><b>4.7 from 1,284 diners</b><span>Booked 9 times in the last hour</span></div></div>
+    </div>
+  </div>
+  <div class="wrap"><div class="strip">
+    <div><i class="ph ph-clock" aria-hidden="true"></i><div><b>Open today</b><span>17:30 to 23:00</span></div></div>
+    <div><i class="ph ph-map-pin" aria-hidden="true"></i><div><b>38 Rivington Street</b><span>4 minutes from Old Street</span></div></div>
+    <div><i class="ph ph-leaf" aria-hidden="true"></i><div><b>Dietary friendly</b><span>Vegetarian, vegan and gluten free options</span></div></div>
+  </div></div>
+</header>
+
+<section class="block" id="menu" aria-labelledby="menu-h" style="background:var(--sand)">
+  <div class="wrap">
+    <div class="label">The menu</div>
+    <h2 class="h2" id="menu-h">Changes with the season, never with the fire</h2>
+    <div class="tabs" role="tablist" aria-label="Menu sections"></div>
+    <div class="menu" id="menu-list" role="tabpanel" aria-live="polite"></div>
+    <p class="menu-note"><i class="ph ph-info" aria-hidden="true"></i>Allergens are listed on request. A discretionary 12.5% service charge is added to the bill.</p>
+  </div>
+</section>
+
+<section class="block" id="gallery" aria-labelledby="gal-h">
+  <div class="wrap">
+    <div class="label">From the pass</div>
+    <h2 class="h2" id="gal-h">A few plates our guests keep coming back for</h2>
+    <div class="gallery">
+      <figure class="big rv"><img src="img/food1.jpg" loading="lazy" alt="Oak grilled short rib with roasted tomatoes on a wooden board"><figcaption>Oak grilled short rib</figcaption></figure>
+      <figure class="rv"><img src="img/food2.jpg" loading="lazy" alt="Skewers with sauces on a tray"><figcaption>Fire skewers</figcaption></figure>
+      <figure class="rv"><img src="img/food4.jpg" loading="lazy" alt="Fish fillet with vegetables in a white bowl"><figcaption>Hake, brown butter</figcaption></figure>
+      <figure class="rv"><img src="img/food3.jpg" loading="lazy" alt="Sharing plates of grilled meat and salads"><figcaption>Sharing table</figcaption></figure>
+      <figure class="rv"><img src="img/food5.jpg" loading="lazy" alt="Grain salad with orange juice"><figcaption>Charred grain salad</figcaption></figure>
+    </div>
+  </div>
+</section>
+
+<section class="block" id="book" aria-labelledby="book-h" style="background:var(--sand)">
+  <div class="wrap book">
+    <div class="book-side">
+      <div class="label">Reservations</div>
+      <h2 class="h2" id="book-h">Book a table</h2>
+      <p class="lead">Tables for up to 8 online. For bigger groups, use private dining below.</p>
+      <dl>
+        <div><dt><i class="ph ph-clock" aria-hidden="true"></i>Opening hours</dt><dd>Tuesday to Thursday 17:30 to 23:00<br>Friday and Saturday 12:00 to 23:30<br>Sunday 12:00 to 21:00</dd></div>
+        <div><dt><i class="ph ph-map-pin" aria-hidden="true"></i>Address</dt><dd>38 Rivington Street, London EC2A 3LX</dd></div>
+        <div><dt><i class="ph ph-phone" aria-hidden="true"></i>Call us</dt><dd>020 0000 0000 (sample number)</dd></div>
+      </dl>
+    </div>
+    <div class="card rv">
+      <h3>Your reservation</h3>
+      <form id="res" novalidate>
+        <div class="fields">
+          <div><label for="r-date">Date</label><input id="r-date" type="date" required></div>
+          <div><label for="r-guests">Guests</label><select id="r-guests"><option>1</option><option selected>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option></select></div>
+          <div><label for="r-occ">Occasion</label><select id="r-occ"><option value="">None</option><option>Birthday</option><option>Anniversary</option><option>Business</option></select></div>
+          <div class="full"><label id="slot-l">Time</label><div class="slots" id="slots" role="group" aria-labelledby="slot-l"></div></div>
+          <div class="wide"><label for="r-name">Full name</label><input id="r-name" required autocomplete="name" placeholder="Hannah Whitfield"></div>
+          <div><label for="r-phone">Phone</label><input id="r-phone" required inputmode="tel" autocomplete="tel" placeholder="07700 900418"></div>
+          <div class="full"><label for="r-email">Email</label><input id="r-email" type="email" required autocomplete="email" placeholder="hannah@example.com"></div>
+          <div class="full"><label for="r-notes">Notes (allergies, high chair, accessibility)</label><textarea id="r-notes" rows="2"></textarea></div>
+        </div>
+        <button class="btn btn-acc" type="submit" style="margin-top:24px">Confirm booking</button>
+        <p class="msg" id="r-msg" role="status"></p>
+      </form>
+    </div>
+  </div>
+</section>
+
+<section class="block" id="private" aria-labelledby="priv-h">
+  <div class="wrap">
+    <div class="private rv">
+      <img src="img/terrace.jpg" loading="lazy" alt="Covered terrace with set tables overlooking water">
+      <div class="txt">
+        <div class="label">Private dining</div>
+        <h2 class="h2" id="priv-h">The terrace, for up to 40 guests</h2>
+        <p class="lead">Birthdays, launches and long team dinners. A set feasting menu from £58 a head, planned with our head chef.</p>
+        <ul>
+          <li><i class="ph ph-users-three" aria-hidden="true"></i>Seated 40, standing 60</li>
+          <li><i class="ph ph-fork-knife" aria-hidden="true"></i>Feasting menus from £58 a head</li>
+          <li><i class="ph ph-speaker-high" aria-hidden="true"></i>Own sound system and screen</li>
+        </ul>
+        <a class="btn btn-acc" href="mailto:events@example.com?subject=Private%20dining%20enquiry">Enquire about a date</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="block" aria-labelledby="q-h" style="padding-top:0">
+  <div class="wrap">
+    <div class="label">Guests say</div>
+    <h2 class="h2" id="q-h">Worth the walk from Old Street</h2>
+    <div class="quotes">
+      <blockquote class="quote rv" style="margin:0"><p>The short rib is the best thing I ate this year, and the staff remembered our anniversary without being asked twice.</p><footer><b>Priya Raman</b> · Hackney</footer></blockquote>
+      <blockquote class="quote rv" style="margin:0"><p>Booked the terrace for 26 people. Seamless from the first email to the last plate.</p><footer><b>Marcus Doyle</b> · team dinner organiser</footer></blockquote>
+      <blockquote class="quote rv" style="margin:0"><p>Proper vegetarian dishes, not an afterthought. The charred leeks alone are worth booking for.</p><footer><b>Sophie Lang</b> · Islington</footer></blockquote>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer class="site"><div class="wrap"><span>© <span class="yr">2026</span> Ember &amp; Salt · concept project</span><span><a href="#top">Back to top</a> · <a href="../../portfolio.html">Designed by Promise Felix</a></span></div></footer>
+
+<script>
+(function () {
+  var menu = {
+    "Small plates": [
+      ["Charred leeks", "Hazelnut romesco, aged Lincolnshire Poacher", 9, "V"],
+      ["Grilled flatbread", "Whipped cod roe, smoked oil", 7.5, ""],
+      ["Beef tartare", "Ember cured yolk, pickled shallot, rye", 13, ""],
+      ["Burnt carrots", "Spiced yoghurt, dukkah, coriander", 8.5, "VG option"]
+    ],
+    "From the fire": [
+      ["Oak grilled short rib", "36 hour cook, bone marrow glaze, horseradish", 29, "Signature"],
+      ["Whole sea bream", "Brown butter, capers, charred lemon", 26, ""],
+      ["Fire skewers", "Lamb, chicken thigh and halloumi, three sauces", 22, ""],
+      ["Hispi cabbage", "Miso butter, crispy shallots", 16, "V"]
+    ],
+    "Sides": [
+      ["Beef fat potatoes", "Rosemary salt", 6, ""],
+      ["Charred grain salad", "Pomegranate, herbs, orange", 6.5, "VG"],
+      ["Tenderstem broccoli", "Chilli, garlic, almonds", 6, "VG"]
+    ],
+    "Desserts": [
+      ["Smoked chocolate pot", "Sea salt, olive oil, sourdough crisp", 9, "V"],
+      ["Grilled pineapple", "Rum caramel, coconut sorbet", 8, "VG"],
+      ["British cheeses", "Three cheeses, oat crackers, chutney", 12, "V"]
+    ]
+  };
+  var tabs = document.querySelector(".tabs"), list = document.getElementById("menu-list");
+  Object.keys(menu).forEach(function (k, i) {
+    var b = document.createElement("button"); b.className = "tab"; b.type = "button"; b.role = "tab"; b.textContent = k;
+    b.setAttribute("aria-selected", i === 0); b.addEventListener("click", function () { show(k); }); tabs.appendChild(b);
+  });
+  function show(k) {
+    tabs.querySelectorAll(".tab").forEach(function (t) { t.setAttribute("aria-selected", t.textContent === k); });
+    list.innerHTML = menu[k].map(function (d) {
+      return '<div class="dish"><div><h3>' + d[0] + (d[3] ? ' <span class="tag">' + d[3] + "</span>" : "") + "</h3><p>" + d[1] + '</p></div><div class="pr">£' + (d[2] % 1 ? d[2].toFixed(2) : d[2]) + "</div></div>";
+    }).join("");
+  }
+  show("Small plates");
+
+  // Reservation: time slots depend on the day
+  var date = document.getElementById("r-date"), slots = document.getElementById("slots"), chosen = "";
+  var today = new Date(); date.min = today.toISOString().slice(0, 10); date.value = date.min;
+  var full = { "19:30": 1, "20:00": 1 };
+  function drawSlots() {
+    var d = new Date(date.value + "T12:00"), day = d.getDay(), times = [];
+    if (day === 1) { slots.innerHTML = '<p style="color:var(--muted);font-size:14px;line-height:20px">We are closed on Mondays. Please choose another day.</p>'; chosen = ""; return; }
+    if (day === 0 || day === 5 || day === 6) times = ["12:30", "13:30", "14:30"];
+    times = times.concat(["17:30", "18:00", "18:30", "19:00", "19:30", "20:00", "20:30", "21:00"]);
+    slots.innerHTML = times.map(function (t) { return '<button type="button" class="slot" aria-pressed="false"' + (full[t] ? " disabled title=\"Fully booked\"" : "") + ">" + t + "</button>"; }).join("");
+    chosen = "";
+  }
+  slots.addEventListener("click", function (e) {
+    var b = e.target.closest(".slot"); if (!b || b.disabled) return;
+    slots.querySelectorAll(".slot").forEach(function (s) { s.setAttribute("aria-pressed", s === b); }); chosen = b.textContent;
+  });
+  date.addEventListener("change", drawSlots); drawSlots();
+
+  var f = document.getElementById("res"), m = document.getElementById("r-msg");
+  f.addEventListener("submit", function (e) {
+    e.preventDefault(); var bad = [];
+    f.querySelectorAll("[required]").forEach(function (el) {
+      var ok = el.value.trim() !== "";
+      if (el.type === "email") ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(el.value);
+      if (el.inputMode === "tel") ok = /^[+\d][\d\s]{9,15}$/.test(el.value.trim());
+      el.classList.toggle("invalid", !ok); if (!ok) bad.push(el);
+    });
+    if (!chosen) { m.className = "msg err"; m.textContent = "Please choose a time for your table."; return; }
+    if (bad.length) { m.className = "msg err"; m.textContent = "Please check the highlighted fields. We need a valid phone number and email to confirm."; bad[0].focus(); return; }
+    var g = document.getElementById("r-guests").value, d = new Date(date.value + "T12:00").toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" });
+    m.className = "msg ok"; m.textContent = "Table for " + g + " on " + d + " at " + chosen + " is held. A confirmation is on its way to your email.";
+    f.reset(); date.value = date.min; drawSlots();
+  });
+  f.addEventListener("input", function (e) { e.target.classList.remove("invalid"); });
+
+  var nav = document.querySelector(".nav"), bu = nav.querySelector(".burger");
+  bu.addEventListener("click", function () { var o = nav.classList.toggle("open"); bu.setAttribute("aria-expanded", o); bu.setAttribute("aria-label", o ? "Close menu" : "Open menu"); bu.innerHTML = o ? '<i class="ph ph-x"></i>' : '<i class="ph ph-list"></i>'; });
+  nav.addEventListener("click", function (e) { if (e.target.closest("ul a")) { nav.classList.remove("open"); bu.innerHTML = '<i class="ph ph-list"></i>'; bu.setAttribute("aria-expanded", "false"); } });
+
+  document.querySelectorAll(".yr").forEach(function (y) { y.textContent = new Date().getFullYear(); });
+  if ("IntersectionObserver" in window) {
+    var io = new IntersectionObserver(function (es) { es.forEach(function (x) { if (x.isIntersecting) { x.target.classList.add("in"); io.unobserve(x.target); } }); }, { threshold: .12 });
+    document.querySelectorAll(".rv").forEach(function (el) { io.observe(el); });
+  } else document.querySelectorAll(".rv").forEach(function (el) { el.classList.add("in"); });
+})();
+</script>
+</body>
+</html>
