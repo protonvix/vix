@@ -327,6 +327,36 @@ footer ul a:hover{color:var(--gold)}
 .wa:hover{transform:translateY(-4px) scale(1.04)}
 .wa:active{transform:scale(.98)}
 
+
+/* ===== Liquid hovers ===== */
+.btn{position:relative;overflow:hidden;isolation:isolate;--fill:var(--emerald)}
+.btn::before{content:"";position:absolute;left:50%;top:100%;width:220%;aspect-ratio:1;margin-left:-110%;border-radius:42%;background:var(--fill);z-index:-1;transform:translateY(0) rotate(0);transition:transform 900ms var(--ease);pointer-events:none}
+.btn:hover::before,.btn:focus-visible::before{transform:translateY(-120px) rotate(180deg)}
+.btn-green:hover{background:var(--green)}
+.btn-gold{--fill:#FFF3C4}.btn-gold:hover{background:var(--gold)}
+.btn-line{--fill:var(--green)}.btn-line:hover{background:transparent;color:#fff}
+.btn-glass{--fill:rgba(255,255,255,.22)}.btn-glass:hover{background:rgba(255,255,255,.1)}
+.btn-ghost-light{--fill:rgba(255,255,255,.18)}.btn-ghost-light:hover{background:transparent}
+.lq{position:relative;overflow:hidden;isolation:isolate;--lq:rgba(124,197,32,.16)}
+.lq::before{content:"";position:absolute;left:var(--mx,50%);top:var(--my,50%);width:560px;height:560px;margin:-280px 0 0 -280px;border-radius:42% 58% 63% 37%/41% 44% 56% 59%;background:var(--lq);transform:scale(0) rotate(0);transition:transform 1000ms var(--ease);z-index:-1;pointer-events:none}
+.lq:hover::before{transform:scale(1) rotate(140deg)}
+.lq::after{content:"";position:absolute;top:0;left:0;width:50%;height:100%;background:linear-gradient(100deg,rgba(255,255,255,0),rgba(255,255,255,.35),rgba(255,255,255,0));transform:translateX(-160%) skewX(-14deg);transition:transform 1100ms var(--ease);pointer-events:none}
+.lq:hover::after{transform:translateX(320%) skewX(-14deg)}
+.dark .lq,.card.featured.lq{--lq:rgba(227,178,60,.16)}
+.dark .lq::after,.card.featured.lq::after{background:linear-gradient(100deg,rgba(255,255,255,0),rgba(255,255,255,.12),rgba(255,255,255,0))}
+.gallery figure.lq{--lq:rgba(6,55,31,.28)}
+.gallery figure.lq::before{z-index:1;mix-blend-mode:multiply}
+.gallery figcaption{z-index:2}
+.prayer.lq{position:sticky}
+.nav ul{position:relative}
+.nav ul li{position:relative;z-index:1}
+.nav ul a:hover{background:transparent}
+.nav ul a[aria-current="true"]{background:transparent}
+.nav ul .npill{position:absolute;left:0;top:0;height:100%;width:0;border-radius:9999px;background:var(--butter);opacity:0;z-index:0;transition:transform 600ms cubic-bezier(.5,1.6,.4,1),width 600ms cubic-bezier(.5,1.6,.4,1),opacity 300ms var(--ease)}
+.nav ul .npill.go{animation:squish 600ms var(--ease)}
+@keyframes squish{30%{border-radius:40% 60% 60% 40%/60% 40% 60% 40%}}
+@media (prefers-reduced-motion:reduce){.btn::before,.lq::before{transition:none}.lq::after{display:none}.nav ul .npill{transition:opacity 300ms}}
+
 /* reveal */
 .rv{opacity:0;transform:translateY(32px);transition:opacity 700ms var(--ease),transform 700ms var(--ease)}
 .rv.in{opacity:1;transform:none}
@@ -352,7 +382,7 @@ footer ul a:hover{color:var(--gold)}
   .final-box{grid-template-columns:1fr;padding:48px}
   .final-box img{margin:0;width:160px;order:-1}
   .fgrid2{grid-template-columns:1fr 1fr}
-  .prayer{position:static}
+  .prayer,.prayer.lq{position:static}
 }
 @media (max-width:640px){
   .wrap{padding:0 16px}
@@ -400,6 +430,7 @@ footer ul a:hover{color:var(--gold)}
     <span><b>KIMS</b><span>Kudam Islamic Model School</span></span>
   </a>
   <ul>
+    <li class="npill" aria-hidden="true"></li>
     <li><a href="#about">About</a></li>
     <li><a href="#programmes">Programmes</a></li>
     <li><a href="#islamic-life">Islamic life</a></li>
@@ -843,6 +874,25 @@ try {
     const r = hero.getBoundingClientRect(); x = e.clientX - r.left; y = e.clientY - r.top;
     if (!raf) raf = requestAnimationFrame(() => { glow.style.transform = `translate(${x}px, ${y}px)`; raf = 0; });
   });
+})();
+
+
+/* Liquid hovers: blob spreads from where the pointer enters */
+document.querySelectorAll('.card,.feat article,.slot,.contact a,.contact div,.uniform li,.faq details,.gallery figure,.quote,.need,.stu-art,.prayer').forEach(el => {
+  el.classList.add('lq');
+  el.addEventListener('pointerenter', e => { const r = el.getBoundingClientRect(); el.style.setProperty('--mx', (e.clientX - r.left) + 'px'); el.style.setProperty('--my', (e.clientY - r.top) + 'px'); });
+});
+/* Liquid nav pill */
+(function () {
+  const ul = document.querySelector('.nav ul'), pill = ul.querySelector('.npill');
+  function to(a) {
+    if (!a) { pill.style.opacity = 0; return; }
+    pill.style.width = a.offsetWidth + 'px'; pill.style.transform = 'translateX(' + a.parentElement.offsetLeft + 'px)'; pill.style.opacity = 1;
+    pill.classList.remove('go'); void pill.offsetWidth; pill.classList.add('go');
+  }
+  ul.querySelectorAll('a').forEach(a => a.addEventListener('pointerenter', () => to(a)));
+  ul.addEventListener('pointerleave', () => to(ul.querySelector('a[aria-current]')));
+  new MutationObserver(() => { if (!ul.matches(':hover')) to(ul.querySelector('a[aria-current]')); }).observe(ul, {subtree: true, attributes: true, attributeFilter: ['aria-current']});
 })();
 
 /* Mobile menu */
