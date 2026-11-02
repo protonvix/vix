@@ -34,3 +34,8 @@ python3 -m http.server 8000
 **Cloudflare Workers (connected to GitHub):** `wrangler.jsonc` tells Cloudflare to serve this folder as a static site, and `.assetsignore` keeps repo files (README, licence, config) off the website. In the Cloudflare setup, leave the build command empty and keep the deploy command `npx wrangler deploy`. The project name in Cloudflare must match `name` in `wrangler.jsonc` (`vix`).
 
 Upload the three files to any static host (Netlify, Vercel, GitHub Pages, Cloudflare Pages), or paste them into a HighLevel website page using custom code.
+
+## Kudam Islamic Model School (KIMS) website
+`work/kudam-islamic-school/` is a complete one-page school website for Kudam Islamic Model School, Osogbo (green and butter school colours, badge, campus photos, student uniform illustration, Islamic life, live Osogbo prayer times, Hijri date, admissions enquiry form that opens WhatsApp, FAQ and a privacy page).
+
+Before launch, set the school's real WhatsApp/phone number in the `SCHOOL` settings at the top of the `<script>` in `work/kudam-islamic-school/index.html`.
