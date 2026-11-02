@@ -103,7 +103,7 @@ $$(".reveal").forEach((el) => {
 /* ---------- Tagline words ---------- */
 const tag = $("[data-words]");
 if (tag) {
-  const accent = new Set(["first", "meeting", "WhatsApp."]);
+  const accent = new Set(["first", "impression", "count."]);
   tag.innerHTML = tag.textContent.trim().split(/\s+/).map((w) => `<span class="w${accent.has(w) ? " is-accent" : ""}">${w}</span>`).join(" ");
   const words = $$(".w", tag);
   let raf = 0;
