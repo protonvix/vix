@@ -92,6 +92,9 @@ fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
 .hero__actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s5); margin-top: var(--s6); }
 .hero__proof { display: flex; align-items: center; gap: var(--s3); margin-top: var(--s7); color: var(--text-2); font-size: 0.875rem; line-height: 1.25rem; }
 .hero__proof strong { color: var(--text); font-weight: 600; }
+.hero__trust { list-style: none; padding: 0; margin: var(--s7) 0 0; display: flex; flex-wrap: wrap; gap: var(--s3) var(--s5); }
+.hero__trust li { display: flex; align-items: center; gap: var(--s2); font-size: 0.875rem; line-height: 1.25rem; color: var(--text-2); }
+.hero__trust .ph-fill { color: var(--mint); font-size: 1.125rem; }
 .hero__avatars { display: flex; }
 .hero__avatars img { width: 32px; height: 32px; border-radius: var(--r-full); object-fit: cover; border: 2px solid var(--bg); background: #000; }
 .hero__avatars img + img { margin-left: -10px; }

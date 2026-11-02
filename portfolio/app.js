@@ -33,12 +33,12 @@ const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const waLink = (text) => `https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent(text)}`;
 
 /* ---------- Links ---------- */
-$$("[data-wa-link]").forEach((a) => (a.href = waLink("Hi Promise, I saw your portfolio and I would like to talk about a website.")));
+$$("[data-wa-link]").forEach((a) => (a.href = waLink("Hello Promise, I visited your portfolio and would like to discuss a website project.")));
 $$("[data-email-link]").forEach((a) => (a.href = `mailto:${CONFIG.email}`));
 $$("[data-work-link]").forEach((a) => (a.href = CONFIG.works[a.dataset.workLink]));
 $("[data-year]").textContent = new Date().getFullYear();
 const socialHTML =
-  `<a href="${waLink("Hi Promise, I saw your portfolio.")}" target="_blank" rel="noopener" aria-label="WhatsApp"><i class="ph ph-whatsapp-logo"></i></a>` +
+  `<a href="${waLink("Hello Promise, I visited your portfolio and would like to discuss a website project.")}" target="_blank" rel="noopener" aria-label="WhatsApp"><i class="ph ph-whatsapp-logo"></i></a>` +
   Object.entries(CONFIG.socials).filter(([, url]) => url)
     .map(([k, url]) => `<a href="${url}" target="_blank" rel="noopener" aria-label="${LABELS[k]}"><i class="ph ph-${ICONS[k]}"></i></a>`).join("") +
   `<a href="mailto:${CONFIG.email}" aria-label="Email"><i class="ph ph-envelope-simple"></i></a>`;
@@ -71,7 +71,7 @@ const navLinks = $$(".nav__links a");
 const secObs = new IntersectionObserver((es) => es.forEach((e) => {
   if (e.isIntersecting) navLinks.forEach((a) => a.classList.toggle("is-current", a.getAttribute("href") === `#${e.target.id}`));
 }), { rootMargin: "-45% 0px -50% 0px" });
-["top", "work", "services", "process", "faq"].forEach((id) => secObs.observe(document.getElementById(id)));
+["top", "work", "why", "services", "process", "faq"].forEach((id) => secObs.observe(document.getElementById(id)));
 
 /* ---------- Hero tilt ---------- */
 const stage = $("[data-tilt]");
@@ -103,7 +103,7 @@ $$(".reveal").forEach((el) => {
 /* ---------- Tagline words ---------- */
 const tag = $("[data-words]");
 if (tag) {
-  const accent = new Set(["first", "impression", "count."]);
+  const accent = new Set(["seconds", "trust."]);
   tag.innerHTML = tag.textContent.trim().split(/\s+/).map((w) => `<span class="w${accent.has(w) ? " is-accent" : ""}">${w}</span>`).join(" ");
   const words = $$(".w", tag);
   let raf = 0;
@@ -192,7 +192,7 @@ function validateStep(n) {
   }
   if (n === 4) {
     let ok = true;
-    if (F("name").value.trim().length < 2) { showError("name", "Enter your name so I know who I am replying to."); ok = false; }
+    if (F("name").value.trim().length < 2) { showError("name", "Please enter your name."); ok = false; }
     const em = F("email").value.trim();
     if (em && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(em)) { showError("email", "That email address does not look right."); ok = false; }
     return ok;
@@ -322,7 +322,7 @@ form.addEventListener("submit", (e) => {
   if (!validateStep(4)) return;
   const name = F("name").value.trim();
   const lines = [
-    `Hi Promise, I'm ${name}. I filled in the project form on your portfolio.`,
+    `Hello Promise, my name is ${name}. I have just completed the project form on your portfolio.`,
     "",
     ...collect().map(([k, v]) => `${k}: ${v}`),
   ];
