@@ -2,7 +2,8 @@
   "use strict";
 
   // ===== Settings you can change =====
-  var WHATSAPP_NUMBER = "447868242781"; // international format, digits only
+  var WHATSAPP_NUMBER = "447723149573"; // UK line, international format, digits only
+  var WHATSAPP_NG_LINK = "https://wa.me/message/WV3WLO4FC656K"; // Nigeria line (message link, no prefilled text)
   var WHATSAPP_GREETING = "Hi Vix Automations! I found you on your website and I'd like to ask about ";
   var EMAIL = "vixautomations@gmail.com";
 
@@ -12,11 +13,22 @@
   // Pages live side by side, so links work from both index.html and pricing.html.
   var HOME = /(pricing|tiktok|web-design)(\.html)?$/.test(location.pathname) ? "index.html" : "";
 
-  function waLink(text) {
+  // Visitors in Nigeria are sent to the Nigerian line; everyone else to the UK line.
+  function inNigeria() {
+    try { if (Intl.DateTimeFormat().resolvedOptions().timeZone === "Africa/Lagos") return true; } catch (e) {}
+    return (navigator.languages || [navigator.language || ""]).some(function (l) { return /-NG$/i.test(l); });
+  }
+  // keepText: the message must carry text (e.g. a typed question), so always use the UK number.
+  function waLink(text, keepText) {
+    if (!keepText && inNigeria()) return WHATSAPP_NG_LINK;
     return "https://wa.me/" + WHATSAPP_NUMBER + "?text=" + encodeURIComponent(text || WHATSAPP_GREETING + "your GoHighLevel services.");
   }
   function usd(n) { return "$" + n.toLocaleString("en-US"); }
   function off(n) { return usd(Math.round(n * (100 - PRICES.discount) / 100)); }
+
+  if (inNigeria()) {
+    document.querySelectorAll("a[data-wa]").forEach(function (a) { a.href = WHATSAPP_NG_LINK; });
+  }
 
   var WA_ICON = '<svg viewBox="0 0 32 32" aria-hidden="true"><path fill="currentColor" d="M16.04 3C9.4 3 4 8.36 4 14.96c0 2.3.66 4.46 1.8 6.29L4 29l7.98-1.76a12.1 12.1 0 0 0 4.06.7C22.68 27.94 28 22.58 28 15.98 28 9.38 22.68 3 16.04 3zm0 22.74c-1.27 0-2.5-.24-3.65-.7l-.26-.1-4.73 1.04 1.06-4.55-.17-.27a9.8 9.8 0 0 1-1.6-5.2c0-5.4 4.42-9.8 9.35-9.8 5.4 0 9.6 4.4 9.6 9.82 0 5.42-4.2 9.76-9.6 9.76zm5.36-7.3c-.3-.15-1.74-.86-2-.95-.27-.1-.47-.15-.67.15-.2.3-.77.95-.94 1.15-.17.2-.35.22-.64.07-.3-.15-1.25-.46-2.38-1.47-.88-.78-1.47-1.75-1.64-2.05-.17-.3-.02-.45.13-.6.13-.13.3-.35.44-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.03-.52-.07-.15-.67-1.6-.92-2.2-.24-.57-.48-.5-.67-.5h-.57c-.2 0-.52.08-.79.37-.27.3-1.04 1.02-1.04 2.48 0 1.46 1.07 2.88 1.21 3.08.15.2 2.1 3.2 5.08 4.49.71.3 1.26.49 1.7.63.71.22 1.36.19 1.87.12.57-.09 1.74-.71 1.99-1.4.25-.69.25-1.28.17-1.4-.07-.13-.27-.2-.57-.35z"/></svg>';
 
@@ -112,7 +124,7 @@
 
   function fallback(question) {
     return "We're not sure about that one, but a real person on our team can help. " +
-      "<a class=\"vx-wa-inline\" href=\"" + waLink(WHATSAPP_GREETING + "this: " + question) + "\" target=\"_blank\" rel=\"noopener\">Ask on WhatsApp</a> " +
+      "<a class=\"vx-wa-inline\" href=\"" + waLink(WHATSAPP_GREETING + "this: " + question, true) + "\" target=\"_blank\" rel=\"noopener\">Ask on WhatsApp</a> " +
       "or email <a href=\"mailto:" + EMAIL + "\">" + EMAIL + "</a>.";
   }
 

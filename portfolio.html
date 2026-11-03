@@ -111,6 +111,19 @@ section{scroll-margin-top:96px}
 .brand-grid img{border-radius:12px;border:1px solid var(--line)}
 .brand-grid .wide{grid-column:span 3}
 
+
+/* Concept sites */
+.concepts{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:48px}
+.concept{background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;transition:transform 500ms var(--ease),border-color 300ms var(--ease)}
+.concept:hover{transform:translateY(-4px);border-color:#444}
+.concept img{width:100%;aspect-ratio:1440/1000;object-fit:cover;border-bottom:1px solid var(--line)}
+.concept .in{padding:24px;display:flex;flex-direction:column;gap:12px;flex:1}
+.concept h3{font-size:20px;line-height:28px}
+.concept p{color:var(--muted);font-size:14px;line-height:20px}
+.concept ul{margin:0;padding-left:20px;color:var(--muted);font-size:14px;line-height:20px}
+.concept .case-link{margin-top:auto}
+@media (max-width:900px){.concepts{grid-template-columns:1fr}}
+
 /* Tagline reveal */
 .reveal-text{font-size:60px;line-height:1;letter-spacing:-.03em;font-weight:600;max-width:880px}
 .reveal-text .w{color:rgba(255,255,255,.28);transition:color 500ms var(--ease)}
@@ -177,6 +190,7 @@ footer a{text-decoration:none}footer a:hover{color:var(--text)}
   <a class="me" href="#top"><span aria-hidden="true"></span>Promise Felix</a>
   <ul>
     <li><a href="#work">Work</a></li>
+    <li><a href="#concepts">Concepts</a></li>
     <li><a href="#process">Process</a></li>
     <li><a href="#skills">Skills</a></li>
     <li><a href="#contact">Contact</a></li>
@@ -186,6 +200,7 @@ footer a{text-decoration:none}footer a:hover{color:var(--text)}
 </nav>
 <div class="panel" id="panel" aria-hidden="true">
   <a href="#work">Work</a>
+  <a href="#concepts">Concepts</a>
   <a href="#process">Process</a>
   <a href="#skills">Skills</a>
   <a href="#contact">Contact</a>
@@ -219,7 +234,7 @@ footer a{text-decoration:none}footer a:hover{color:var(--text)}
   <section class="block" id="work" aria-labelledby="work-title">
     <div class="wrap">
       <div class="label">Selected work</div>
-      <h2 class="h2" id="work-title">Four projects, from page structure to pixels</h2>
+      <h2 class="h2" id="work-title">Four live projects, from page structure to pixels</h2>
       <p class="lead">Each one started with a real problem a visitor had, not with a layout.</p>
 
       <article class="case rv">
@@ -315,6 +330,47 @@ footer a{text-decoration:none}footer a:hover{color:var(--text)}
     </div>
   </section>
 
+
+  <section class="block" id="concepts" aria-labelledby="concepts-title">
+    <div class="wrap">
+      <div class="label">Industry concepts</div>
+      <h2 class="h2" id="concepts-title">Three complete websites, three industries</h2>
+      <p class="lead">Concept projects for fictional businesses, built to show how I would design for a car dealer, a restaurant and a property broker. Every feature works: open them and try it.</p>
+      <div class="concepts">
+        <article class="concept rv">
+          <img src="portfolio/concept-car.jpg" width="960" height="667" loading="lazy" alt="Kestrel Motors concept: dark luxury car dealer homepage with a Porsche on the road">
+          <div class="in">
+            <div class="tags" style="margin:0"><span>Car dealer</span><span>Dark theme</span></div>
+            <h3>Kestrel Motors</h3>
+            <p>A luxury car dealer in Lagos that needed buyers to trust the stock before visiting.</p>
+            <ul><li>Live stock search by make, body and budget</li><li>Monthly finance calculator in naira</li><li>Trade in valuation and test drive booking</li></ul>
+            <a class="case-link" href="work/car-dealer/">Open the concept <i class="ph ph-arrow-up-right" aria-hidden="true"></i></a>
+          </div>
+        </article>
+        <article class="concept rv">
+          <img src="portfolio/concept-restaurant.jpg" width="960" height="667" loading="lazy" alt="Ember and Salt concept: warm restaurant homepage with a plated dish">
+          <div class="in">
+            <div class="tags" style="margin:0"><span>Restaurant</span><span>Light theme</span></div>
+            <h3>Ember &amp; Salt</h3>
+            <p>An open fire restaurant in London that wanted more direct bookings and private events.</p>
+            <ul><li>Tabbed menu with dietary tags</li><li>Table booking with real opening hours and full slots</li><li>Private dining enquiry for the terrace</li></ul>
+            <a class="case-link" href="work/restaurant/">Open the concept <i class="ph ph-arrow-up-right" aria-hidden="true"></i></a>
+          </div>
+        </article>
+        <article class="concept rv">
+          <img src="portfolio/concept-realestate.jpg" width="960" height="667" loading="lazy" alt="Tola Adeyemi concept: property broker homepage with a villa and search bar">
+          <div class="in">
+            <div class="tags" style="margin:0"><span>Real estate</span><span>Clean theme</span></div>
+            <h3>Tola Adeyemi, property broker</h3>
+            <p>A Lagos broker who needed buyers, renters and sellers to trust her listings.</p>
+            <ul><li>Buy or rent search with saved homes</li><li>Neighbourhood guide with real price ranges</li><li>Viewing booking and free valuation forms</li></ul>
+            <a class="case-link" href="work/real-estate/">Open the concept <i class="ph ph-arrow-up-right" aria-hidden="true"></i></a>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
   <section class="block" aria-label="Design belief">
     <div class="wrap">
       <p class="reveal-text" id="tagline">Good design is not decoration. It is how a stranger decides to trust you.</p>
@@ -353,12 +409,13 @@ footer a{text-decoration:none}footer a:hover{color:var(--text)}
   <section class="block" id="contact" aria-labelledby="contact-title">
     <div class="wrap">
       <div class="contact rv">
-        <h2 class="h2" id="contact-title">Hiring a designer? Let's talk.</h2>
-        <p class="lead">I'm open to product and UI design roles, remote or hybrid, and I reply within one business day.</p>
+        <h2 class="h2" id="contact-title">Need a website, or hiring a designer? Let's talk.</h2>
+        <p class="lead">I take on new website and redesign projects, and I'm open to product and UI design roles. I reply within one business day.</p>
         <div class="actions"><a class="btn btn-primary" href="mailto:vixautomations@gmail.com?subject=Design%20role%20for%20Promise">Email me <i class="ph ph-arrow-right" aria-hidden="true"></i></a></div>
         <div class="contact-list">
           <a href="mailto:vixautomations@gmail.com"><i class="ph ph-envelope-simple" aria-hidden="true"></i>vixautomations@gmail.com</a>
-          <a href="https://wa.me/447868242781" target="_blank" rel="noopener"><i class="ph ph-whatsapp-logo" aria-hidden="true"></i>WhatsApp +44 7868 242781</a>
+          <a href="https://wa.me/447723149573" target="_blank" rel="noopener"><i class="ph ph-whatsapp-logo" aria-hidden="true"></i>WhatsApp UK +44 7723 149573</a>
+          <a href="https://wa.me/message/WV3WLO4FC656K" target="_blank" rel="noopener"><i class="ph ph-whatsapp-logo" aria-hidden="true"></i>WhatsApp Nigeria</a>
           <a href="https://www.linkedin.com/in/promise-felix-a491a7233/" target="_blank" rel="noopener"><i class="ph ph-linkedin-logo" aria-hidden="true"></i>LinkedIn</a>
         </div>
       </div>
@@ -421,7 +478,7 @@ footer a{text-decoration:none}footer a:hover{color:var(--text)}
       if (e.isIntersecting) links.forEach(function (a) { a.setAttribute("aria-current", String(a.getAttribute("href") === "#" + e.target.id)); });
     });
   }, { rootMargin: "-45% 0px -50% 0px" });
-  ["top", "work", "process", "skills", "contact"].forEach(function (id) { so.observe(document.getElementById(id)); });
+  ["top", "work", "concepts", "process", "skills", "contact"].forEach(function (id) { so.observe(document.getElementById(id)); });
 })();
 </script>
 </body>
