@@ -16,3 +16,5 @@ tools
 tools/**
 functions
 functions/**
+routines-app
+routines-app/**

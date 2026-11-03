@@ -1,0 +1,10 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp"
+    android:viewportWidth="108" android:viewportHeight="108">
+    <!-- map pin with a check mark -->
+    <path android:fillColor="#FFFFFF"
+        android:pathData="M54,28c-10.5,0 -19,8.3 -19,18.6c0,13.9 19,33.4 19,33.4s19,-19.5 19,-33.4C73,36.3 64.5,28 54,28z" />
+    <path android:strokeColor="#2E5BFF" android:strokeWidth="4.5"
+        android:strokeLineCap="round" android:strokeLineJoin="round"
+        android:pathData="M45.5,46.5l6,6l11,-11.5" />
+</vector>
