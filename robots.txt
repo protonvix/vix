@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /work/
+Disallow: /social/
+Disallow: /.claude/
+
+Sitemap: https://vixautomations.pages.dev/sitemap.xml
