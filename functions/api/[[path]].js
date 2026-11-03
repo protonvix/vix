@@ -326,6 +326,76 @@ async function adminMarkRead(env, req) {
   return json({ ok: true });
 }
 
+
+/* ---------------- website briefs & enquiries ---------------- */
+const BRIEF_ORIGINS = ["https://vixautomationsportfolio.pages.dev", "https://vixautomations.pages.dev", "https://vix.vixautomation.workers.dev"];
+const NOTIFY_EMAIL = "vixautomations@gmail.com";
+function cors(req) {
+  const o = req.headers.get("origin");
+  const ok = o && (BRIEF_ORIGINS.includes(o) || /^https:\/\/[a-z0-9-]+\.(vixautomations|vixautomationsportfolio)\.pages\.dev$/.test(o) || /^http:\/\/localhost(:\d+)?$/.test(o));
+  return ok ? { "access-control-allow-origin": o, "access-control-allow-methods": "POST, OPTIONS", "access-control-allow-headers": "content-type", "access-control-max-age": "86400", vary: "Origin" } : null;
+}
+async function sendEmail(env, { subject, text, replyTo }) {
+  if (!env.RESEND_API_KEY) return { sent: false, why: "RESEND_API_KEY not set" };
+  try {
+    const r = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { authorization: "Bearer " + env.RESEND_API_KEY, "content-type": "application/json" },
+      body: JSON.stringify({ from: env.EMAIL_FROM || "Vix Automations Website <onboarding@resend.dev>", to: [env.NOTIFY_EMAIL || NOTIFY_EMAIL], reply_to: replyTo || undefined, subject, text }),
+    });
+    return r.ok ? { sent: true } : { sent: false, why: "Resend " + r.status + ": " + (await r.text()).slice(0, 200) };
+  } catch (e) { return { sent: false, why: "Email service unreachable" }; }
+}
+async function brief(env, req, h) {
+  const reply = (d, st) => json(d, st || 200, h);
+  const b = await req.json().catch(() => null);
+  if (!b) return reply({ error: "Please try again." }, 400);
+  if (b.website) return reply({ ok: true, emailed: true }); // honeypot: bots fill the hidden field
+  const ip = req.headers.get("cf-connecting-ip") || "unknown";
+  const rk = "brate:" + ip, n = +(await env.PORTAL.get(rk)) || 0;
+  if (n >= 8) return reply({ error: "Too many messages in a short time. Please email vixautomations@gmail.com directly." }, 429);
+  await env.PORTAL.put(rk, String(n + 1), { expirationTtl: 3600 });
+  const email = clean(b.email, 200);
+  const item = {
+    id: rid(9), at: now(), read: false,
+    source: clean(b.source, 60) || "website", subject: clean(b.subject, 200) || "New enquiry",
+    name: clean(b.name, 100), email: emailOk(email) ? email : "", whatsapp: clean(b.whatsapp, 40), business: clean(b.business, 120),
+    service: clean(b.service, 120), text: clean(b.text, 8000),
+  };
+  if (!item.name || !item.text) return reply({ error: "Please add your name and details." }, 400);
+  const mail = await sendEmail(env, {
+    subject: item.subject,
+    replyTo: item.email,
+    text: item.text + "\n\n— — —\nFrom: " + item.name + (item.business ? " (" + item.business + ")" : "") + "\nEmail: " + (item.email || "not given") + "\nWhatsApp/phone: " + (item.whatsapp || "not given") + "\nSent via: " + item.source + "\nReply to this email to answer them directly. All briefs are also saved in your admin portal: https://vixautomations.pages.dev/portal/admin/",
+  });
+  item.emailed = mail.sent; if (!mail.sent) item.emailError = mail.why;
+  await put(env, "brief:" + item.id, item);
+  const idx = (await get(env, "briefs:index")) || [];
+  idx.push(item.id); await put(env, "briefs:index", idx.slice(-500));
+  return reply({ ok: true, emailed: mail.sent });
+}
+async function adminBriefs(env) {
+  const idx = ((await get(env, "briefs:index")) || []).slice().reverse();
+  const items = (await Promise.all(idx.map((id) => get(env, "brief:" + id)))).filter(Boolean);
+  return json({ briefs: items, emailReady: !!env.RESEND_API_KEY });
+}
+async function adminBriefUpdate(env, req) {
+  const b = await req.json().catch(() => ({}));
+  const id = clean(b.id, 40), item = await get(env, "brief:" + id);
+  if (!item) return fail(404, "Not found.");
+  if (b.delete) {
+    await env.PORTAL.delete("brief:" + id);
+    await put(env, "briefs:index", ((await get(env, "briefs:index")) || []).filter((x) => x !== id));
+    return json({ ok: true });
+  }
+  item.read = !!b.read; await put(env, "brief:" + id, item);
+  return json({ ok: true });
+}
+async function adminTestEmail(env) {
+  const r = await sendEmail(env, { subject: "✅ Test email from your Vix Automations website", text: "Your website can now send briefs and enquiries to this inbox." });
+  return r.sent ? json({ ok: true }) : fail(400, r.why);
+}
+
 /* ---------------- router ---------------- */
 export async function onRequest(ctx) {
   const { request: req } = ctx;
@@ -340,6 +410,15 @@ export async function onRequest(ctx) {
   const url = new URL(req.url);
   const path = url.pathname.replace(/^\/api\/?/, "").replace(/\/$/, "");
   const m = req.method;
+  // Public brief/enquiry endpoint, also used by the portfolio site (cross-origin).
+  if (path === "brief") {
+    const h = cors(req);
+    if (m === "OPTIONS") return new Response(null, { status: h ? 204 : 403, headers: h || {} });
+    if (m === "POST") {
+      if (req.headers.get("origin") && !h) return fail(403, "Request blocked.");
+      return brief(env, req, h || {});
+    }
+  }
   // CSRF guard: every state-changing request must come from our own pages.
   if (m !== "GET" && m !== "HEAD") {
     const origin = req.headers.get("origin");
@@ -370,6 +449,9 @@ export async function onRequest(ctx) {
       if (a === "deliverable" && m === "POST") return adminDeliverable(env, req);
       if (a === "deliverable/remove" && m === "POST") return adminRemove(env, req);
       if (a === "read" && m === "POST") return adminMarkRead(env, req);
+      if (a === "briefs" && m === "GET") return adminBriefs(env);
+      if (a === "briefs" && m === "POST") return adminBriefUpdate(env, req);
+      if (a === "test-email" && m === "POST") return adminTestEmail(env);
     }
     return fail(404, "Not found.");
   } catch (e) {

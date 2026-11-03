@@ -6,7 +6,7 @@
   var LABEL = { website: "Website design", ghl: "GoHighLevel setup & automation", tiktok: "TikTok marketing", other: "Project" };
 
   function boot() {
-    api("admin/session").then(function () { $("#login-view").hidden = true; $("#app").hidden = false; refresh(); })
+    api("admin/session").then(function () { $("#login-view").hidden = true; $("#app").hidden = false; refresh(); countInbox().catch(function () {}); })
       .catch(function () { $("#login-view").hidden = false; });
   }
   $("#login-form").addEventListener("submit", function (e) {
@@ -15,6 +15,41 @@
   });
   $("#logout").addEventListener("click", function () { api("logout", {}).finally(function () { location.reload(); }); });
   $("#new-btn").addEventListener("click", function () { sel = null; drawList(); newForm(); });
+  $("#inbox-btn").addEventListener("click", function () { sel = null; drawList(); inbox(); });
+
+  /* ---------- inbox: briefs & enquiries from the websites ---------- */
+  function countInbox() {
+    return api("admin/briefs").then(function (d) {
+      var n = d.briefs.filter(function (b) { return !b.read; }).length;
+      $("#inbox-n").hidden = !n; $("#inbox-n").textContent = n; return d;
+    });
+  }
+  function inbox() {
+    $("#main").innerHTML = '<div class="card"><p class="note">Loading…</p></div>';
+    countInbox().then(function (d) {
+      var head = '<div class="card"><div class="help"><div><h2 style="margin:0"><i class="ph ph-tray" aria-hidden="true"></i> Inbox</h2><p class="muted">Every brief and enquiry from both websites, newest first.</p></div>' +
+        '<div class="acts"><button class="btn btn-g btn-sm" type="button" id="test-mail"><i class="ph ph-envelope-simple" aria-hidden="true"></i>Send a test email</button></div></div>' +
+        (d.emailReady ? '<p class="note ok" id="mail-state">Email delivery is on: new briefs are also emailed to vixautomations@gmail.com.</p>' : '<p class="note" id="mail-state" style="color:var(--warn)">Email delivery is not set up yet (RESEND_API_KEY missing). Briefs are saved here, but not emailed.</p>') + "</div>";
+      var list = d.briefs.map(function (b) {
+        var wa = (b.whatsapp || "").replace(/[^\d]/g, "").replace(/^0/, "234");
+        return '<div class="card" style="margin-top:12px' + (b.read ? ";opacity:.75" : "") + '"><div class="help"><div><h2 style="margin:0">' + (b.read ? "" : '<span class="pill-new" style="margin:0 8px 0 0">New</span>') + esc(b.subject) + '</h2><p class="muted">' + esc([b.name, b.business, b.email, b.whatsapp].filter(Boolean).join(" · ")) + " · " + VX.date(b.at, true) + " · via " + esc(b.source) + (b.emailed ? " · emailed ✓" : " · not emailed") + "</p></div></div>" +
+          '<details class="box" style="margin-top:12px"' + (b.read ? "" : " open") + '><summary>Full message</summary><div><pre style="white-space:pre-wrap;margin:0;font:inherit;font-size:14px;color:#c4cbe0">' + esc(b.text) + "</pre></div></details>" +
+          '<div class="acts" style="margin-top:12px">' +
+          (b.email ? '<a class="btn btn-p btn-sm" target="_blank" rel="noopener" href="https://mail.google.com/mail/?view=cm&fs=1&to=' + encodeURIComponent(b.email) + "&su=" + encodeURIComponent("Re: " + b.subject) + '"><i class="ph ph-envelope-simple" aria-hidden="true"></i>Reply by email</a>' : "") +
+          (wa ? '<a class="btn btn-wa btn-sm" target="_blank" rel="noopener" href="https://wa.me/' + wa + '"><i class="ph-fill ph-whatsapp-logo" aria-hidden="true"></i>WhatsApp</a>' : "") +
+          '<button class="btn btn-g btn-sm" type="button" data-read="' + b.id + '" data-v="' + (!b.read) + '">' + (b.read ? "Mark unread" : "Mark as read") + "</button>" +
+          '<button class="btn btn-g btn-sm" type="button" data-del="' + b.id + '">Delete</button></div></div>';
+      }).join("");
+      $("#main").innerHTML = head + (list || '<div class="card" style="margin-top:12px"><div class="empty"><i class="ph ph-tray" aria-hidden="true"></i>No briefs yet. They\'ll appear here as soon as someone sends one.</div></div>');
+      $("#test-mail").onclick = function () {
+        var b = this; b.disabled = true;
+        api("admin/test-email", {}).then(function () { $("#mail-state").innerHTML = '<span class="ok">Test email sent ✓ Check vixautomations@gmail.com (and the Spam folder).</span>'; })
+          .catch(function (x) { $("#mail-state").innerHTML = '<span class="err">' + esc(x.message) + "</span>"; }).finally(function () { b.disabled = false; });
+      };
+      $("#main").querySelectorAll("[data-read]").forEach(function (b) { b.onclick = function () { api("admin/briefs", { id: b.dataset.read, read: b.dataset.v === "true" }).then(inbox); }; });
+      $("#main").querySelectorAll("[data-del]").forEach(function (b) { b.onclick = function () { if (confirm("Delete this message?")) api("admin/briefs", { id: b.dataset.del, delete: true }).then(inbox); }; });
+    }).catch(function (x) { $("#main").innerHTML = '<div class="card"><p class="err">' + esc(x.message) + "</p></div>"; });
+  }
 
   function refresh(keep) {
     return api("admin/clients").then(function (d) {
