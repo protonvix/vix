@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Routines</string>
+    <string name="blocker_description">Lets Routines see which app is open, so it can block the apps you chose until your routines are done. It does not read what is on your screen.</string>
 </resources>

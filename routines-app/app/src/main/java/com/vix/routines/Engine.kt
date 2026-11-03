@@ -27,7 +27,15 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withTimeoutOrNull
+import androidx.work.CoroutineWorker
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
+import androidx.work.WorkerParameters
+import java.util.concurrent.TimeUnit
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -37,6 +45,45 @@ class RoutinesApp : Application() {
         super.onCreate()
         Store.init(this)
         Notifier.createChannel(this)
+        WorkManager.getInstance(this).enqueueUniquePeriodicWork(
+            "auto-check", ExistingPeriodicWorkPolicy.KEEP,
+            PeriodicWorkRequestBuilder<AutoCheckWorker>(15, TimeUnit.MINUTES).build(),
+        )
+    }
+}
+
+/** Every 15 minutes: tick off routines that your app use or Gmail show are done. */
+class AutoCheckWorker(context: Context, params: WorkerParameters) : CoroutineWorker(context, params) {
+    override suspend fun doWork(): Result {
+        AutoCheck.run(applicationContext)
+        return Result.success()
+    }
+}
+
+object AutoCheck {
+    private val lock = Mutex()
+
+    suspend fun run(context: Context) = lock.withLock {
+        val todo = Store.get(context).pending().filter { it.isAuto }
+        if (todo.isEmpty()) return@withLock
+        val usage = if (todo.any { it.usesAppTime }) Usage.forDay(context) else emptyMap()
+        val sent = if (todo.any { it.usesEmails }) Gmail.sentToday(context) else null
+        val done = todo.mapNotNull { r ->
+            val why = mutableListOf<String>()
+            if (r.usesAppTime) {
+                val minutes = Usage.minutesIn(usage, r.autoApps)
+                if (minutes < r.autoMinutes) return@mapNotNull null
+                why += "$minutes min in ${r.autoApps.joinToString { Usage.label(context, it) }}"
+            }
+            if (r.usesEmails) {
+                if (sent == null || sent < r.autoEmails) return@mapNotNull null
+                why += "$sent emails sent"
+            }
+            r to why.joinToString(", ")
+        }
+        if (done.isEmpty()) return@withLock
+        val location = Locator.current(context)
+        done.forEach { (r, why) -> Actions.markDone(context, r.id, location, "Ticked automatically: $why") }
     }
 }
 
@@ -69,14 +116,14 @@ object Locator {
 }
 
 object Actions {
-    fun markDone(context: Context, routineId: String, location: Location?) {
+    fun markDone(context: Context, routineId: String, location: Location?, note: String? = null) {
         val today = LocalDate.now()
         Store.update(context) { d ->
             val r = d.routine(routineId) ?: return@update d
             if (d.isDone(routineId, today)) return@update d
             d.copy(completions = d.completions + Completion(
                 routineId = r.id, title = r.title, date = today.toString(),
-                time = System.currentTimeMillis(), lat = location?.latitude, lng = location?.longitude,
+                time = System.currentTimeMillis(), lat = location?.latitude, lng = location?.longitude, note = note,
             ))
         }
         Notifier.cancel(context, routineId)
@@ -170,6 +217,26 @@ object Notifier {
         NotificationManagerCompat.from(context).notify(notificationId(routine.id), n)
     }
 
+    @SuppressLint("MissingPermission")
+    fun summary(context: Context, title: String, body: String) {
+        if (!context.hasNotifications()) return
+        val open = PendingIntent.getActivity(
+            context, 1, Intent(context, MainActivity::class.java),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+        val n = NotificationCompat.Builder(context, CHANNEL)
+            .setSmallIcon(R.drawable.ic_notify)
+            .setContentTitle(title)
+            .setContentText(body.lineSequence().first())
+            .setStyle(NotificationCompat.BigTextStyle().bigText(body))
+            .setContentIntent(open)
+            .setAutoCancel(true)
+            .build()
+        NotificationManagerCompat.from(context).notify(SUMMARY_ID, n)
+    }
+
+    private const val SUMMARY_ID = 7_000_001
+
     fun cancel(context: Context, routineId: String) =
         NotificationManagerCompat.from(context).cancel(notificationId(routineId))
 }
@@ -179,11 +246,28 @@ const val EXTRA_ID = "routine_id"
 object Scheduler {
     private const val DEADLINE = "deadline"
     private const val SNOOZE = "snooze"
+    const val SUMMARY = "summary"
     const val SNOOZE_MINUTES = 30L
 
     fun refreshAll(context: Context) {
         Store.get(context).routines.forEach { scheduleDeadline(context, it) }
+        scheduleSummary(context)
         registerGeofences(context)
+    }
+
+    fun scheduleSummary(context: Context) {
+        val at = Store.get(context).settings.summaryAt
+        if (at == null) {
+            alarmIntent(context, SUMMARY, "daily", create = false)?.let {
+                context.getSystemService(AlarmManager::class.java).cancel(it)
+            }
+            return
+        }
+        val now = LocalDateTime.now()
+        var next = now.toLocalDate().atTime(at / 60, at % 60)
+        if (!next.isAfter(now)) next = next.plusDays(1)
+        setAlarm(context, next.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli(),
+            alarmIntent(context, SUMMARY, "daily", create = true)!!)
     }
 
     private fun alarmIntent(context: Context, kind: String, routineId: String, create: Boolean): PendingIntent? =
@@ -304,19 +388,53 @@ private fun BroadcastReceiver.async(block: suspend () -> Unit) {
     }
 }
 
-/** Fires at a routine's deadline, or when a snooze ends. */
+/** Fires at a routine's deadline, when a snooze ends, or for the evening summary. */
 class AlarmReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        val id = intent.getStringExtra(EXTRA_ID) ?: return
-        val data = Store.get(context)
-        val routine = data.routine(id) ?: return
-        val today = LocalDate.now()
-        if (routine.dueOn(today) && !data.isDone(id, today)) {
-            val message = if (Scheduler.isSnooze(intent)) "Still not done. Here's your reminder."
-            else "You haven't done this yet. It was due by ${formatMinutes(routine.deadline ?: 0)}."
-            Notifier.remind(context, routine, message)
+        if (intent.action == Scheduler.SUMMARY) {
+            async {
+                AutoCheck.run(context)
+                val (title, body) = Summary.build(context)
+                Notifier.summary(context, title, body)
+                Scheduler.scheduleSummary(context)
+            }
+            return
         }
-        if (!Scheduler.isSnooze(intent)) Scheduler.scheduleDeadline(context, routine)
+        val id = intent.getStringExtra(EXTRA_ID) ?: return
+        async {
+            AutoCheck.run(context) // don't nag about something you've already done
+            val data = Store.get(context)
+            val routine = data.routine(id) ?: return@async
+            val today = LocalDate.now()
+            if (routine.dueOn(today) && !data.isDone(id, today)) {
+                val message = if (Scheduler.isSnooze(intent)) "Still not done. Here's your reminder."
+                else "You haven't done this yet. It was due by ${formatMinutes(routine.deadline ?: 0)}."
+                Notifier.remind(context, routine, message)
+            }
+            if (!Scheduler.isSnooze(intent)) Scheduler.scheduleDeadline(context, routine)
+        }
+    }
+}
+
+object Summary {
+    fun build(context: Context): Pair<String, String> {
+        val data = Store.get(context)
+        val today = LocalDate.now()
+        val due = data.routines.filter { it.dueOn(today) }
+        val missed = data.pending(today)
+        val usage = Usage.forDay(context)
+        val lines = mutableListOf<String>()
+        lines += when {
+            due.isEmpty() -> "No routines were due today."
+            missed.isEmpty() -> "Everything done. Nice work!"
+            else -> "Missed: " + missed.joinToString { it.title }
+        }
+        if (usage.isNotEmpty()) {
+            val top = usage.entries.take(3).joinToString { "${Usage.label(context, it.key)} ${formatDuration(it.value)}" }
+            lines += "Screen time: ${formatDuration(usage.values.sum())} ($top)"
+        }
+        val title = if (due.isEmpty()) "Your day" else "Today: ${due.size - missed.size} of ${due.size} done"
+        return title to lines.joinToString("\n")
     }
 }
 
@@ -328,6 +446,12 @@ class GeofenceReceiver : BroadcastReceiver() {
         val arriving = event.geofenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER
         val leaving = event.geofenceTransition == Geofence.GEOFENCE_TRANSITION_EXIT
         if (!arriving && !leaving) return
+        async { notifyFor(context, event, arriving) }
+    }
+
+    private suspend fun notifyFor(context: Context, event: GeofencingEvent, arriving: Boolean) {
+        val leaving = !arriving
+        AutoCheck.run(context)
         val data = Store.get(context)
         val today = LocalDate.now()
         val placeIds = event.triggeringGeofences.orEmpty().map { it.requestId }.toSet()
