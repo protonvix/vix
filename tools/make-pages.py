@@ -6,7 +6,7 @@ Edit the page text below, run the script, then commit and push.
 import pathlib
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
-UPDATED = "3 November 2026"
+UPDATED = "4 November 2026"
 EMAIL = "vixautomations@gmail.com"
 
 PAGES = {}
@@ -69,7 +69,7 @@ PAGES["privacy"] = dict(
 <p>We don't sell or rent your information, and we don't add you to marketing lists without your permission.</p>
 
 <h2>Services we use</h2>
-<p>Messages sent through our website forms are delivered to our email inbox by FormSubmit, an email delivery service, and to our WhatsApp if you choose to send them there. We also use Gmail, WhatsApp, GoHighLevel, Cloudflare (website hosting) and payment providers such as Payoneer, Cleva and Wise. Each of these processes data under its own privacy policy.</p>
+<p>Briefs and messages sent through our website forms are stored securely in our client portal (hosted on Cloudflare) and emailed to our inbox through Resend, an email delivery service. We also use Gmail, WhatsApp, GoHighLevel, Cloudflare (website hosting) and payment providers such as Payoneer, Cleva and Wise. Each of these processes data under its own privacy policy.</p>
 
 <h2>Cookies</h2>
 <p>This website doesn't use advertising or tracking cookies. Our hosting provider may keep basic technical logs, such as IP addresses, to keep the site secure and working.</p>

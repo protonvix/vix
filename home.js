@@ -189,14 +189,13 @@
     });
     if (!ok) { say("Please add your name, a valid email and what you need.", "err"); return; }
     var d = Object.fromEntries(new FormData(form).entries());
-    var text = "Hello Vix Automations, I'm " + d.name + (d.business ? " from " + d.business : "") + ".\nI need: " + d.service + (d.message ? "\n\n" + d.message : "") + "\n\nEmail: " + d.email + (d.whatsapp ? "\nWhatsApp: " + d.whatsapp : "");
-    window.open(wa(text), "_blank", "noopener");
-    var payload = Object.assign({ _subject: "New enquiry from " + d.name + " (" + d.service + ")", _template: "box", _captcha: "false", _replyto: d.email }, d);
-    var ctl = "AbortController" in window ? new AbortController() : null;
-    if (ctl) setTimeout(function () { ctl.abort(); }, 15000);
+    var text = "Name: " + d.name + "\nBusiness: " + (d.business || "-") + "\nService: " + d.service + "\nEmail: " + d.email + "\nWhatsApp: " + (d.whatsapp || "-") + "\n\nMessage:\n" + (d.message || "-");
+    var btn = $("button[type=submit]", form); btn.disabled = true;
     say("Sending…");
-    fetch("https://formsubmit.co/ajax/" + EMAIL, { method: "POST", headers: { "Content-Type": "application/json", Accept: "application/json" }, body: JSON.stringify(payload), signal: ctl ? ctl.signal : undefined })
-      .then(function (r) { if (!r.ok) throw 0; form.reset(); say("Thank you! Your message is in our inbox, and WhatsApp has opened so you can send it there too.", "ok"); })
-      .catch(function () { say("WhatsApp has opened with your message. Please tap send there, or email us at " + EMAIL + ".", "ok"); });
+    fetch("/api/brief", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ source: "Main website contact form", subject: "New enquiry: " + d.service + " (" + d.name + ")", name: d.name, email: d.email, whatsapp: d.whatsapp, business: d.business, service: d.service, text: text }) })
+      .then(function (r) { return r.json().then(function (j) { if (!r.ok) throw new Error(j.error); return j; }); })
+      .then(function () { form.reset(); say("Thank you! Your message is in our inbox. We'll reply by email within one business day.", "ok"); })
+      .catch(function () { say("Sorry, that didn't send. Please email us at " + EMAIL + ".", "err"); })
+      .finally(function () { btn.disabled = false; });
   });
 })();
