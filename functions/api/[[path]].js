@@ -329,7 +329,11 @@ async function adminMarkRead(env, req) {
 /* ---------------- router ---------------- */
 export async function onRequest(ctx) {
   const { request: req, env } = ctx;
-  if (!env.PORTAL) return fail(500, "The portal database (KV binding PORTAL) is not connected yet.");
+  if (!env.PORTAL) {
+    // Setup help: list the names (never the values) of the settings this deployment can see.
+    const seen = Object.keys(env || {}).filter((k) => k !== "ASSETS");
+    return json({ error: "The portal database (KV binding PORTAL) is not connected yet.", settingsSeen: seen, adminPasswordSet: !!env.ADMIN_PASSWORD }, 500);
+  }
   const url = new URL(req.url);
   const path = url.pathname.replace(/^\/api\/?/, "").replace(/\/$/, "");
   const m = req.method;
