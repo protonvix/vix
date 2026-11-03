@@ -258,7 +258,7 @@ p { margin: 0 0 1em; }
 
 /* Footer */
 .site-footer { background: #070b17; color: var(--muted-on-dark); padding: 70px 0 30px; }
-.footer-grid { display: grid; grid-template-columns: 2fr 1fr 1.5fr; gap: 40px; }
+.footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1.5fr; gap: 40px; }
 .site-footer .brand-name { color: #fff; }
 .site-footer .brand-name span { color: var(--muted-on-dark); }
 .footer-tag { margin-top: 16px; max-width: 340px; font-size: .95rem; }
