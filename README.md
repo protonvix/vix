@@ -12,6 +12,7 @@ A fast, responsive one-page marketing site for a GoHighLevel (HighLevel) consult
 - `chatbot.js`: floating WhatsApp button and the chat assistant (answers, keywords and WhatsApp number are at the top of the file)
 - `styles.css`: all styling and responsive breakpoints
 - `script.js`: mobile nav, scroll reveals, counters, contact form
+- `work/de-royal/`: De-Royal music company website (client site with founder photo, live booking hours and WhatsApp booking form)
 - `brand/`: logo (SVG + PNG, light and dark), icon, favicons, LinkedIn profile picture and banner
 
 ## Preview locally
