@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<title>Create your dashboard · Vix Automations</title>
+<meta name="theme-color" content="#05060c">
+<link rel="icon" href="/brand/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/portal/portal.css">
+</head>
+<body>
+<main class="auth">
+  <form class="auth-card" id="join" novalidate>
+    <a class="logo" href="/"><img src="/brand/vix-icon.svg" alt="" width="32" height="32">Vix Automations</a>
+    <h1 id="join-h">Create your <em>dashboard</em></h1>
+    <p id="join-p">Your project has started. Set a password to see your progress, updates and deliveries any time.</p>
+    <div id="fields" hidden>
+      <div style="display:grid;gap:14px">
+        <label>Your name<input name="name" autocomplete="name" required></label>
+        <label>Email<input name="email" type="email" readonly></label>
+        <label>Create a password<input name="password" type="password" autocomplete="new-password" minlength="8" required placeholder="At least 8 characters"></label>
+        <label>Confirm password<input name="confirm" type="password" autocomplete="new-password" required></label>
+      </div>
+    </div>
+    <p class="err" id="join-err" role="alert"></p>
+    <button class="btn btn-p" type="submit" id="join-btn" hidden>Create my dashboard</button>
+    <p class="auth-foot">Already set up? <a href="/portal/">Log in</a></p>
+  </form>
+</main>
+<script src="/portal/common.js"></script>
+<script>
+(function () {
+  var t = new URLSearchParams(location.search).get("t") || "";
+  var form = document.getElementById("join"), err = document.getElementById("join-err");
+  VX.api("invite?t=" + encodeURIComponent(t)).then(function (d) {
+    form.name.value = d.name || ""; form.email.value = d.email || "";
+    document.getElementById("fields").hidden = false; document.getElementById("join-btn").hidden = false;
+    if (d.business) document.getElementById("join-p").textContent = "Your " + d.business + " project has started. Set a password to see your progress, updates and deliveries any time.";
+  }).catch(function (e) {
+    document.getElementById("join-h").innerHTML = "This link has <em>expired</em>";
+    document.getElementById("join-p").innerHTML = 'Links work once and last 14 days. If you already created your dashboard, <a href="/portal/" style="color:#c9d4ff">log in here</a>. Otherwise <a href="https://wa.me/447723149573?text=Hello%20Vix%20Automations%2C%20I%20need%20a%20new%20dashboard%20link." style="color:#c9d4ff" target="_blank" rel="noopener">message us on WhatsApp</a> for a new link.';
+  });
+  form.addEventListener("submit", function (e) {
+    e.preventDefault(); err.textContent = "";
+    if (form.password.value.length < 8) { err.textContent = "Please use at least 8 characters."; return; }
+    if (form.password.value !== form.confirm.value) { err.textContent = "The passwords don't match."; return; }
+    var b = document.getElementById("join-btn"); b.disabled = true;
+    VX.api("join", { invite: t, name: form.name.value, password: form.password.value }).then(function () { location.replace("/portal/"); })
+      .catch(function (x) { err.textContent = x.message; b.disabled = false; });
+  });
+})();
+</script>
+</body>
+</html>

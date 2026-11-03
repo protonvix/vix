@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Client dashboard · Vix Automations</title>
+<meta name="theme-color" content="#05060c">
+<link rel="icon" href="/brand/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
+<link rel="stylesheet" href="/portal/portal.css">
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><linearGradient id="rg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#9db4ff"/><stop offset=".5" stop-color="#c3a6ff"/><stop offset="1" stop-color="#7ff3d4"/></linearGradient></defs></svg>
+
+<!-- Login -->
+<main class="auth" id="login-view" hidden>
+  <form class="auth-card" id="login-form" novalidate>
+    <a class="logo" href="/"><img src="/brand/vix-icon.svg" alt="" width="32" height="32">Vix Automations</a>
+    <h1>Your client <em>dashboard</em></h1>
+    <p>Track your project, see updates and download your deliveries.</p>
+    <label>Email<input type="email" name="email" autocomplete="email" required></label>
+    <label>Password<input type="password" name="password" autocomplete="current-password" required></label>
+    <p class="err" id="login-err" role="alert"></p>
+    <button class="btn btn-p" type="submit">Log in</button>
+    <p class="auth-foot">New client? Use the link in your welcome email to create your dashboard.<br>Forgot your password? <a href="https://wa.me/447723149573?text=Hello%20Vix%20Automations%2C%20I%20need%20a%20new%20link%20for%20my%20client%20dashboard." target="_blank" rel="noopener">Message us on WhatsApp</a>.</p>
+  </form>
+</main>
+
+<!-- Dashboard -->
+<div id="dash-view" hidden>
+  <header class="top"><div class="wrap">
+    <a class="logo" href="/"><img src="/brand/vix-icon.svg" alt="" width="30" height="30">Vix Automations<small>Client dashboard</small></a>
+    <div class="top-r">
+      <a class="btn btn-wa btn-sm" href="https://wa.me/447723149573" target="_blank" rel="noopener"><i class="ph-fill ph-whatsapp-logo" aria-hidden="true"></i><span>WhatsApp us</span></a>
+      <button class="btn btn-g btn-sm" type="button" id="logout"><i class="ph ph-sign-out" aria-hidden="true"></i><span>Log out</span></button>
+    </div>
+  </div></header>
+  <main class="wrap dash">
+    <div class="hello">
+      <div><h1 id="hello-h"></h1><p id="hello-p"></p></div>
+      <div class="tabs" role="tablist" id="tabs"></div>
+    </div>
+    <div id="project"></div>
+  </main>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"><span class="ic"><i class="ph-fill ph-gift" aria-hidden="true"></i></span><div><b id="toast-t"></b><span id="toast-s"></span></div><button type="button" aria-label="Dismiss" id="toast-x"><i class="ph ph-x" aria-hidden="true"></i></button></div>
+
+<script src="/portal/common.js"></script>
+<script src="/portal/dashboard.js"></script>
+</body>
+</html>
