@@ -328,7 +328,10 @@ async function adminMarkRead(env, req) {
 
 /* ---------------- router ---------------- */
 export async function onRequest(ctx) {
-  const { request: req, env } = ctx;
+  const { request: req } = ctx;
+  // Accept the KV binding whatever its capitalisation (PORTAL, Portal, portal).
+  const kv = ctx.env.PORTAL || ctx.env.Portal || ctx.env.portal;
+  const env = Object.assign({}, ctx.env, kv ? { PORTAL: kv } : {});
   if (!env.PORTAL) {
     // Setup help: list the names (never the values) of the settings this deployment can see.
     const seen = Object.keys(env || {}).filter((k) => k !== "ASSETS");
