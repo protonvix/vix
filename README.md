@@ -34,3 +34,11 @@ python3 -m http.server 8000
 **Cloudflare Workers (connected to GitHub):** `wrangler.jsonc` tells Cloudflare to serve this folder as a static site, and `.assetsignore` keeps repo files (README, licence, config) off the website. In the Cloudflare setup, leave the build command empty and keep the deploy command `npx wrangler deploy`. The project name in Cloudflare must match `name` in `wrangler.jsonc` (`vix`).
 
 Upload the three files to any static host (Netlify, Vercel, GitHub Pages, Cloudflare Pages), or paste them into a HighLevel website page using custom code.
+
+## Client portal
+
+- `portal/`: client login and dashboard. `portal/join/`: clients create their dashboard from the invite link. `portal/admin/`: your admin page.
+- `functions/api/[[path]].js`: the portal API (Cloudflare Pages Function). It only runs on Cloudflare Pages (vixautomations.pages.dev), not on the Workers copy.
+- Needs two settings in the Cloudflare Pages project (Settings → Bindings / Variables and Secrets):
+  - KV namespace binding named `PORTAL`
+  - Secret `ADMIN_PASSWORD` (your admin password; never put it in the code)

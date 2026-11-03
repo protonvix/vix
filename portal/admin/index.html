@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Admin · Vix Automations</title>
+<meta name="theme-color" content="#05060c">
+<link rel="icon" href="/brand/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
+<link rel="stylesheet" href="/portal/portal.css">
+</head>
+<body>
+<main class="auth" id="login-view" hidden>
+  <form class="auth-card" id="login-form">
+    <a class="logo" href="/"><img src="/brand/vix-icon.svg" alt="" width="32" height="32">Vix Automations</a>
+    <h1>Admin</h1>
+    <label>Admin password<input type="password" name="password" autocomplete="current-password" required></label>
+    <p class="err" id="login-err" role="alert"></p>
+    <button class="btn btn-p" type="submit">Log in</button>
+  </form>
+</main>
+
+<div id="app" hidden>
+  <header class="top"><div class="wrap">
+    <a class="logo" href="/"><img src="/brand/vix-icon.svg" alt="" width="30" height="30">Vix Automations<small>Admin</small></a>
+    <div class="top-r">
+      <button class="btn btn-p btn-sm" type="button" id="new-btn"><i class="ph ph-plus" aria-hidden="true"></i><span>New paid client</span></button>
+      <button class="btn btn-g btn-sm" type="button" id="logout"><i class="ph ph-sign-out" aria-hidden="true"></i><span>Log out</span></button>
+    </div>
+  </div></header>
+  <main class="wrap admin">
+    <aside class="card"><h2><i class="ph ph-users" aria-hidden="true"></i>Clients</h2><div class="clist" id="clist"></div></aside>
+    <section id="main"></section>
+  </main>
+</div>
+
+<template id="new-tpl">
+  <form class="card" id="new-form" novalidate>
+    <h2><i class="ph ph-seal-check" aria-hidden="true"></i>Mark a client as paid and start their project</h2>
+    <p class="note" style="margin:-6px 0 16px">Do this once their payment has arrived. It creates their dashboard and writes the kickoff email for you.</p>
+    <div style="display:grid;gap:12px">
+      <div class="row"><label>Full name<input name="name" required></label><label>Email<input name="email" type="email" required></label></div>
+      <div class="row3"><label>Business name<input name="business"></label><label>WhatsApp number<input name="whatsapp" placeholder="+234…"></label>
+        <label>Currency<select name="currency"><option value="NGN">₦ Naira</option><option value="GBP">£ Pound</option><option value="USD">$ Dollar</option></select></label></div>
+      <div class="svc-pick">
+        <span class="note">Services paid for (tick each one, add the amount paid and the expected finish date)</span>
+        <div class="svc-row"><input type="checkbox" name="website"><span>Website</span><input name="website_amount" type="number" min="0" placeholder="Amount"><input name="website_eta" placeholder="e.g. 30 Nov"></div>
+        <div class="svc-row"><input type="checkbox" name="ghl"><span>GoHighLevel</span><input name="ghl_amount" type="number" min="0" placeholder="Amount"><input name="ghl_eta" placeholder="e.g. 21 Nov"></div>
+        <div class="svc-row"><input type="checkbox" name="tiktok"><span>TikTok</span><input name="tiktok_amount" type="number" min="0" placeholder="Amount"><input name="tiktok_eta" placeholder="Ongoing"></div>
+        <div class="svc-row"><input type="checkbox" name="other"><span>Other</span><input name="other_amount" type="number" min="0" placeholder="Amount"><input name="other_title" placeholder="e.g. SaaS setup"></div>
+      </div>
+      <p class="err" id="new-err"></p>
+      <div class="acts"><button class="btn btn-p" type="submit"><i class="ph ph-rocket-launch" aria-hidden="true"></i>Mark as paid &amp; start project</button></div>
+    </div>
+  </form>
+</template>
+
+<script src="/portal/common.js"></script>
+<script src="/portal/admin/admin.js"></script>
+</body>
+</html>
