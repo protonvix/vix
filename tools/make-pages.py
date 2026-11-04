@@ -208,6 +208,7 @@ SHELL = """<!doctype html>
 <meta property="og:title" content="{title} · Vix Automations">
 <meta property="og:description" content="{desc}">
 <meta property="og:image" content="https://vixautomations.pages.dev/brand/og-image.jpg">
+<meta name="color-scheme" content="dark">
 <meta name="theme-color" content="#03040a">
 <link rel="icon" href="brand/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="brand/apple-touch-icon.png">
@@ -216,7 +217,7 @@ SHELL = """<!doctype html>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
 <link rel="stylesheet" href="home.css">
-<link rel="stylesheet" href="chat.css">
+<link rel="stylesheet" href="chat.css?v=20261104b">
 </head>
 <body class="doc-page">
 <div class="aurora soft" aria-hidden="true"><i></i><i></i><i></i></div>
@@ -244,7 +245,7 @@ SHELL = """<!doctype html>
     <p>GoHighLevel and HighLevel are trademarks of HighLevel, Inc. This site is independent and not affiliated with HighLevel, Inc.</p>
   </div>
 </footer>
-<script src="chatbot.js"></script>
+<script src="chatbot.js?v=20261104b"></script>
 </body>
 </html>
 """
