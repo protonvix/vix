@@ -52,7 +52,16 @@
   (function check() {
     VX.api("pay/verify?reference=" + encodeURIComponent(ref)).then(function (d) {
       $("wait").hidden = true; $("ok").hidden = false;
-      $("ok-p").textContent = "Thank you" + (d.name ? ", " + d.name.split(" ")[0] : "") + "! We've received " + VX.money(d.total, d.currency) + (d.business ? " for " + d.business : "") + ".";
+      $("ok-p").textContent = "Thank you" + (d.name ? ", " + d.name.split(" ")[0] : "") + "! We've received " + VX.money(d.paidNow || d.total, d.currency) + (d.business ? " for " + d.business : "") + ".";
+      var bl = d.billing;
+      if (bl && !bl.fullyPaid && bl.next) {
+        var when = bl.next.due === "delivery" ? "when your project is delivered" : "on " + new Date(bl.next.due).toLocaleDateString("en-GB", { day: "numeric", month: "long" });
+        $("ok-p").textContent += " Remaining balance: " + VX.money(bl.balance, d.currency) + ". Your next payment of " + VX.money(bl.next.amount, d.currency) + " is due " + when + ". We'll remind you on your dashboard.";
+      }
+      if (d.instalment) {
+        document.querySelector("#ok h1").innerHTML = bl && bl.fullyPaid ? "Paid in full. <em>Everything is unlocked!</em> 🎉" : "Payment received. <em>Thank you!</em>";
+        document.querySelector("#ok .next").hidden = true;
+      }
       if (d.invite) { $("ok-btn").href = d.invite; $("ok-btn").textContent = "Create my dashboard"; }
       else { $("ok-btn").href = d.loginUrl; $("ok-btn").textContent = d.activated ? "Log in to your dashboard" : "Go to your dashboard"; }
       var box = document.querySelector(".burst"), c = ["#9db4ff", "#c3a6ff", "#7ff3d4", "#ffd166", "#ff5c87"];

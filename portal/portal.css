@@ -230,3 +230,30 @@ details.box>div{padding:0 0 16px;display:grid;gap:12px}
   .admin-page .top .btn span{display:inline}
 }
 .nf.k-founding .ic{background:rgba(255,209,102,.15);color:#ffd166}
+
+/* payment plans on the client dashboard */
+.paybar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;border-color:rgba(143,139,255,.55);background:linear-gradient(90deg,rgba(111,143,255,.18),rgba(166,124,255,.08))}
+.paybar>div{flex:1;min-width:200px}
+.paybar b{display:block;font-size:17px}
+.paybar span{color:var(--mute);font-size:14px}
+.pb-ic{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;font-size:22px;background:rgba(111,143,255,.2);color:#c9d4ff;flex:none}
+.paybar.overdue,.paybar.delivery-due{border-color:rgba(255,139,139,.6);background:linear-gradient(90deg,rgba(255,92,92,.16),rgba(255,92,92,.04));animation:glow 2.4s ease-in-out infinite}
+.paybar.overdue .pb-ic,.paybar.delivery-due .pb-ic{background:rgba(255,92,92,.2);color:#ff9b9b}
+.paybar.claimed{border-color:rgba(255,209,102,.5);background:rgba(255,209,102,.07)}
+.paybar.claimed .pb-ic{background:rgba(255,209,102,.16);color:var(--warn)}
+.pay-sum{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
+.pay-sum>div{flex:1;min-width:220px}
+.pay-sum b{display:block;font-size:24px;letter-spacing:-.02em;margin:2px 0 10px}
+.pay-sum b small{font-size:14px;color:var(--soft);font-weight:500}
+.pay-bar{height:8px;border-radius:99px;background:rgba(255,255,255,.08);overflow:hidden}
+.pay-bar i{display:block;height:100%;background:linear-gradient(90deg,#7ff3d4,#6f8fff);border-radius:99px}
+.pay-sched{list-style:none;padding:0;margin:16px 0 0;display:grid;gap:8px}
+.pay-sched li{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;padding:12px 14px;border-radius:14px;border:1px solid var(--line);background:rgba(0,0,0,.2);font-size:14px}
+.pay-sched li em{font-style:normal;font-family:inherit;background:none;-webkit-background-clip:initial;background-clip:initial;-webkit-text-fill-color:currentColor;color:var(--soft)}
+.pay-sched li.paid em{color:var(--mint)}
+.pay-sched li.now em,.pay-sched li.soon em{color:#c9d4ff;font-weight:600}
+.pay-sched li.overdue em,.pay-sched li.delivery-due em{color:#ff9b9b;font-weight:600}
+.lnk.locked{opacity:.92}
+.lnk.locked .ic{background:rgba(255,255,255,.06);color:var(--soft)}
+@media (max-width:620px){.pay-sched li{grid-template-columns:1fr auto}.pay-sched li em{grid-column:1;grid-row:2;font-size:12px}}
+.nf.k-overdue .ic{background:rgba(255,92,92,.16);color:#ff9b9b}
