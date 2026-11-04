@@ -56,3 +56,12 @@
 .bextra{margin:4px 0 0;font-size:12px;color:var(--soft);line-height:1.5}
 .cp{border:1px solid var(--line2);background:rgba(255,255,255,.05);color:var(--ink);border-radius:999px;padding:4px 10px;font-size:12px;cursor:pointer}
 #x-form{display:grid;gap:12px}
+.xref b{white-space:nowrap}
+.brow b{word-break:normal;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+@media (max-width:520px){
+  .brow{grid-template-columns:1fr auto;row-gap:2px}
+  .brow span{grid-column:1 / -1;font-size:12px}
+  .brow b{font-size:15px}
+  .xref{flex-wrap:wrap}
+  .bhead{flex-wrap:wrap}
+}
