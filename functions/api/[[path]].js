@@ -330,6 +330,7 @@ async function adminMarkRead(env, req) {
 /* ---------------- website briefs & enquiries ---------------- */
 const BRIEF_ORIGINS = ["https://vixautomationsportfolio.pages.dev", "https://vixautomations.pages.dev", "https://vix.vixautomation.workers.dev"];
 const NOTIFY_EMAIL = "vixautomations@gmail.com";
+const OFFER_END = "2026-12-04T23:59:59+01:00"; // free design offer deadline (keep in sync with offer.js)
 function cors(req) {
   const o = req.headers.get("origin");
   const ok = o && (BRIEF_ORIGINS.includes(o) || /^https:\/\/[a-z0-9-]+\.(vixautomations|vixautomationsportfolio)\.pages\.dev$/.test(o) || /^http:\/\/localhost(:\d+)?$/.test(o));
@@ -351,6 +352,7 @@ async function brief(env, req, h) {
   const b = await req.json().catch(() => null);
   if (!b) return reply({ error: "Please try again." }, 400);
   if (b.website) return reply({ ok: true, emailed: true }); // honeypot: bots fill the hidden field
+  if (/free design offer/i.test(String(b.source || "")) && Date.now() > Date.parse(OFFER_END)) return reply({ error: "Sorry, the free design offer ended on 4 December 2026." }, 410);
   const ip = req.headers.get("cf-connecting-ip") || "unknown";
   const rk = "brate:" + ip, n = +(await env.PORTAL.get(rk)) || 0;
   if (n >= 8) return reply({ error: "Too many messages in a short time. Please email vixautomations@gmail.com directly." }, 429);

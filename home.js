@@ -10,6 +10,29 @@
 
   var yr = $("#year"); if (yr) yr.textContent = new Date().getFullYear();
 
+  /* Free design offer: shown until the deadline, then taken off the page automatically. */
+  var OFFER_END = new Date("2026-12-04T23:59:59+01:00").getTime(); // keep in sync with offer.js
+  (function offer() {
+    var els = $$("[data-offer]");
+    var drop = function () { els.forEach(function (el) { el.parentNode && el.parentNode.removeChild(el); }); document.body.classList.remove("has-bar"); };
+    if (Date.now() > OFFER_END) { drop(); return; }
+    var dismissed = false; try { dismissed = sessionStorage.getItem("vx-bar-x") === "1"; } catch (e) {}
+    els.forEach(function (el) { if (!(dismissed && el.id === "o-bar")) el.hidden = false; });
+    if (!dismissed) document.body.classList.add("has-bar");
+    var x = $("#o-bar-x");
+    if (x) x.addEventListener("click", function () { $("#o-bar").hidden = true; document.body.classList.remove("has-bar"); try { sessionStorage.setItem("vx-bar-x", "1"); } catch (e) {} });
+    var pad = function (n) { return n < 10 ? "0" + n : String(n); };
+    var t;
+    function tick() {
+      var ms = OFFER_END - Date.now();
+      if (ms <= 0) { drop(); clearInterval(t); return; }
+      var d = Math.floor(ms / 864e5), v = { d: String(d), h: pad(Math.floor(ms / 36e5) % 24), m: pad(Math.floor(ms / 6e4) % 60), s: pad(Math.floor(ms / 1e3) % 60) };
+      $$("#free-offer [data-u]").forEach(function (b) { b.textContent = v[b.dataset.u]; });
+      var left = $("#o-bar-left"); if (left) left.textContent = d > 1 ? d + " days" : d === 1 ? "1 day " + v.h + "h" : v.h + ":" + v.m + ":" + v.s;
+    }
+    tick(); t = setInterval(tick, 1000);
+  })();
+
   /* Header + progress bar */
   var hdr = $(".hdr"), bar = $("#progress");
   function onScroll() {
