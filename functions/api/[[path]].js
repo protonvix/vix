@@ -576,12 +576,24 @@ async function payStart(env, req, origin) {
   if (q.status !== "paid" && b.plan) { try { q.plan = buildPlan(q, b.plan); await put(env, "payreq:" + q.id, q); } catch (e) { return fail(400, e.message); } }
   const it = nextItem(q);
   if (!it) return fail(400, "This invoice has already been paid in full. Thank you!");
+  if (b.consent !== true) return fail(400, "Please tick the box to authorise this payment before continuing.");
+  q.consents = (q.consents || []).concat({ i: it.i, amount: it.amount, currency: q.currency, at: now(),
+    ip: req.headers.get("cf-connecting-ip") || "", country: req.headers.get("cf-ipcountry") || "",
+    text: `I authorise Vix Automations to charge ${fmtMoney(it.amount, q.currency)} to my card or account today. This is a one-time payment; no future payment will be taken without my approval.` }).slice(-20);
+  await put(env, "payreq:" + q.id, q);
+  const pl0 = planOf(q), what = q.services.map((x) => x.title || defaultTitle(x.type)).join(", ") + (pl0.items.length > 1 ? ` (payment ${it.i + 1} of ${pl0.items.length})` : "");
   const reference = "vix_" + q.id + "_" + it.i + "_" + rid(6).replace(/[^A-Za-z0-9]/g, "");
   try {
     const d = await paystack(env, "/transaction/initialize", { method: "POST", body: JSON.stringify({
       email: q.email, amount: Math.round(it.amount * 100), currency: q.currency, reference,
       callback_url: `${origin}/pay/done/`,
-      metadata: { payreq: q.id, instalment: it.i + 1, business: q.business, custom_fields: [{ display_name: "Business", variable_name: "business", value: q.business || q.name }] },
+      metadata: { payreq: q.id, instalment: it.i + 1, business: q.business, cancel_action: `${origin}/pay/?r=${q.id}`,
+        custom_fields: [
+          { display_name: "Merchant", variable_name: "merchant", value: "Vix Automations" },
+          { display_name: "Payment for", variable_name: "payment_for", value: what.slice(0, 120) },
+          { display_name: "Customer", variable_name: "customer", value: (q.business || q.name).slice(0, 80) },
+          { display_name: "Authorised by customer", variable_name: "authorised", value: "Yes, one-time payment" },
+        ] },
     }) });
     await env.PORTAL.put("payref:" + reference, JSON.stringify({ id: q.id, i: it.i }));
     return json({ url: d.authorization_url });
@@ -706,6 +718,7 @@ async function payPackageStart(env, req, origin) {
   const email = clean(b.email, 200).toLowerCase();
   if (!clean(b.name) || !emailOk(email)) return fail(400, "Please enter your name and a valid email.");
   if (b.plan) { try { buildPlan({ total: pr.amount, currency: "NGN", usd: pr.usd }, b.plan); } catch (e) { return fail(400, e.message); } }
+  if (b.mode !== "transfer" && b.consent !== true) return fail(400, "Please tick the box to authorise this payment before continuing.");
   const ip = req.headers.get("cf-connecting-ip") || "unknown", rk = "prate:" + ip, n = +(await env.PORTAL.get(rk)) || 0;
   if (n >= 10) return fail(429, "Too many attempts. Please try again in an hour, or message us on WhatsApp.");
   await env.PORTAL.put(rk, String(n + 1), { expirationTtl: 3600 });
@@ -716,7 +729,7 @@ async function payPackageStart(env, req, origin) {
   const idx = (await get(env, "payreqs:index")) || []; idx.push(q.id); await put(env, "payreqs:index", idx.slice(-1000));
   if (b.plan) { try { q.plan = buildPlan(q, b.plan); await put(env, "payreq:" + q.id, q); } catch (e) { return fail(400, e.message); } }
   if (b.mode === "transfer") return json({ r: q.id });
-  return payStart(env, new Request(req.url, { method: "POST", body: JSON.stringify({ r: q.id }) }), origin);
+  return payStart(env, new Request(req.url, { method: "POST", headers: { "cf-connecting-ip": req.headers.get("cf-connecting-ip") || "", "cf-ipcountry": req.headers.get("cf-ipcountry") || "" }, body: JSON.stringify({ r: q.id, consent: b.consent === true }) }), origin);
 }
 
 /* ---------------- Admin notifications feed ---------------- */
@@ -778,7 +791,12 @@ async function adminFeedSeen(env, req) {
 const BANK_CCY = ["USD", "GBP", "EUR", "NGN"];
 async function payBanks(env) {
   const banks = ((await get(env, "settings:banks")) || []).filter((b) => b && b.accountNumber);
-  return json({ banks, rates: await fxRates(env) });
+  return json({ banks, rates: await fxRates(env), intl: (await paySettings(env)).intl });
+}
+async function paySettings(env) { return (await get(env, "settings:pay")) || { intl: false }; }
+async function adminPaySettingsSave(env, req) {
+  const b = await req.json().catch(() => ({}));
+  const v = { intl: b.intl === true }; await put(env, "settings:pay", v); return json({ ok: true, settings: v });
 }
 async function adminBanksSave(env, req) {
   const b = await req.json().catch(() => ({}));
@@ -987,6 +1005,7 @@ export async function onRequest(ctx) {
       if (a === "feed" && m === "GET") return adminFeed(env);
       if (a === "feed/seen" && m === "POST") return adminFeedSeen(env, req);
       if (a === "banks" && m === "POST") return adminBanksSave(env, req);
+      if (a === "paysettings" && m === "POST") return adminPaySettingsSave(env, req);
       if (a === "client-email" && m === "GET") return json({ ready: clientEmailReady(env) });
       if (a === "client-email/test" && m === "POST") return adminTestClientEmail(env, req, url.origin);
       if (a === "payreqs/confirm" && m === "POST") return adminPayConfirm(env, req, url.origin);

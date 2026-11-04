@@ -31,6 +31,7 @@
       <p class="note" id="note" hidden></p>
       <div class="due-box" id="due-box" hidden></div>
       <div class="plan" id="plan-inv"></div>
+      <label class="consent" id="consent-inv"><input type="checkbox"><span>I authorise <b>Vix Automations</b> to charge <b class="c-amt">this amount</b> to my card or account <b>today</b>. This is a <b>one-time payment</b>. No future payment will be taken without my approval.</span></label>
       <button class="btn btn-p" type="button" id="pay"><i class="ph-fill ph-lock-simple" aria-hidden="true"></i><span>Pay now</span></button>
       <button class="btn btn-g xfer-open" type="button" id="xfer-btn" hidden><i class="ph ph-bank" aria-hidden="true"></i>Pay by bank transfer instead · USD, GBP, EUR or NGN</button>
       <p class="err" id="err" role="alert"></p>
@@ -67,11 +68,17 @@
         <label>WhatsApp number<input name="whatsapp" type="tel" autocomplete="tel" placeholder="+234…"></label>
         <input class="hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px">
       </div>
+      <label class="consent" id="consent-pkg"><input type="checkbox"><span>I authorise <b>Vix Automations</b> to charge <b class="c-amt">this amount</b> to my card or account <b>today</b>. This is a <b>one-time payment</b>. No future payment will be taken without my approval.</span></label>
       <button class="btn btn-p" type="submit" id="pkg-pay"><i class="ph-fill ph-lock-simple" aria-hidden="true"></i><span>Pay now</span></button>
       <button class="btn btn-g xfer-open" type="button" id="pkg-xfer" hidden><i class="ph ph-bank" aria-hidden="true"></i>Pay by bank transfer · USD, GBP, EUR or NGN</button>
       <p class="err" id="pkg-err" role="alert"></p>
     </form>
 
+    <div class="merchant" id="merchant" hidden>
+      <p><i class="ph-fill ph-shield-check" aria-hidden="true"></i><span>You're paying <b>Vix Automations</b>. Paystack, our secure payment partner, processes the payment. Your bank notification and statement will show <b>Vix Automations</b> (via Paystack).</span></p>
+      <p><i class="ph-fill ph-hand-palm" aria-hidden="true"></i><span><b>Nothing is charged automatically.</b> We never save your card. Every payment needs your approval here and your bank's confirmation (OTP).</span></p>
+      <p id="intl-line" hidden><i class="ph-fill ph-globe-hemisphere-west" aria-hidden="true"></i><span><b>Cards from any country accepted</b> (Visa, Mastercard, Verve). You're charged in naira, and your bank converts it to your currency.</span></p>
+    </div>
     <div class="trust" id="trust" hidden>
       <span><i class="ph ph-shield-check" aria-hidden="true"></i>Secured by Paystack</span>
       <span><i class="ph ph-credit-card" aria-hidden="true"></i>Card, bank transfer or USSD</span>
@@ -132,11 +139,19 @@
   }
   var picked = null;
 
-  function shown(id) { $("loading").hidden = true; $(id).hidden = false; $("trust").hidden = false; $("foot").hidden = false; }
+  function shown(id) { $("loading").hidden = true; $(id).hidden = false; $("trust").hidden = false; $("foot").hidden = false; $("merchant").hidden = false; }
+  function setConsentAmt(id, txt) { var el = document.querySelector("#" + id + " .c-amt"); if (el) el.textContent = txt; }
+  function consentOk(id, errId) {
+    var box = $(id), ok = box.querySelector("input").checked;
+    box.classList.toggle("invalid", !ok);
+    if (!ok) { $(errId).textContent = "Please tick the box to authorise this payment."; box.scrollIntoView({ block: "center", behavior: "smooth" }); }
+    return ok;
+  }
+  document.addEventListener("change", function (e) { var c = e.target.closest(".consent"); if (c) c.classList.remove("invalid"); });
 
   /* ---- bank transfer ---- */
   var BANKS = null, invoice = null;
-  var banksReady = VX.api("pay/banks").then(function (d) { BANKS = d; if (d.banks.length) document.querySelectorAll(".xfer-open").forEach(function (b) { b.hidden = false; }); return d; }).catch(function () { BANKS = { banks: [], rates: {} }; });
+  var banksReady = VX.api("pay/banks").then(function (d) { BANKS = d; $("intl-line").hidden = !d.intl; if (d.banks.length) document.querySelectorAll(".xfer-open").forEach(function (b) { b.hidden = false; }); return d; }).catch(function () { BANKS = { banks: [], rates: {} }; });
   function amountFor(bank, q, rates) {
     if (bank.currency === q.currency) return { v: q.total, exact: true };
     if (bank.currency === "USD" && q.usd) return { v: q.usd, exact: true };
@@ -189,7 +204,7 @@
       $("pkg-total").textContent = VX.money(p.amount, p.currency);
       $("pkg-was").textContent = "($" + (p.usd % 1 ? p.usd.toFixed(2) : p.usd) + " after " + p.discount + "% founding-client discount, was $" + p.usdList + ")";
       $("pkg-note").textContent = "Delivered in " + p.eta + ". Charged in naira at today's exchange rate.";
-      picked = planPicker($("plan-pkg"), p.amount, p.currency, function (first, st) { $("pkg-pay").querySelector("span").textContent = "Pay " + VX.money(first, p.currency) + (st.type === "full" ? " & start" : " now & start"); });
+      picked = planPicker($("plan-pkg"), p.amount, p.currency, function (first, st) { $("pkg-pay").querySelector("span").textContent = "Pay " + VX.money(first, p.currency) + (st.type === "full" ? " & start" : " now & start"); setConsentAmt("consent-pkg", VX.money(first, p.currency)); });
       if (!d.ready) { $("pkg-pay").disabled = true; $("pkg-err").textContent = "Online payment is being set up. Please check back shortly or contact us."; }
       shown("pkg");
     }).catch(function (e) { state("ph-warning-circle", "Package <em>not found</em>", e.message, ["See our packages", "/pricing.html"]); });
@@ -207,8 +222,9 @@
       var f = e.target, ok = true;
       [f.name, f.email].forEach(function (i) { var good = i.value.trim() && (i.type !== "email" || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(i.value.trim())); i.style.borderColor = good ? "" : "#ff7b7b"; if (!good) ok = false; });
       if (!ok) { $("pkg-err").textContent = "Please enter your name and a valid email."; return; }
+      if (!consentOk("consent-pkg", "pkg-err")) return;
       var b = $("pkg-pay"); b.disabled = true; $("pkg-err").textContent = ""; b.querySelector("span").textContent = "Opening secure checkout…";
-      VX.api("pay/package", { p: pk, plan: picked.get(), name: f.name.value, email: f.email.value, business: f.business.value, whatsapp: f.whatsapp.value, website: f.website.value })
+      VX.api("pay/package", { p: pk, consent: true, plan: picked.get(), name: f.name.value, email: f.email.value, business: f.business.value, whatsapp: f.whatsapp.value, website: f.website.value })
         .then(function (d) { location.href = d.url; })
         .catch(function (x) { $("pkg-err").textContent = x.message; b.disabled = false; b.querySelector("span").textContent = "Try again"; });
     });
@@ -235,17 +251,18 @@
         '<div class="due-now ' + due.state + '"><span>' + label + (/^\d{4}-/.test(due.due) ? " · " + new Date(due.due).toLocaleDateString("en-GB", { day: "numeric", month: "short" }) : "") + "</span><b>" + VX.money(due.amount, q.currency) + "</b><small>Payment " + (due.i + 1) + " of " + n + "</small></div>" +
         '<ol class="pl-sched">' + bill.items.map(function (x) { return "<li" + (x.status === "paid" ? ' class="paid"' : "") + "><span>" + (x.status === "paid" ? "✓ Paid" : x.due === "delivery" ? "On delivery" : x.due === "now" ? "Today" : new Date(x.due).toLocaleDateString("en-GB", { day: "numeric", month: "short" })) + "</span><b>" + VX.money(x.amount, q.currency) + "</b></li>"; }).join("") + "</ol>";
       $("plan-inv").hidden = true;
-      $("pay").querySelector("span").textContent = "Pay " + VX.money(due.amount, q.currency) + " now";
+      $("pay").querySelector("span").textContent = "Pay " + VX.money(due.amount, q.currency) + " now"; setConsentAmt("consent-inv", VX.money(due.amount, q.currency));
     } else {
-      picked = planPicker($("plan-inv"), q.total, q.currency, function (first) { $("pay").querySelector("span").textContent = "Pay " + VX.money(first, q.currency) + " now"; });
+      picked = planPicker($("plan-inv"), q.total, q.currency, function (first) { $("pay").querySelector("span").textContent = "Pay " + VX.money(first, q.currency) + " now"; setConsentAmt("consent-inv", VX.money(first, q.currency)); });
     }
     if (q.note) { $("note").hidden = false; $("note").textContent = q.note; }
     if (!d.ready) { $("pay").disabled = true; $("err").textContent = "Online payment is being set up. Please check back shortly or contact us."; }
     shown("body");
   }).catch(function (e) { state("ph-warning-circle", "Link <em>not found</em>", e.message, ["Contact us on WhatsApp", "https://wa.me/447723149573"]); });
   $("pay").addEventListener("click", function () {
+    if (!consentOk("consent-inv", "err")) return;
     var b = this; b.disabled = true; $("err").textContent = ""; b.querySelector("span").textContent = "Opening secure checkout…";
-    VX.api("pay/start", { r: r, plan: picked ? picked.get() : null }).then(function (d) { location.href = d.url; })
+    VX.api("pay/start", { r: r, consent: true, plan: picked ? picked.get() : null }).then(function (d) { location.href = d.url; })
       .catch(function (e) { $("err").textContent = e.message; b.disabled = false; b.querySelector("span").textContent = "Try again"; });
   });
 })();
