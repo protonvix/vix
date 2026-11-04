@@ -230,7 +230,14 @@ async function adminCreate(env, req, origin) {
   const b = await req.json().catch(() => ({}));
   try {
     const r = await createClientWithProjects(env, b, origin);
-    return json({ ok: true, client: publicClient(r.client), invite: r.invite, loginUrl: r.loginUrl });
+    const services = (b.services || []).filter((x) => STAGES[x.type]).map((x) => ({ type: x.type, title: clean(x.title, 120) || defaultTitle(x.type), amount: Math.max(0, +x.amount || 0) }));
+    const total = services.reduce((n, x) => n + x.amount, 0);
+    let mail = { sent: false, why: "" };
+    if (b.sendEmail !== false) {
+      const m = paymentEmail({ name: r.client.name, business: r.client.business, services, total, currency: clean(b.currency, 4) || r.client.currency, method: "bank transfer", reference: "", invite: r.invite, loginUrl: r.loginUrl, origin });
+      mail = await sendClientEmail(env, { to: r.client.email, name: r.client.name, subject: m.subject, html: m.html, text: m.text });
+    }
+    return json({ ok: true, client: publicClient(r.client), invite: r.invite, loginUrl: r.loginUrl, clientEmailed: mail.sent, clientEmailError: mail.sent ? "" : mail.why });
   } catch (e) { return fail(400, e.message); }
 }
 function defaultTitle(t) {
@@ -478,6 +485,7 @@ async function fulfil(env, reference, tx, origin) {
   const r = await createClientWithProjects(env, { name: q.name, email: q.email, business: q.business, whatsapp: q.whatsapp, currency: q.currency, services: q.services }, origin,
     `Payment of ${amountTxt} received via Paystack. Your project has officially started! 🚀`);
   q.status = "paid"; q.paidAt = now(); q.reference = reference; q.clientId = r.client.id; q.invite = r.invite; q.channel = tx.channel || "";
+  await emailPaidClient(env, q, r, origin, "Paystack" + (tx.channel ? " (" + String(tx.channel).replace(/_/g, " ") + ")" : ""), reference);
   await put(env, "payreq:" + q.id, q);
   await sendEmail(env, {
     subject: `💰 Payment received: ${amountTxt} from ${q.business || q.name}`,
@@ -665,9 +673,87 @@ async function adminPayConfirm(env, req, origin) {
   const r = await createClientWithProjects(env, { name: q.name, email: q.email, business: q.business, whatsapp: q.whatsapp, currency: q.currency, services: q.services }, origin,
     `Bank transfer received (${amountTxt}${q.transfer && q.transfer.currency && q.transfer.currency !== q.currency ? " paid in " + q.transfer.currency : ""}). Your project has officially started! 🚀`);
   q.status = "paid"; q.paidAt = now(); q.channel = "bank transfer" + (q.transfer && q.transfer.currency ? " (" + q.transfer.currency + ")" : ""); q.clientId = r.client.id; q.invite = r.invite;
+  const mail = await emailPaidClient(env, q, r, origin, q.channel, "VIX-" + q.id.slice(0, 6).toUpperCase());
   await put(env, "payreq:" + q.id, q);
   const seen = (await get(env, "feed:seen")) || {}; seen["tr:" + q.id] = 1; seen["pay:" + q.id] = 1; await put(env, "feed:seen", seen);
-  return json({ ok: true, client: publicClient(r.client), invite: r.invite, loginUrl: r.loginUrl, services: q.services, total: q.total, currency: q.currency });
+  return json({ ok: true, client: publicClient(r.client), invite: r.invite, loginUrl: r.loginUrl, services: q.services, total: q.total, currency: q.currency, clientEmailed: mail.sent, clientEmailError: mail.sent ? "" : mail.why });
+}
+
+
+/* ---------------- Emails to clients (payment confirmation + dashboard link) ---------------- */
+// Two ways to send, used in this order:
+//   1) Resend with your own verified domain: set EMAIL_FROM (e.g. "Vix Automations <hello@vixautomations.com>") + RESEND_API_KEY.
+//   2) EmailJS connected to your Gmail (no domain needed): set EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, EMAILJS_PUBLIC_KEY, EMAILJS_PRIVATE_KEY.
+// The EmailJS template must use {{to_email}} as "To Email", {{subject}} as subject and {{{message_html}}} as the content.
+const escH = (t) => String(t == null ? "" : t).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+function clientEmailReady(env) {
+  if (env.RESEND_API_KEY && env.EMAIL_FROM && !/resend\.dev/i.test(env.EMAIL_FROM)) return "resend";
+  if (env.EMAILJS_SERVICE_ID && env.EMAILJS_TEMPLATE_ID && env.EMAILJS_PUBLIC_KEY && env.EMAILJS_PRIVATE_KEY) return "emailjs";
+  return "";
+}
+async function sendClientEmail(env, { to, name, subject, html, text }) {
+  const how = clientEmailReady(env);
+  if (!how) return { sent: false, why: "Client emails are not set up yet." };
+  try {
+    if (how === "resend") {
+      const r = await fetch("https://api.resend.com/emails", { method: "POST", headers: { authorization: "Bearer " + env.RESEND_API_KEY, "content-type": "application/json" },
+        body: JSON.stringify({ from: env.EMAIL_FROM, to: [to], reply_to: NOTIFY_EMAIL, subject, html, text }) });
+      return r.ok ? { sent: true, via: "resend" } : { sent: false, why: "Resend " + r.status + ": " + (await r.text()).slice(0, 200) };
+    }
+    const r = await fetch("https://api.emailjs.com/api/v1.0/email/send", { method: "POST", headers: { "content-type": "application/json" },
+      body: JSON.stringify({ service_id: env.EMAILJS_SERVICE_ID, template_id: env.EMAILJS_TEMPLATE_ID, user_id: env.EMAILJS_PUBLIC_KEY, accessToken: env.EMAILJS_PRIVATE_KEY,
+        template_params: { to_email: to, to_name: name, subject, message_html: html, message_text: text, reply_to: NOTIFY_EMAIL } }) });
+    return r.ok ? { sent: true, via: "emailjs" } : { sent: false, why: "EmailJS " + r.status + ": " + (await r.text()).slice(0, 200) };
+  } catch (e) { return { sent: false, why: "Email service unreachable" }; }
+}
+function fmtMoney(n, c) { return ({ NGN: "₦", USD: "$", GBP: "£", EUR: "€" }[c] || c + " ") + Number(n).toLocaleString("en-GB", { maximumFractionDigits: 2 }); }
+function paymentEmail({ name, business, services, total, currency, method, reference, invite, loginUrl, origin }) {
+  const first = String(name || "").split(" ")[0] || "there";
+  const link = invite || loginUrl;
+  const cta = invite ? "Create my client dashboard" : "Open my client dashboard";
+  const date = new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
+  const rows = services.map((s) => `<tr><td style="padding:10px 0;border-bottom:1px solid #eceef5;color:#3a4152">${escH(s.title || defaultTitle(s.type))}</td><td style="padding:10px 0;border-bottom:1px solid #eceef5;text-align:right;color:#0b1020;font-weight:600">${escH(fmtMoney(s.amount, currency))}</td></tr>`).join("");
+  const subject = `Payment confirmed: your ${services.length === 1 ? (services[0].title || defaultTitle(services[0].type)) : "project"} has started 🚀`;
+  const html = `<!doctype html><html><body style="margin:0;background:#f3f5fb;font-family:Arial,Helvetica,sans-serif">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f3f5fb;padding:28px 12px"><tr><td align="center">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:18px;overflow:hidden;border:1px solid #e3e7f2">
+<tr><td style="background:linear-gradient(135deg,#3b2cff,#8b5cff);background-color:#5b4bff;padding:26px 28px;color:#ffffff">
+<div style="font-size:15px;font-weight:700;letter-spacing:.02em">Vix Automations</div>
+<div style="font-size:26px;font-weight:800;line-height:1.2;margin-top:14px">Payment confirmed ✅</div>
+<div style="font-size:15px;opacity:.9;margin-top:6px">Your project has officially started 🚀</div></td></tr>
+<tr><td style="padding:26px 28px;color:#3a4152;font-size:15px;line-height:1.6">
+<p style="margin:0 0 14px">Hi ${escH(first)},</p>
+<p style="margin:0 0 18px">Thank you${business ? " for choosing us for <b>" + escH(business) + "</b>" : ""}! We've received your payment and your project is now underway.</p>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-size:14px">${rows}
+<tr><td style="padding:12px 0 0;font-weight:700;color:#0b1020">Total paid</td><td style="padding:12px 0 0;text-align:right;font-size:20px;font-weight:800;color:#5b4bff">${escH(fmtMoney(total, currency))}</td></tr></table>
+<p style="margin:16px 0 0;font-size:13px;color:#7c849c">Paid by ${escH(method)} · ${escH(date)}${reference ? " · Ref " + escH(reference) : ""}</p>
+<div style="margin:26px 0;padding:20px;border-radius:14px;background:#f5f3ff;border:1px solid #e3ddff">
+<div style="font-weight:700;color:#0b1020;margin-bottom:6px">Your private client dashboard</div>
+<div style="font-size:14px;margin-bottom:16px">Follow every step of your project, read updates from our team, download your files the moment they're ready, and message us any time.</div>
+<a href="${escH(link)}" style="display:inline-block;background:#5b4bff;color:#ffffff;text-decoration:none;font-weight:700;padding:14px 22px;border-radius:999px">${cta} →</a>
+${invite ? '<div style="font-size:12px;color:#7c849c;margin-top:12px">This personal link works once and lasts 14 days. After that, log in at ' + escH(loginUrl) + "</div>" : ""}</div>
+<p style="margin:0 0 6px;font-weight:700;color:#0b1020">What happens next</p>
+<ol style="margin:0 0 18px;padding-left:20px"><li>We'll contact you within one business day with your next steps.</li><li>You'll see each stage of your project on your dashboard.</li><li>Your deliveries will appear there as soon as they're ready.</li></ol>
+<p style="margin:0">Questions? Just reply to this email or message us on WhatsApp: <a href="https://wa.me/447723149573" style="color:#5b4bff">+44 7723 149573</a>.</p>
+<p style="margin:18px 0 0">Welcome aboard,<br><b>Promise Felix</b><br>Vix Automations</p></td></tr>
+<tr><td style="padding:16px 28px;background:#f8f9fd;color:#9aa1b5;font-size:12px;line-height:1.5">Vix Automations · <a href="${escH(origin)}" style="color:#9aa1b5">${escH(origin.replace("https://", ""))}</a> · <a href="${escH(origin)}/refund.html" style="color:#9aa1b5">Refund policy</a></td></tr>
+</table></td></tr></table></body></html>`;
+  const text = `Hi ${first},\n\nPayment confirmed. Thank you! Your project has officially started.\n\n${services.map((s) => "• " + (s.title || defaultTitle(s.type)) + ": " + fmtMoney(s.amount, currency)).join("\n")}\nTotal paid: ${fmtMoney(total, currency)}\nPaid by ${method} · ${date}${reference ? " · Ref " + reference : ""}\n\n${cta}:\n${link}\n${invite ? "(This personal link works once and lasts 14 days. After that, log in at " + loginUrl + ")\n" : ""}\nWe'll contact you within one business day with your next steps.\n\nWelcome aboard,\nPromise Felix\nVix Automations\nWhatsApp: +44 7723 149573`;
+  return { subject, html, text };
+}
+async function emailPaidClient(env, q, r, origin, method, reference) {
+  const m = paymentEmail({ name: q.name, business: q.business, services: q.services, total: q.total, currency: q.currency, method, reference, invite: r.invite, loginUrl: r.loginUrl, origin });
+  const res = await sendClientEmail(env, { to: q.email, name: q.name, subject: m.subject, html: m.html, text: m.text });
+  q.clientEmailed = res.sent; if (!res.sent) q.clientEmailError = res.why;
+  return res;
+}
+async function adminTestClientEmail(env, req, origin) {
+  const b = await req.json().catch(() => ({}));
+  const to = clean(b.to, 200);
+  if (!emailOk(to)) return fail(400, "Enter a valid email address.");
+  const m = paymentEmail({ name: "Test Client", business: "Test Business", services: [{ type: "website", title: "Website design", amount: 250000 }], total: 250000, currency: "NGN", method: "card (test)", reference: "TEST-123", invite: origin + "/portal/join/?t=example-test-link", loginUrl: origin + "/portal/", origin });
+  const res = await sendClientEmail(env, { to, name: "Test Client", subject: "[TEST] " + m.subject, html: m.html, text: m.text });
+  return res.sent ? json({ ok: true, via: res.via }) : fail(400, res.why);
 }
 
 /* ---------------- router ---------------- */
@@ -740,6 +826,8 @@ export async function onRequest(ctx) {
       if (a === "feed" && m === "GET") return adminFeed(env);
       if (a === "feed/seen" && m === "POST") return adminFeedSeen(env, req);
       if (a === "banks" && m === "POST") return adminBanksSave(env, req);
+      if (a === "client-email" && m === "GET") return json({ ready: clientEmailReady(env) });
+      if (a === "client-email/test" && m === "POST") return adminTestClientEmail(env, req, url.origin);
       if (a === "payreqs/confirm" && m === "POST") return adminPayConfirm(env, req, url.origin);
     }
     return fail(404, "Not found.");
