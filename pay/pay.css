@@ -38,3 +38,21 @@
 .feats i{color:var(--mint);font-size:17px;margin-top:2px}
 .total small{display:block;font-size:12px;color:var(--soft)}
 .pk-fields{display:grid;gap:12px}
+
+.pay-card #xfer{display:grid;gap:14px}
+.xfer-open{width:100%}
+.xref{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:14px;background:rgba(111,143,255,.12);border:1px solid rgba(143,139,255,.4)}
+.xref span{font-size:12px;color:var(--soft)}
+.xref b{font-size:18px;letter-spacing:.06em;flex:1}
+.banks{display:grid;gap:10px}
+.bank{padding:14px;border-radius:16px;border:1px solid var(--line2);background:rgba(0,0,0,.25);display:grid;gap:6px}
+.bhead{display:flex;align-items:center;gap:10px;margin-bottom:4px}
+.bhead b{flex:1;font-size:15px}
+.ccy{font-size:11px;font-weight:800;padding:3px 8px;border-radius:8px;background:rgba(79,240,196,.16);color:var(--mint)}
+.bamt{font-weight:800;font-size:17px;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.brow{display:grid;grid-template-columns:110px 1fr auto;gap:8px;align-items:center;font-size:13px}
+.brow span{color:var(--soft)}
+.brow b{word-break:break-all}
+.bextra{margin:4px 0 0;font-size:12px;color:var(--soft);line-height:1.5}
+.cp{border:1px solid var(--line2);background:rgba(255,255,255,.05);color:var(--ink);border-radius:999px;padding:4px 10px;font-size:12px;cursor:pointer}
+#x-form{display:grid;gap:12px}

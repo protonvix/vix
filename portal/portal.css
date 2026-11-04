@@ -218,3 +218,4 @@ details.box>div{padding:0 0 16px;display:grid;gap:12px}
 .kpi-row span{display:block;font-size:12px;color:var(--soft)}
 .kpi-row b{font-size:26px;letter-spacing:-.03em}
 @media (max-width:620px){.kpi-row{grid-template-columns:1fr 1fr}.nf{grid-template-columns:auto 1fr}.nf time{grid-column:2}}
+.nf.k-transfer .ic{background:rgba(255,209,102,.15);color:var(--warn)}
