@@ -16,6 +16,51 @@
   $("#logout").addEventListener("click", function () { api("logout", {}).finally(function () { location.reload(); }); });
   $("#new-btn").addEventListener("click", function () { sel = null; drawList(); newForm(); });
   $("#inbox-btn").addEventListener("click", function () { sel = null; drawList(); inbox(); });
+  $("#pay-btn").addEventListener("click", function () { sel = null; drawList(); payments(); });
+
+  /* ---------- payments: Paystack links ---------- */
+  function payments() {
+    $("#main").innerHTML = ""; $("#main").appendChild($("#pay-tpl").content.cloneNode(true));
+    var list = document.createElement("div"); list.className = "card"; list.style.marginTop = "16px"; list.innerHTML = '<p class="note">Loading payment links…</p>'; $("#main").appendChild(list);
+    function load() {
+      api("admin/payreqs").then(function (d) {
+        list.innerHTML = '<h2><i class="ph ph-receipt" aria-hidden="true"></i>Payment links</h2>' + (d.ready ? "" : '<p class="note" style="color:var(--warn)">Paystack is not connected yet (PAYSTACK_SECRET_KEY missing). You can create links, but clients can\'t pay until it\'s set.</p>') +
+          '<div style="display:grid;gap:8px">' + (d.requests.map(function (q) {
+            var link = location.origin + "/pay/?r=" + q.id;
+            return '<div class="pr-row"><div><b>' + esc(q.business || q.name) + " · " + VX.money(q.total, q.currency) + ' <span class="st ' + q.status + '">' + q.status + "</span></b><span>" + esc(q.email) + " · created " + VX.date(q.createdAt) + (q.paidAt ? " · paid " + VX.date(q.paidAt, true) + (q.channel ? " by " + esc(q.channel) : "") : "") + "</span></div>" +
+              '<div class="acts">' + (q.status === "pending" ? '<button class="btn btn-g btn-sm" type="button" data-copy="' + esc(link) + '">Copy link</button><button class="btn btn-g btn-sm" type="button" data-cancel="' + q.id + '">Cancel</button>' : "") + (q.clientId ? '<button class="btn btn-g btn-sm" type="button" data-client="' + q.clientId + '">Open client</button>' : "") + "</div></div>";
+          }).join("") || '<p class="note">No payment links yet.</p>') + "</div>";
+        list.querySelectorAll("[data-copy]").forEach(function (b) { b.onclick = function () { navigator.clipboard.writeText(b.dataset.copy).then(function () { b.textContent = "Copied ✓"; }); }; });
+        list.querySelectorAll("[data-cancel]").forEach(function (b) { b.onclick = function () { if (confirm("Cancel this payment link? The client won't be able to pay with it.")) api("admin/payreqs/cancel", { id: b.dataset.cancel }).then(load); }; });
+        list.querySelectorAll("[data-client]").forEach(function (b) { b.onclick = function () { sel = b.dataset.client; refresh(true).then(function () { drawList(); showClient(sel); }); }; });
+      }).catch(function (x) { list.innerHTML = '<p class="err">' + esc(x.message) + "</p>"; });
+    }
+    load();
+    $("#pay-form").addEventListener("submit", function (e) {
+      e.preventDefault();
+      var f = e.target, services = [];
+      ["website", "ghl", "tiktok", "other"].forEach(function (t) {
+        if (f[t].checked) services.push({ type: t, amount: f[t + "_amount"].value, eta: f[t + "_eta"] ? f[t + "_eta"].value : "", title: t === "other" ? f.other_title.value : "" });
+      });
+      if (!f.name.value.trim() || !f.email.value.trim()) { $("#pay-err").textContent = "Name and email are required."; return; }
+      if (!services.length || services.some(function (s) { return !(+s.amount > 0); })) { $("#pay-err").textContent = "Tick at least one service and give each ticked service an amount."; return; }
+      var btn = f.querySelector("button[type=submit]"); btn.disabled = true; $("#pay-err").textContent = "";
+      api("admin/payreqs", { name: f.name.value, email: f.email.value, business: f.business.value, whatsapp: f.whatsapp.value, currency: f.currency.value, note: f.note.value, services: services })
+        .then(function (d) {
+          var q = d.request, first = q.name.split(" ")[0], amount = VX.money(q.total, q.currency);
+          var msg = "Hi " + first + ", thank you for choosing Vix Automations! 🙏\n\nHere is your secure payment link for " + amount + ":\n" + d.link + "\n\nYou can pay by card, bank transfer or USSD through Paystack. As soon as payment is confirmed, your project starts and you'll get access to your client dashboard.\n\n– Promise, Vix Automations";
+          var wa = (q.whatsapp || "").replace(/[^\d]/g, "").replace(/^0/, "234");
+          var gmail = "https://mail.google.com/mail/?view=cm&fs=1&to=" + encodeURIComponent(q.email) + "&su=" + encodeURIComponent("Your payment link: " + (q.business || "your project") + " | Vix Automations") + "&body=" + encodeURIComponent(msg);
+          var box = document.createElement("div"); box.className = "card result"; box.style.marginTop = "16px";
+          box.innerHTML = '<h2 class="ok"><i class="ph-fill ph-check-circle" aria-hidden="true"></i>Payment link ready: ' + esc(amount) + '</h2><label>Link<input readonly value="' + esc(d.link) + '"></label><label>Message<textarea readonly style="min-height:150px">' + esc(msg) + "</textarea></label>" +
+            '<div class="acts">' + (wa ? '<a class="btn btn-wa" target="_blank" rel="noopener" href="https://wa.me/' + wa + "?text=" + encodeURIComponent(msg) + '"><i class="ph-fill ph-whatsapp-logo" aria-hidden="true"></i>Send on WhatsApp</a>' : "") +
+            '<a class="btn btn-p" target="_blank" rel="noopener" href="' + esc(gmail) + '"><i class="ph ph-envelope-simple" aria-hidden="true"></i>Send by Gmail</a><button class="btn btn-g" type="button" id="pl-copy">Copy link</button><a class="btn btn-g" target="_blank" rel="noopener" href="' + esc(d.link) + '">Preview</a></div>';
+          f.after(box); f.reset(); btn.disabled = false; load();
+          box.querySelector("#pl-copy").onclick = function () { navigator.clipboard.writeText(d.link).then(function () { box.querySelector("#pl-copy").textContent = "Copied ✓"; }); };
+          box.scrollIntoView({ behavior: "smooth", block: "center" });
+        }).catch(function (x) { $("#pay-err").textContent = x.message; btn.disabled = false; });
+    });
+  }
 
   /* ---------- inbox: briefs & enquiries from the websites ---------- */
   function countInbox() {

@@ -13,6 +13,7 @@
 <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
 <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
 <link rel="stylesheet" href="/portal/portal.css">
+<link rel="stylesheet" href="/pay/pay.css">
 </head>
 <body>
 <main class="auth" id="login-view" hidden>
@@ -29,6 +30,7 @@
   <header class="top"><div class="wrap">
     <a class="logo" href="/"><img src="/brand/vix-icon.svg" alt="" width="30" height="30">Vix Automations<small>Admin</small></a>
     <div class="top-r">
+      <button class="btn btn-g btn-sm" type="button" id="pay-btn"><i class="ph ph-credit-card" aria-hidden="true"></i><span>Payments</span></button>
       <button class="btn btn-g btn-sm" type="button" id="inbox-btn"><i class="ph ph-tray" aria-hidden="true"></i><span>Inbox</span><b class="dot-r" id="inbox-n" hidden></b></button>
       <button class="btn btn-p btn-sm" type="button" id="new-btn"><i class="ph ph-plus" aria-hidden="true"></i><span>New paid client</span></button>
       <button class="btn btn-g btn-sm" type="button" id="logout"><i class="ph ph-sign-out" aria-hidden="true"></i><span>Log out</span></button>
@@ -40,6 +42,27 @@
   </main>
 </div>
 
+<template id="pay-tpl">
+  <form class="card" id="pay-form" novalidate>
+    <h2><i class="ph ph-link" aria-hidden="true"></i>Create a payment link</h2>
+    <p class="note" style="margin:-6px 0 16px">Send this link to a client after they accept your quote. When they pay with Paystack, their dashboard and projects are created automatically and you get an email.</p>
+    <div style="display:grid;gap:12px">
+      <div class="row"><label>Client's full name<input name="name" required></label><label>Client's email<input name="email" type="email" required></label></div>
+      <div class="row3"><label>Business name<input name="business"></label><label>WhatsApp number<input name="whatsapp" placeholder="+234…"></label>
+        <label>Currency<select name="currency"><option value="NGN">₦ Naira</option><option value="USD">$ Dollar (only if enabled on Paystack)</option></select></label></div>
+      <div class="svc-pick">
+        <span class="note">Services and prices (tick each one)</span>
+        <div class="svc-row"><input type="checkbox" name="website"><span>Website</span><input name="website_amount" type="number" min="0" placeholder="Amount"><input name="website_eta" placeholder="Finish e.g. 30 Nov"></div>
+        <div class="svc-row"><input type="checkbox" name="ghl"><span>GoHighLevel</span><input name="ghl_amount" type="number" min="0" placeholder="Amount"><input name="ghl_eta" placeholder="Finish e.g. 21 Nov"></div>
+        <div class="svc-row"><input type="checkbox" name="tiktok"><span>TikTok</span><input name="tiktok_amount" type="number" min="0" placeholder="Amount"><input name="tiktok_eta" placeholder="Ongoing"></div>
+        <div class="svc-row"><input type="checkbox" name="other"><span>Other</span><input name="other_amount" type="number" min="0" placeholder="Amount"><input name="other_title" placeholder="e.g. 50% deposit: website"></div>
+      </div>
+      <label>Note for the client (optional)<input name="note" placeholder="e.g. 50% deposit. The balance is due before launch."></label>
+      <p class="err" id="pay-err"></p>
+      <div class="acts"><button class="btn btn-p" type="submit"><i class="ph ph-link" aria-hidden="true"></i>Create payment link</button></div>
+    </div>
+  </form>
+</template>
 <template id="new-tpl">
   <form class="card" id="new-form" novalidate>
     <h2><i class="ph ph-seal-check" aria-hidden="true"></i>Mark a client as paid and start their project</h2>

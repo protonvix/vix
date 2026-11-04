@@ -196,12 +196,11 @@ async function adminClients(env) {
   }
   return json({ clients: out.reverse() });
 }
-async function adminCreate(env, req, origin) {
-  const b = await req.json().catch(() => ({}));
+async function createClientWithProjects(env, b, origin, note) {
   const email = clean(b.email, 200).toLowerCase();
-  if (!clean(b.name) || !emailOk(email)) return fail(400, "Name and a valid email are required.");
+  if (!clean(b.name) || !emailOk(email)) throw new Error("Name and a valid email are required.");
   const services = (Array.isArray(b.services) ? b.services : []).filter((s) => STAGES[s.type]);
-  if (!services.length) return fail(400, "Choose at least one service.");
+  if (!services.length) throw new Error("Choose at least one service.");
   let id = await env.PORTAL.get("email:" + email);
   let c = id && (await get(env, "client:" + id));
   if (!c) {
@@ -217,7 +216,7 @@ async function adminCreate(env, req, origin) {
       id: pid, clientId: c.id, type: s.type, title: clean(s.title, 120) || defaultTitle(s.type),
       amount: Math.max(0, +s.amount || 0), currency: clean(b.currency, 4) || c.currency, paidAt: now(),
       stage: 0, progress: 5, status: "Your project has started", eta: clean(s.eta, 40),
-      previewUrl: "", liveUrl: "", updates: [{ at: now(), text: "Payment received. Your project has officially started! 🚀" }],
+      previewUrl: "", liveUrl: "", updates: [{ at: now(), text: note || "Payment received. Your project has officially started! 🚀" }],
       deliverables: [], metrics: [], messages: [], unreadAdmin: 0, unreadClient: 1,
     };
     await put(env, "project:" + pid, p);
@@ -225,7 +224,14 @@ async function adminCreate(env, req, origin) {
   }
   await put(env, "client:" + c.id, c);
   const token = c.pw ? null : await newInvite(env, c.id);
-  return json({ ok: true, client: publicClient(c), invite: token ? `${origin}/portal/join/?t=${token}` : null, loginUrl: `${origin}/portal/` });
+  return { client: c, invite: token ? `${origin}/portal/join/?t=${token}` : null, loginUrl: `${origin}/portal/` };
+}
+async function adminCreate(env, req, origin) {
+  const b = await req.json().catch(() => ({}));
+  try {
+    const r = await createClientWithProjects(env, b, origin);
+    return json({ ok: true, client: publicClient(r.client), invite: r.invite, loginUrl: r.loginUrl });
+  } catch (e) { return fail(400, e.message); }
 }
 function defaultTitle(t) {
   return { website: "Website design", ghl: "GoHighLevel setup & automation", tiktok: "TikTok marketing", other: "Project" }[t];
@@ -398,6 +404,114 @@ async function adminTestEmail(env) {
   return r.sent ? json({ ok: true }) : fail(400, r.why);
 }
 
+
+/* ---------------- Paystack payments ---------------- */
+// Secrets (Cloudflare): PAYSTACK_SECRET_KEY. Amounts are stored in the main unit (e.g. naira) and sent to Paystack in the subunit (kobo).
+const PS_API = "https://api.paystack.co";
+async function paystack(env, path, init) {
+  if (!env.PAYSTACK_SECRET_KEY) throw new Error("Online payments are not switched on yet.");
+  const r = await fetch(PS_API + path, { ...(init || {}), headers: { authorization: "Bearer " + env.PAYSTACK_SECRET_KEY, "content-type": "application/json" } });
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok || d.status === false) throw new Error(d.message || "Paystack error " + r.status);
+  return d.data;
+}
+const payPublic = (q) => ({ id: q.id, name: q.name, business: q.business, currency: q.currency, total: q.total, services: q.services.map((s) => ({ type: s.type, title: s.title || defaultTitle(s.type), amount: s.amount })), status: q.status, note: q.note });
+async function adminPayCreate(env, req, origin) {
+  const b = await req.json().catch(() => ({}));
+  const email = clean(b.email, 200).toLowerCase();
+  if (!clean(b.name) || !emailOk(email)) return fail(400, "Name and a valid email are required.");
+  const services = (Array.isArray(b.services) ? b.services : []).filter((s) => STAGES[s.type] && +s.amount > 0)
+    .map((s) => ({ type: s.type, title: clean(s.title, 120), amount: Math.round(+s.amount * 100) / 100, eta: clean(s.eta, 40) }));
+  if (!services.length) return fail(400, "Add at least one service with an amount.");
+  const currency = ["NGN", "USD", "GHS", "ZAR", "KES"].includes(b.currency) ? b.currency : "NGN";
+  const q = { id: rid(12), name: clean(b.name, 80), email, business: clean(b.business, 120), whatsapp: clean(b.whatsapp, 40), currency, services,
+    total: services.reduce((n, s) => n + s.amount, 0), note: clean(b.note, 300), status: "pending", createdAt: now() };
+  await put(env, "payreq:" + q.id, q);
+  const idx = (await get(env, "payreqs:index")) || []; idx.push(q.id); await put(env, "payreqs:index", idx.slice(-1000));
+  return json({ ok: true, link: `${origin}/pay/?r=${q.id}`, request: q });
+}
+async function adminPayList(env) {
+  const idx = ((await get(env, "payreqs:index")) || []).slice().reverse();
+  const items = (await Promise.all(idx.map((id) => get(env, "payreq:" + id)))).filter(Boolean);
+  return json({ requests: items, ready: !!env.PAYSTACK_SECRET_KEY });
+}
+async function adminPayCancel(env, req) {
+  const b = await req.json().catch(() => ({}));
+  const q = await get(env, "payreq:" + clean(b.id, 40));
+  if (!q) return fail(404, "Not found.");
+  if (q.status === "paid") return fail(400, "This one is already paid.");
+  q.status = "cancelled"; await put(env, "payreq:" + q.id, q);
+  return json({ ok: true });
+}
+async function payInfo(env, url) {
+  const q = await get(env, "payreq:" + clean(url.searchParams.get("r"), 40));
+  return q ? json({ request: payPublic(q), ready: !!env.PAYSTACK_SECRET_KEY }) : fail(404, "This payment link is not valid. Please ask us for a new one.");
+}
+async function payStart(env, req, origin) {
+  const b = await req.json().catch(() => ({}));
+  const q = await get(env, "payreq:" + clean(b.r, 40));
+  if (!q) return fail(404, "This payment link is not valid.");
+  if (q.status === "paid") return fail(400, "This invoice has already been paid. Thank you!");
+  if (q.status === "cancelled") return fail(400, "This payment link has been cancelled. Please ask us for a new one.");
+  const reference = "vix_" + q.id + "_" + rid(6).replace(/[^A-Za-z0-9]/g, "");
+  try {
+    const d = await paystack(env, "/transaction/initialize", { method: "POST", body: JSON.stringify({
+      email: q.email, amount: Math.round(q.total * 100), currency: q.currency, reference,
+      callback_url: `${origin}/pay/done/`,
+      metadata: { payreq: q.id, business: q.business, custom_fields: [{ display_name: "Business", variable_name: "business", value: q.business || q.name }] },
+    }) });
+    await env.PORTAL.put("payref:" + reference, q.id);
+    return json({ url: d.authorization_url });
+  } catch (e) { return fail(502, e.message); }
+}
+async function fulfil(env, reference, tx, origin) {
+  const qid = await env.PORTAL.get("payref:" + reference);
+  const q = qid && (await get(env, "payreq:" + qid));
+  if (!q) return { error: "Payment not recognised." };
+  if (q.status === "paid") return { q };
+  if (!tx || tx.status !== "success") return { error: "Payment was not completed." };
+  if (Number(tx.amount) !== Math.round(q.total * 100) || String(tx.currency).toUpperCase() !== q.currency) return { error: "Payment amount did not match the invoice. We've been notified." };
+  // Lock to avoid double fulfilment (webhook + browser at the same time).
+  if (await env.PORTAL.get("paylock:" + q.id)) return { q, pending: true };
+  await env.PORTAL.put("paylock:" + q.id, "1", { expirationTtl: 120 });
+  const amountTxt = (q.currency === "NGN" ? "₦" : q.currency + " ") + q.total.toLocaleString("en-GB");
+  const r = await createClientWithProjects(env, { name: q.name, email: q.email, business: q.business, whatsapp: q.whatsapp, currency: q.currency, services: q.services }, origin,
+    `Payment of ${amountTxt} received via Paystack. Your project has officially started! 🚀`);
+  q.status = "paid"; q.paidAt = now(); q.reference = reference; q.clientId = r.client.id; q.invite = r.invite; q.channel = tx.channel || "";
+  await put(env, "payreq:" + q.id, q);
+  await sendEmail(env, {
+    subject: `💰 Payment received: ${amountTxt} from ${q.business || q.name}`,
+    replyTo: q.email,
+    text: `${q.name}${q.business ? " (" + q.business + ")" : ""} just paid ${amountTxt} via Paystack.\n\nServices:\n${q.services.map((s) => "• " + (s.title || defaultTitle(s.type)) + ": " + s.amount.toLocaleString("en-GB")).join("\n")}\n\nReference: ${reference}\nEmail: ${q.email}\nWhatsApp: ${q.whatsapp || "not given"}\n\nTheir dashboard and projects were created automatically.${r.invite ? "\nTheir dashboard link (also shown to them after payment): " + r.invite : ""}\n\nOpen your admin page: ${origin}/portal/admin/`,
+  });
+  return { q, fresh: true };
+}
+async function payVerify(env, url) {
+  const reference = clean(url.searchParams.get("reference"), 100);
+  if (!reference) return fail(400, "Missing payment reference.");
+  let tx;
+  try { tx = await paystack(env, "/transaction/verify/" + encodeURIComponent(reference)); }
+  catch (e) { return fail(502, "We couldn't confirm your payment yet. If you were charged, don't worry: we'll confirm it shortly by email."); }
+  const r = await fulfil(env, reference, tx, url.origin);
+  if (r.error) return fail(400, r.error);
+  const c = r.q.clientId && (await get(env, "client:" + r.q.clientId));
+  return json({ ok: true, name: r.q.name, business: r.q.business, total: r.q.total, currency: r.q.currency,
+    invite: c && !c.pw ? r.q.invite : null, activated: !!(c && c.pw), loginUrl: url.origin + "/portal/" });
+}
+async function payWebhook(env, req, origin) {
+  const raw = await req.text();
+  if (!env.PAYSTACK_SECRET_KEY) return new Response("not configured", { status: 503 });
+  const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(env.PAYSTACK_SECRET_KEY), { name: "HMAC", hash: "SHA-512" }, false, ["sign"]);
+  const sig = Array.from(new Uint8Array(await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(raw)))).map((x) => x.toString(16).padStart(2, "0")).join("");
+  if (!safeEqual(sig, String(req.headers.get("x-paystack-signature") || ""))) return new Response("bad signature", { status: 401 });
+  let ev; try { ev = JSON.parse(raw); } catch { return new Response("bad body", { status: 400 }); }
+  if (ev.event === "charge.success" && ev.data && ev.data.reference) {
+    // Double-check with Paystack before acting on the event.
+    try { const tx = await paystack(env, "/transaction/verify/" + encodeURIComponent(ev.data.reference)); await fulfil(env, ev.data.reference, tx, origin); } catch (e) {}
+  }
+  return new Response("ok");
+}
+
 /* ---------------- router ---------------- */
 export async function onRequest(ctx) {
   const { request: req } = ctx;
@@ -412,6 +526,7 @@ export async function onRequest(ctx) {
   const url = new URL(req.url);
   const path = url.pathname.replace(/^\/api\/?/, "").replace(/\/$/, "");
   const m = req.method;
+  if (path === "paystack/webhook" && m === "POST") return payWebhook(env, req, url.origin);
   // Public brief/enquiry endpoint, also used by the portfolio site (cross-origin).
   if (path === "brief") {
     const h = cors(req);
@@ -436,6 +551,9 @@ export async function onRequest(ctx) {
     if (path === "message" && m === "POST") return clientMessage(env, req);
     if (path === "seen" && m === "POST") return seen(env, req);
     if (path.startsWith("file/") && m === "GET") return download(env, req, path.slice(5));
+    if (path === "pay/info" && m === "GET") return payInfo(env, url);
+    if (path === "pay/start" && m === "POST") return payStart(env, req, url.origin);
+    if (path === "pay/verify" && m === "GET") return payVerify(env, url);
 
     if (path === "admin/login" && m === "POST") return adminLogin(env, req);
     if (path.startsWith("admin/")) {
@@ -454,6 +572,9 @@ export async function onRequest(ctx) {
       if (a === "briefs" && m === "GET") return adminBriefs(env);
       if (a === "briefs" && m === "POST") return adminBriefUpdate(env, req);
       if (a === "test-email" && m === "POST") return adminTestEmail(env);
+      if (a === "payreqs" && m === "GET") return adminPayList(env);
+      if (a === "payreqs" && m === "POST") return adminPayCreate(env, req, url.origin);
+      if (a === "payreqs/cancel" && m === "POST") return adminPayCancel(env, req);
     }
     return fail(404, "Not found.");
   } catch (e) {
