@@ -139,6 +139,22 @@
       "or email <a href=\"mailto:" + EMAIL + "\">" + EMAIL + "</a>.";
   }
 
+  // Lock the assistant's colours so no page style, old cached stylesheet or forced dark mode can make text unreadable.
+  var lock = document.createElement("style");
+  lock.textContent =
+    ".vx-fabs{color-scheme:light only;z-index:125}" +
+    ".vx-panel{background:#fff!important;color:#0f172a!important;forced-color-adjust:none}" +
+    ".vx-log{background:#f5f7fc!important}" +
+    ".vx-msg.vx-bot{background:#fff!important;color:#1e2638!important;-webkit-text-fill-color:#1e2638}" +
+    ".vx-msg.vx-bot b,.vx-msg.vx-bot strong{color:#0f172a!important;-webkit-text-fill-color:#0f172a}" +
+    ".vx-msg.vx-bot a{color:#4f7cff!important;-webkit-text-fill-color:#4f7cff}" +
+    ".vx-msg.vx-bot a.vx-wa-inline{color:#128c4b!important;-webkit-text-fill-color:#128c4b}" +
+    ".vx-msg.vx-user{color:#fff!important;-webkit-text-fill-color:#fff}" +
+    ".vx-form input{background:#fff!important;color:#0f172a!important;-webkit-text-fill-color:#0f172a}" +
+    ".vx-form input::placeholder{color:#7c849c!important;-webkit-text-fill-color:#7c849c}" +
+    ".vx-quick button{color:#3a63e6!important;-webkit-text-fill-color:#3a63e6}";
+  document.head.appendChild(lock);
+
   // ===== Build the widget =====
   var root = document.createElement("div");
   root.className = "vx-fabs";
