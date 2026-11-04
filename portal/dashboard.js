@@ -42,24 +42,48 @@
   function view(p) {
     var t = VX.TYPE[p.type] || VX.TYPE.other, last = p.stage >= p.stages.length - 1;
     var C = 2 * Math.PI * 56, off = C * (1 - p.progress / 100);
-    var html = '<div class="grid">';
+    var html = '<div class="grid">', bl = p.billing;
+    var DUE = { now: "Payment due now", overdue: "Payment overdue", soon: "Payment due soon", "delivery-due": "Your project is delivered: final payment due" };
+    function dueDate(x) { return x.due === "delivery" ? "on delivery" : x.due === "now" ? "today" : new Date(x.due).toLocaleDateString("en-GB", { day: "numeric", month: "short" }); }
+    if (bl && bl.next && DUE[bl.next.state] && !bl.next.claimed) {
+      html += '<section class="card c12 paybar ' + bl.next.state + '"><span class="pb-ic"><i class="ph-fill ph-credit-card" aria-hidden="true"></i></span><div><b>' + DUE[bl.next.state] + ": " + VX.money(bl.next.amount, bl.currency) + "</b><span>" +
+        (bl.next.state === "overdue" ? "This payment was due " + dueDate(bl.next) + ". " : bl.next.state === "soon" ? "Due " + dueDate(bl.next) + (bl.next.days === 0 ? " (today)" : "") + ". " : "") +
+        "Your finished files and live website unlock once you've paid in full.</span></div><a class=\"btn btn-p\" href=\"" + esc(bl.payUrl) + "\">Pay now</a></section>";
+    } else if (bl && bl.next && bl.next.claimed) {
+      html += '<section class="card c12 paybar claimed"><span class="pb-ic"><i class="ph-fill ph-hourglass-medium" aria-hidden="true"></i></span><div><b>We\'re confirming your bank transfer of ' + VX.money(bl.next.amount, bl.currency) + "</b><span>Thank you! We'll update this as soon as it arrives.</span></div></section>";
+    }
     html += '<section class="card c8"><div class="overview"><div class="ring"><svg viewBox="0 0 132 132"><circle class="t" cx="66" cy="66" r="56"/><circle class="v" cx="66" cy="66" r="56" stroke-dasharray="' + C + '" stroke-dashoffset="' + C + '" data-off="' + off + '"/></svg><b>' + p.progress + '%<small>complete</small></b></div>' +
       '<div><span class="badge' + (last ? " live" : "") + '"><i class="ph ' + t.icon + '" aria-hidden="true"></i>' + t.label + "</span>" +
       '<h2 class="ov-title">' + esc(p.title) + '</h2><p class="ov-status">' + esc(p.status) + "</p>" +
       '<div class="facts"><span><i class="ph ph-calendar-check" aria-hidden="true"></i>Started ' + VX.date(p.paidAt) + "</span>" +
       (p.eta ? '<span><i class="ph ph-flag-checkered" aria-hidden="true"></i>Expected ' + esc(p.eta) + "</span>" : "") +
-      (p.amount ? '<span><i class="ph ph-receipt" aria-hidden="true"></i>Paid ' + VX.money(p.amount, p.currency) + "</span>" : "") + "</div></div></div>" +
+      (bl ? '<span><i class="ph ph-receipt" aria-hidden="true"></i>' + (bl.fullyPaid ? "Paid in full" : "Paid " + VX.money(bl.paid, bl.currency) + " of " + VX.money(bl.total, bl.currency)) + "</span>" : p.amount ? '<span><i class="ph ph-receipt" aria-hidden="true"></i>Paid ' + VX.money(p.amount, p.currency) + "</span>" : "") + "</div></div></div>" +
       '<ol class="stages" style="margin-top:22px">' + p.stages.map(function (s, i) { return '<li class="' + (i < p.stage ? "done" : i === p.stage ? "now" : "") + '">' + esc(s) + "</li>"; }).join("") + "</ol></section>";
 
     // deliveries + links
     var items = "";
     if (p.liveUrl) items += lnk(p.liveUrl, "ph-globe", "Visit your live website", p.liveUrl, false, true);
+    if (p.liveLocked) items += lockedItem("ph-globe", "Your live website", bl);
     if (p.previewUrl) items += lnk(p.previewUrl, "ph-eye", "Preview your project", p.previewUrl, false, true);
     (p.deliverables || []).slice().reverse().forEach(function (d) {
+      if (d.locked) { items += lockedItem(d.size ? "ph-file-arrow-down" : "ph-link", d.title, bl, d.isNew); return; }
       var href = d.fileId ? "/api/file/" + d.fileId : d.url;
       items += lnk(href, d.fileId ? "ph-download-simple" : "ph-link", d.title, d.fileId ? (d.name || "File") + " · " + VX.size(d.size) + " · " + VX.date(d.at) : VX.date(d.at), d.isNew, !d.fileId);
     });
     html += '<section class="card c4"><h2><i class="ph ph-package" aria-hidden="true"></i>Your deliveries</h2><div class="links">' + (items || '<div class="empty"><i class="ph ph-hourglass-medium" aria-hidden="true"></i>Your files and links will pop up here as soon as they\'re ready.</div>') + "</div></section>";
+
+    // payments
+    if (bl && bl.type !== "full") {
+      var pct = Math.round(bl.paid / bl.total * 100);
+      html += '<section class="card c12"><h2><i class="ph ph-wallet" aria-hidden="true"></i>Your payments</h2><div class="pay-sum"><div><span class="muted">' + esc(bl.label) + "</span><b>" + VX.money(bl.paid, bl.currency) + ' <small>of ' + VX.money(bl.total, bl.currency) + " paid</small></b>" +
+        '<div class="pay-bar"><i style="width:' + pct + '%"></i></div></div>' + (bl.next && !bl.next.claimed ? '<a class="btn btn-p" href="' + esc(bl.payUrl) + '">Pay ' + VX.money(bl.next.amount, bl.currency) + (bl.next.state === "scheduled" || bl.next.state === "after-delivery" ? " early" : " now") + "</a>" : bl.fullyPaid ? '<span class="badge live">Paid in full ✓</span>' : "") + "</div>" +
+        '<ol class="pay-sched">' + bl.items.map(function (x) {
+          var st = x.status === "paid" ? "paid" : bl.next && bl.next.i === x.i ? bl.next.state : "upcoming";
+          var lab = x.status === "paid" ? "Paid " + VX.date(x.paidAt) : bl.next && bl.next.i === x.i && DUE[bl.next.state] ? DUE[bl.next.state].replace(/:.*/, "") : x.due === "delivery" ? "Due on delivery" : "Due " + dueDate(x);
+          return '<li class="' + st + '"><span>Payment ' + (x.i + 1) + "</span><em>" + lab + "</em><b>" + VX.money(x.amount, bl.currency) + "</b></li>";
+        }).join("") + "</ol>" +
+        (bl.fullyPaid ? "" : '<p class="note" style="margin:12px 0 0"><i class="ph ph-lock-simple" aria-hidden="true"></i> Your finished files and live website are released once you\'ve paid in full.</p>') + "</section>";
+    }
 
     // growth
     if (p.metricKeys.length) {
@@ -89,6 +113,9 @@
     return html + "</div>";
   }
 
+  function lockedItem(icon, title, bl, isNew) {
+    return '<div class="lnk locked' + (isNew ? " new" : "") + '"><span class="ic"><i class="ph ' + icon + '" aria-hidden="true"></i></span><div><b>' + esc(title) + (isNew ? '<span class="pill-new">Ready</span>' : "") + "</b><span>🔒 Unlocks when you've paid in full" + (bl && bl.next ? " · " + VX.money(bl.balance, bl.currency) + " left" : "") + '</span></div>' + (bl ? '<a class="btn btn-p btn-sm" href="' + esc(bl.payUrl) + '">Pay</a>' : "") + "</div>";
+  }
   function lnk(href, icon, title, sub, isNew, ext) {
     return '<a class="lnk' + (isNew ? " new" : "") + '" href="' + esc(href) + '"' + (ext ? ' target="_blank" rel="noopener"' : "") + '><span class="ic"><i class="ph ' + icon + '" aria-hidden="true"></i></span><div><b>' + esc(title) + (isNew ? '<span class="pill-new">New</span>' : "") + "</b><span>" + esc(sub) + '</span></div><i class="ph ' + (ext ? "ph-arrow-up-right" : "ph-download-simple") + '" aria-hidden="true"></i></a>';
   }
@@ -112,8 +139,10 @@
   function announce(p) {
     if (announced[p.id]) return; announced[p.id] = true;
     var fresh = (p.deliverables || []).filter(function (d) { return d.isNew; });
-    var title, sub;
-    if (fresh.length) { title = fresh.length === 1 ? "🎉 " + fresh[0].title + " is ready!" : "🎉 " + fresh.length + " new deliveries are ready!"; sub = "Find them under Your deliveries."; }
+    var title, sub, bl = p.billing;
+    var DUEPOP = { now: "💳 Payment due now", overdue: "⚠️ Your payment is overdue", soon: "💳 Payment due soon", "delivery-due": "🎉 Your project is ready: final payment due" };
+    if (bl && bl.next && DUEPOP[bl.next.state] && !bl.next.claimed) { title = DUEPOP[bl.next.state] + ": " + VX.money(bl.next.amount, bl.currency); sub = (fresh.some(function (d) { return d.locked; }) ? "Your new delivery is ready and unlocks once you've paid in full. " : "") + "Tap Pay now at the top of your dashboard."; }
+    else if (fresh.length) { title = fresh.length === 1 ? "🎉 " + fresh[0].title + " is ready!" : "🎉 " + fresh.length + " new deliveries are ready!"; sub = fresh.some(function (d) { return d.locked; }) ? "It unlocks once you've paid in full. See Your payments below." : "Find them under Your deliveries."; }
     else if (p.unreadClient) { title = "You have " + p.unreadClient + " new update" + (p.unreadClient > 1 ? "s" : ""); sub = "Your project is moving forward."; }
     else return;
     $("#toast-t").textContent = title; $("#toast-s").textContent = sub;

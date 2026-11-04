@@ -29,6 +29,8 @@
       <ul class="lines" id="lines"></ul>
       <div class="total"><span>Total</span><b id="total"></b></div>
       <p class="note" id="note" hidden></p>
+      <div class="due-box" id="due-box" hidden></div>
+      <div class="plan" id="plan-inv"></div>
       <button class="btn btn-p" type="button" id="pay"><i class="ph-fill ph-lock-simple" aria-hidden="true"></i><span>Pay now</span></button>
       <button class="btn btn-g xfer-open" type="button" id="xfer-btn" hidden><i class="ph ph-bank" aria-hidden="true"></i>Pay by bank transfer instead · USD, GBP, EUR or NGN</button>
       <p class="err" id="err" role="alert"></p>
@@ -57,6 +59,7 @@
       <ul class="feats" id="pkg-feats"></ul>
       <div class="total"><span>Total today <small id="pkg-was"></small></span><b id="pkg-total"></b></div>
       <p class="note" id="pkg-note"></p>
+      <div class="plan" id="plan-pkg"></div>
       <div class="pk-fields">
         <label>Your full name<input name="name" autocomplete="name" required></label>
         <label>Email (for your receipt and dashboard)<input name="email" type="email" autocomplete="email" required></label>
@@ -93,6 +96,42 @@
     $("state-ic").className = "ph-fill " + icon + " pay-big"; $("state-h").innerHTML = h; $("state-p").textContent = p;
     if (btn) { $("state-btn").textContent = btn[0]; $("state-btn").href = btn[1]; } else $("state-btn").hidden = true;
   }
+  /* ---- payment plan picker (amounts mirror the server; the server has the final say) ---- */
+  var MAXD = 45;
+  function roundAmt(v, c) { return c === "NGN" ? Math.round(v / 100) * 100 : Math.round(v * 100) / 100; }
+  function schedule(total, c, pl) {
+    var shares = pl.type === "full" ? [1] : pl.type === "half" ? [0.5, 0.5] : Array.apply(null, Array(pl.count)).map(function () { return 1 / pl.count; });
+    var acc = 0;
+    return shares.map(function (sh, k) {
+      var last = k === shares.length - 1, a = last ? roundAmt(total - acc, c) : roundAmt(total * sh, c); acc += a;
+      var due = k === 0 ? "Today" : pl.type === "half" ? "When your project is delivered" : new Date(Date.now() + k * pl.interval * 864e5).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+      return { amount: a, due: due };
+    });
+  }
+  function planPicker(el, total, c, onChange) {
+    var st = { type: "full", count: 3, interval: 14 };
+    function valid(n, iv) { return (n - 1) * iv <= MAXD; }
+    function draw() {
+      if (st.type === "instal" && !valid(st.count, st.interval)) { st.interval = [21, 14, 7].filter(function (iv) { return valid(st.count, iv); })[0]; }
+      var sch = schedule(total, c, st);
+      var opt = function (t, title, sub) { return '<button type="button" class="pl-opt" role="radio" aria-checked="' + (st.type === t) + '" data-t="' + t + '"><b>' + title + "</b><span>" + sub + "</span></button>"; };
+      el.innerHTML = '<p class="pl-h">How would you like to pay?</p><div class="pl-opts" role="radiogroup" aria-label="Payment plan">' +
+        opt("full", "Pay in full", VX.money(total, c) + " today") +
+        opt("half", "Half now, half on delivery", VX.money(schedule(total, c, { type: "half" })[0].amount, c) + " today") +
+        opt("instal", "Instalments", "Smaller payments within 45 days") + "</div>" +
+        (st.type === "instal" ? '<div class="pl-cfg"><label>Number of payments<select data-k="count">' + [2, 3, 4].map(function (n) { return "<option" + (st.count === n ? " selected" : "") + ">" + n + "</option>"; }).join("") + "</select></label>" +
+          '<label>Pay every<select data-k="interval">' + [[7, "week"], [14, "2 weeks"], [21, "3 weeks"], [30, "month"]].map(function (o) { return '<option value="' + o[0] + '"' + (st.interval === o[0] ? " selected" : "") + (valid(st.count, o[0]) ? "" : " disabled") + ">" + o[1] + (valid(st.count, o[0]) ? "" : " (over 45 days)") + "</option>"; }).join("") + "</select></label></div>" : "") +
+        (st.type === "full" ? "" : '<ol class="pl-sched">' + sch.map(function (x, k) { return "<li><span>" + (k === 0 ? "<b>Today</b>" : x.due) + "</span><b>" + VX.money(x.amount, c) + "</b></li>"; }).join("") + "</ol>" +
+          '<p class="pl-note"><i class="ph ph-lock-simple" aria-hidden="true"></i> Your project starts after the first payment. Finished files and your live website are released once you\'ve paid in full.</p>');
+      onChange(sch[0].amount, st);
+    }
+    el.addEventListener("click", function (e) { var b = e.target.closest(".pl-opt"); if (b) { st.type = b.dataset.t; draw(); } });
+    el.addEventListener("change", function (e) { var k = e.target.dataset.k; if (k) { st[k] = +e.target.value; draw(); } });
+    draw();
+    return { get: function () { return { type: st.type, count: st.count, interval: st.interval }; }, first: function () { return schedule(total, c, st)[0].amount; } };
+  }
+  var picked = null;
+
   function shown(id) { $("loading").hidden = true; $(id).hidden = false; $("trust").hidden = false; $("foot").hidden = false; }
 
   /* ---- bank transfer ---- */
@@ -107,8 +146,9 @@
     return { v: v, exact: false };
   }
   function money2(v, c) { var sym = { NGN: "₦", USD: "$", GBP: "£", EUR: "€" }[c] || c + " "; return sym + Number(v).toLocaleString("en-GB", { minimumFractionDigits: c === "NGN" ? 0 : 2, maximumFractionDigits: c === "NGN" ? 0 : 2 }); }
-  function openTransfer(q) {
+  function openTransfer(q, due) {
     invoice = q;
+    if (due) q = Object.assign({}, q, { total: due.amount, usd: due.usd || null });
     banksReady.then(function () {
       var rates = BANKS.rates || {}, order = { USD: 0, GBP: 1, EUR: 2, NGN: 3 };
       var list = BANKS.banks.slice().sort(function (a, b) { return order[a.currency] - order[b.currency]; });
@@ -136,7 +176,7 @@
     e.preventDefault();
     var f = e.target; if (!f.payer.value.trim()) { $("x-err").textContent = "Please enter the name on the account you paid from."; return; }
     var b = f.querySelector("button"); b.disabled = true; $("x-err").textContent = "";
-    VX.api("pay/transfer", { r: invoice.id, payer: f.payer.value, currency: f.currency.value })
+    VX.api("pay/transfer", { r: invoice.id, payer: f.payer.value, currency: f.currency.value, plan: invoice.status === "paid" ? null : (picked ? picked.get() : null) })
       .then(function () { state("ph-hourglass-medium", "Thank you! We're <em>confirming your transfer</em>", "We'll check our account and confirm within a few hours on business days. As soon as it's confirmed, your project starts and we'll send your dashboard link to " + invoice.email + " and WhatsApp. Reference: " + invoice.ref + ".", null); $("state-ic").classList.add("ok"); })
       .catch(function (x) { $("x-err").textContent = x.message; b.disabled = false; });
   });
@@ -149,7 +189,7 @@
       $("pkg-total").textContent = VX.money(p.amount, p.currency);
       $("pkg-was").textContent = "($" + (p.usd % 1 ? p.usd.toFixed(2) : p.usd) + " after " + p.discount + "% founding-client discount, was $" + p.usdList + ")";
       $("pkg-note").textContent = "Delivered in " + p.eta + ". Charged in naira at today's exchange rate.";
-      $("pkg-pay").querySelector("span").textContent = "Pay " + VX.money(p.amount, p.currency) + " & start";
+      picked = planPicker($("plan-pkg"), p.amount, p.currency, function (first, st) { $("pkg-pay").querySelector("span").textContent = "Pay " + VX.money(first, p.currency) + (st.type === "full" ? " & start" : " now & start"); });
       if (!d.ready) { $("pkg-pay").disabled = true; $("pkg-err").textContent = "Online payment is being set up. Please check back shortly or contact us."; }
       shown("pkg");
     }).catch(function (e) { state("ph-warning-circle", "Package <em>not found</em>", e.message, ["See our packages", "/pricing.html"]); });
@@ -158,7 +198,7 @@
       [f.name, f.email].forEach(function (i) { var good = i.value.trim() && (i.type !== "email" || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(i.value.trim())); i.style.borderColor = good ? "" : "#ff7b7b"; if (!good) ok = false; });
       if (!ok) { $("pkg-err").textContent = "Please enter your name and a valid email."; return; }
       var b = this; b.disabled = true;
-      VX.api("pay/package", { p: pk, mode: "transfer", name: f.name.value, email: f.email.value, business: f.business.value, whatsapp: f.whatsapp.value, website: f.website.value })
+      VX.api("pay/package", { p: pk, mode: "transfer", plan: picked.get(), name: f.name.value, email: f.email.value, business: f.business.value, whatsapp: f.whatsapp.value, website: f.website.value })
         .then(function (d) { location.href = location.pathname + "?r=" + encodeURIComponent(d.r) + "&t=1"; })
         .catch(function (x) { $("pkg-err").textContent = x.message; b.disabled = false; });
     });
@@ -168,7 +208,7 @@
       [f.name, f.email].forEach(function (i) { var good = i.value.trim() && (i.type !== "email" || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(i.value.trim())); i.style.borderColor = good ? "" : "#ff7b7b"; if (!good) ok = false; });
       if (!ok) { $("pkg-err").textContent = "Please enter your name and a valid email."; return; }
       var b = $("pkg-pay"); b.disabled = true; $("pkg-err").textContent = ""; b.querySelector("span").textContent = "Opening secure checkout…";
-      VX.api("pay/package", { p: pk, name: f.name.value, email: f.email.value, business: f.business.value, whatsapp: f.whatsapp.value, website: f.website.value })
+      VX.api("pay/package", { p: pk, plan: picked.get(), name: f.name.value, email: f.email.value, business: f.business.value, whatsapp: f.whatsapp.value, website: f.website.value })
         .then(function (d) { location.href = d.url; })
         .catch(function (x) { $("pkg-err").textContent = x.message; b.disabled = false; b.querySelector("span").textContent = "Try again"; });
     });
@@ -176,24 +216,36 @@
   }
 
   VX.api("pay/info?r=" + encodeURIComponent(r)).then(function (d) {
-    var q = d.request;
-    if (q.status === "paid") return state("ph-seal-check", "This invoice is <em>paid</em>", "Thank you! Your project is underway. Log in to your dashboard to follow its progress.", ["Go to your dashboard", "/portal/"]);
+    var q = d.request, bill = d.billing;
+    if (bill && bill.fullyPaid) return state("ph-seal-check", "This invoice is <em>paid in full</em>", "Thank you! Log in to your dashboard to follow your project and download your files.", ["Go to your dashboard", "/portal/"]);
+    var due = bill && bill.next, later = q.status === "paid";
     if (q.status === "cancelled") return state("ph-x-circle", "This link was <em>cancelled</em>", "Please contact us for an updated payment link.", ["Contact us on WhatsApp", "https://wa.me/447723149573"]);
     q.email = q.email || "your email";
-    if (q.transferAt) return state("ph-hourglass-medium", "We're <em>confirming your transfer</em>", "Thank you! You told us you sent a bank transfer. We'll confirm it shortly and your project will start straight away. Reference: " + q.ref + ".", ["Message us on WhatsApp", "https://wa.me/447723149573"]);
-    $("xfer-btn").onclick = function () { openTransfer(q); };
-    if (qs.get("t") === "1") { $("loading").hidden = true; openTransfer(q); return; }
+    if (q.transferAt && due && due.claimed) return state("ph-hourglass-medium", "We're <em>confirming your transfer</em>", "Thank you! You told us you sent a bank transfer. We'll confirm it shortly and your project will start straight away. Reference: " + q.ref + ".", ["Message us on WhatsApp", "https://wa.me/447723149573"]);
+    var dueNow = later ? due : null;
+    $("xfer-btn").onclick = function () { openTransfer(q, dueNow || (picked ? { amount: picked.first(), usd: q.usd ? Math.round(q.usd * picked.first() / q.total * 100) / 100 : null } : null)); };
+    if (qs.get("t") === "1") { $("loading").hidden = true; openTransfer(q, later ? due : (d.plan ? { amount: d.plan.items[0].amount, usd: d.plan.items[0].usd } : null)); return; }
     $("who").textContent = q.business || q.name;
     $("lines").innerHTML = q.services.map(function (s) { return '<li><span><i class="ph ' + (VX.TYPE[s.type] || VX.TYPE.other).icon + '" aria-hidden="true"></i>' + VX.esc(s.title) + "</span><b>" + VX.money(s.amount, q.currency) + "</b></li>"; }).join("");
     $("total").textContent = VX.money(q.total, q.currency);
-    $("pay").querySelector("span").textContent = "Pay " + VX.money(q.total, q.currency);
+    if (later) {
+      var n = bill.items.length, label = { now: "Due now", overdue: "Overdue", soon: "Due soon", scheduled: "Next payment", "after-delivery": "Due on delivery (you can pay early)", "delivery-due": "Your project is delivered: balance due" }[due.state] || "Next payment";
+      $("due-box").hidden = false;
+      $("due-box").innerHTML = '<p class="pl-h">' + VX.esc(bill.label) + " · paid " + VX.money(bill.paid, q.currency) + " of " + VX.money(bill.total, q.currency) + "</p>" +
+        '<div class="due-now ' + due.state + '"><span>' + label + (/^\d{4}-/.test(due.due) ? " · " + new Date(due.due).toLocaleDateString("en-GB", { day: "numeric", month: "short" }) : "") + "</span><b>" + VX.money(due.amount, q.currency) + "</b><small>Payment " + (due.i + 1) + " of " + n + "</small></div>" +
+        '<ol class="pl-sched">' + bill.items.map(function (x) { return "<li" + (x.status === "paid" ? ' class="paid"' : "") + "><span>" + (x.status === "paid" ? "✓ Paid" : x.due === "delivery" ? "On delivery" : x.due === "now" ? "Today" : new Date(x.due).toLocaleDateString("en-GB", { day: "numeric", month: "short" })) + "</span><b>" + VX.money(x.amount, q.currency) + "</b></li>"; }).join("") + "</ol>";
+      $("plan-inv").hidden = true;
+      $("pay").querySelector("span").textContent = "Pay " + VX.money(due.amount, q.currency) + " now";
+    } else {
+      picked = planPicker($("plan-inv"), q.total, q.currency, function (first) { $("pay").querySelector("span").textContent = "Pay " + VX.money(first, q.currency) + " now"; });
+    }
     if (q.note) { $("note").hidden = false; $("note").textContent = q.note; }
     if (!d.ready) { $("pay").disabled = true; $("err").textContent = "Online payment is being set up. Please check back shortly or contact us."; }
     shown("body");
   }).catch(function (e) { state("ph-warning-circle", "Link <em>not found</em>", e.message, ["Contact us on WhatsApp", "https://wa.me/447723149573"]); });
   $("pay").addEventListener("click", function () {
     var b = this; b.disabled = true; $("err").textContent = ""; b.querySelector("span").textContent = "Opening secure checkout…";
-    VX.api("pay/start", { r: r }).then(function (d) { location.href = d.url; })
+    VX.api("pay/start", { r: r, plan: picked ? picked.get() : null }).then(function (d) { location.href = d.url; })
       .catch(function (e) { $("err").textContent = e.message; b.disabled = false; b.querySelector("span").textContent = "Try again"; });
   });
 })();

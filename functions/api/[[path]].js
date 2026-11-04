@@ -134,7 +134,12 @@ async function logout(env, req) {
 async function me(env, req) {
   const c = await clientFromSession(env, req);
   if (!c) return fail(401, "Please log in.");
-  const projects = (await loadProjects(env, c)).map(withStages);
+  const raw = await loadProjects(env, c), projects = [];
+  for (const pj of raw) {
+    const q = pj.payreqId && (await get(env, "payreq:" + pj.payreqId));
+    const bill = q ? await billingFor(env, q, raw.filter((x) => x.payreqId === pj.payreqId)) : null;
+    projects.push({ ...withStages(lockProject(pj, bill)), billing: bill });
+  }
   return json({ client: publicClient(c), projects });
 }
 async function clientMessage(env, req) {
@@ -170,6 +175,8 @@ async function download(env, req, fileId) {
     const c = await clientFromSession(env, req);
     const p = c && (await get(env, "project:" + meta.projectId));
     if (!p || p.clientId !== c.id) return fail(403, "You don't have access to this file.");
+    const q = p.payreqId && (await get(env, "payreq:" + p.payreqId));
+    if (q && !fullyPaid(q)) return fail(402, "This file unlocks once your balance is paid. Open your dashboard to pay.");
   }
   const body = await env.PORTAL.get("file:" + fileId, "arrayBuffer");
   if (!body) return fail(404, "File not found.");
@@ -192,7 +199,9 @@ async function adminClients(env) {
   const out = [];
   for (const id of ids) {
     const c = await get(env, "client:" + id); if (!c) continue;
-    out.push({ ...publicClient(c), projects: (await loadProjects(env, c)).map(withStages) });
+    const raw = await loadProjects(env, c), projects = [];
+    for (const pj of raw) { const q = pj.payreqId && (await get(env, "payreq:" + pj.payreqId)); projects.push({ ...withStages(pj), billing: q ? await billingFor(env, q, raw.filter((x) => x.payreqId === pj.payreqId)) : null }); }
+    out.push({ ...publicClient(c), projects });
   }
   return json({ clients: out.reverse() });
 }
@@ -216,7 +225,7 @@ async function createClientWithProjects(env, b, origin, note) {
       id: pid, clientId: c.id, type: s.type, title: clean(s.title, 120) || defaultTitle(s.type),
       amount: Math.max(0, +s.amount || 0), currency: clean(b.currency, 4) || c.currency, paidAt: now(),
       stage: 0, progress: 5, status: "Your project has started", eta: clean(s.eta, 40),
-      previewUrl: "", liveUrl: "", updates: [{ at: now(), text: note || "Payment received. Your project has officially started! 🚀" }],
+      previewUrl: "", liveUrl: "", payreqId: b.payreqId || "", updates: [{ at: now(), text: note || "Payment received. Your project has officially started! 🚀" }],
       deliverables: [], metrics: [], messages: [], unreadAdmin: 0, unreadClient: 1,
     };
     await put(env, "project:" + pid, p);
@@ -224,7 +233,7 @@ async function createClientWithProjects(env, b, origin, note) {
   }
   await put(env, "client:" + c.id, c);
   const token = c.pw ? null : await newInvite(env, c.id);
-  return { client: c, invite: token ? `${origin}/portal/join/?t=${token}` : null, loginUrl: `${origin}/portal/` };
+  return { client: c, projectIds: c.projectIds.slice(-services.length), invite: token ? `${origin}/portal/join/?t=${token}` : null, loginUrl: `${origin}/portal/` };
 }
 async function adminCreate(env, req, origin) {
   const b = await req.json().catch(() => ({}));
@@ -259,6 +268,19 @@ async function adminProject(env, req) {
     const s = Math.max(0, Math.min(stages.length - 1, +b.stage | 0));
     if (s !== p.stage) { p.updates.push({ at: now(), text: `Stage update: ${stages[s]}` }); p.unreadClient = (p.unreadClient || 0) + 1; }
     p.stage = s;
+    if (s === stages.length - 1 && !p.deliveredAt) {
+      p.deliveredAt = now();
+      const q = p.payreqId && (await get(env, "payreq:" + p.payreqId));
+      if (q && !fullyPaid(q)) {
+        const nx = nextItem(q);
+        p.updates.push({ at: now(), text: `🎉 Your project is delivered! Your remaining balance of ${fmtMoney(q.total - planOf(q).items.filter((x) => x.status === "paid").reduce((n, x) => n + x.amount, 0), q.currency)} is now due. Your files and links unlock as soon as it's paid.` });
+        if (nx && nx.due === "delivery") {
+          await sendClientEmail(env, { to: q.email, name: q.name, subject: "🎉 Your project is ready: final payment due",
+            html: `<div style="font-family:Arial,sans-serif;max-width:540px;margin:0 auto;padding:24px;color:#3a4152;font-size:15px;line-height:1.6"><div style="font-weight:700;color:#5b4bff">Vix Automations</div><h2 style="color:#0b1020">Your project is ready 🎉</h2><p>Hi ${escH(String(q.name).split(" ")[0])}, great news: your project is complete. Please pay your remaining balance of <b>${escH(fmtMoney(nx.amount, q.currency))}</b> to unlock your files and links.</p><p><a href="https://vixautomations.pages.dev/pay/?r=${escH(q.id)}" style="display:inline-block;background:#5b4bff;color:#fff;text-decoration:none;font-weight:700;padding:12px 20px;border-radius:999px">Pay my balance →</a></p></div>`,
+            text: `Your project is ready. Please pay your remaining balance of ${fmtMoney(nx.amount, q.currency)} to unlock your files: https://vixautomations.pages.dev/pay/?r=${q.id}` });
+        }
+      }
+    }
   }
   if (b.progress != null) p.progress = Math.max(0, Math.min(100, +b.progress | 0));
   if (b.status != null) p.status = clean(b.status, 160);
@@ -412,6 +434,96 @@ async function adminTestEmail(env) {
 }
 
 
+
+/* ---------------- Payment plans: full, half now + half on delivery, instalments ---------------- */
+const PLAN_MAX_DAYS = 45;
+const PLAN_INTERVALS = [7, 14, 21, 30];
+const roundAmt = (v, c) => (c === "NGN" ? Math.round(v / 100) * 100 : Math.round(v * 100) / 100);
+const addDays = (iso, d) => new Date(new Date(iso).getTime() + d * 864e5).toISOString().slice(0, 10);
+function buildPlan(q, p) {
+  const type = ["full", "half", "instal"].includes(p && p.type) ? p.type : "full";
+  let shares, meta = {};
+  if (type === "full") shares = [1];
+  else if (type === "half") shares = [0.5, 0.5];
+  else {
+    const count = Math.max(2, Math.min(4, (+p.count) | 0 || 2));
+    const interval = PLAN_INTERVALS.includes(+p.interval) ? +p.interval : 14;
+    if ((count - 1) * interval > PLAN_MAX_DAYS) throw new Error("Instalments must be fully paid within 45 days. Choose fewer payments or a shorter interval.");
+    shares = Array.from({ length: count }, () => 1 / count); meta = { count, interval };
+  }
+  let acc = 0, accU = 0;
+  const items = shares.map((sh, k) => {
+    const last = k === shares.length - 1;
+    const amount = last ? roundAmt(q.total - acc, q.currency) : roundAmt(q.total * sh, q.currency); acc += amount;
+    let usd = null;
+    if (q.usd) { usd = last ? Math.round((q.usd - accU) * 100) / 100 : Math.round(q.usd * sh * 100) / 100; accU += usd; }
+    const due = k === 0 ? "now" : type === "half" ? "delivery" : addDays(now(), k * meta.interval);
+    return { i: k, amount, usd, due, status: "pending" };
+  });
+  return { type, ...meta, items, createdAt: now() };
+}
+function planOf(q) {
+  if (q.plan) return q.plan;
+  return { type: "full", items: [{ i: 0, amount: q.total, usd: q.usd || null, due: "now", status: q.status === "paid" ? "paid" : "pending", paidAt: q.paidAt || null }] };
+}
+const fullyPaid = (q) => planOf(q).items.every((x) => x.status === "paid");
+const nextItem = (q) => planOf(q).items.find((x) => x.status !== "paid") || null;
+function planLabel(pl) {
+  if (pl.type === "half") return "Half now, half on delivery";
+  if (pl.type === "instal") return pl.count + " instalments, every " + (pl.interval === 30 ? "month" : pl.interval / 7 + " week" + (pl.interval > 7 ? "s" : ""));
+  return "Paid in full";
+}
+// Where the next payment stands: now | overdue | soon | scheduled | after-delivery | delivery-due
+async function billingFor(env, q, projects) {
+  const pl = planOf(q), it = nextItem(q);
+  const paid = pl.items.filter((x) => x.status === "paid").reduce((n, x) => n + x.amount, 0);
+  let next = null;
+  if (it) {
+    const delivered = (projects || []).some((x) => x.deliveredAt);
+    let state = "scheduled", days = null;
+    if (it.due === "now") state = "now";
+    else if (it.due === "delivery") state = delivered ? "delivery-due" : "after-delivery";
+    else {
+      days = Math.ceil((new Date(it.due + "T23:59:59+01:00").getTime() - Date.now()) / 864e5);
+      state = days < 0 ? "overdue" : days <= 3 ? "soon" : "scheduled";
+    }
+    next = { i: it.i, amount: it.amount, usd: it.usd, due: it.due, state, days, claimed: !!(q.transfer && q.transfer.i === it.i && it.status !== "paid") };
+  }
+  return { payreqId: q.id, type: pl.type, label: planLabel(pl), currency: q.currency, total: q.total, paid, balance: Math.max(0, q.total - paid),
+    fullyPaid: !it, items: pl.items.map((x) => ({ i: x.i, amount: x.amount, due: x.due, status: x.status, paidAt: x.paidAt || null })), next, payUrl: "/pay/?r=" + q.id };
+}
+// Lock finished work until the balance is paid.
+function lockProject(pj, bill) {
+  if (!bill || bill.fullyPaid) return pj;
+  return { ...pj, liveUrl: "", liveLocked: !!pj.liveUrl,
+    deliverables: (pj.deliverables || []).map((d) => ({ id: d.id, title: d.title, at: d.at, isNew: d.isNew, locked: true, size: d.size, name: d.name })) };
+}
+async function markItemPaid(env, q, i, channel, reference, origin) {
+  const pl = q.plan || (q.plan = planOf(q));
+  const it = pl.items[i]; if (!it || it.status === "paid") return { already: true };
+  it.status = "paid"; it.paidAt = now(); it.channel = channel || ""; it.ref = reference || "";
+  // Instalment dates count from the day of the first payment.
+  if (i === 0 && pl.type === "instal") pl.items.forEach((x, k) => { if (k > 0) x.due = addDays(it.paidAt, k * pl.interval); });
+  if (q.transfer && q.transfer.i === i) q.transfer = null;
+  return { it };
+}
+async function afterInstalment(env, q, it, origin) {
+  const pl = planOf(q), done = fullyPaid(q), nx = nextItem(q);
+  const money = (n) => fmtMoney(n, q.currency);
+  const balance = q.total - pl.items.filter((x) => x.status === "paid").reduce((n, x) => n + x.amount, 0);
+  const text = done ? `Payment of ${money(it.amount)} received. You've now paid in full ✓ All your files and links are unlocked. Thank you!`
+    : `Payment of ${money(it.amount)} received (payment ${it.i + 1} of ${pl.items.length}). Remaining balance: ${money(balance)}${nx && nx.due !== "delivery" && nx.due !== "now" ? ", next payment due " + nx.due : nx && nx.due === "delivery" ? ", due when your project is delivered" : ""}.`;
+  for (const pid of q.projectIds || []) {
+    const pj = await get(env, "project:" + pid); if (!pj) continue;
+    pj.updates.push({ at: now(), text }); pj.unreadClient = (pj.unreadClient || 0) + 1;
+    await put(env, "project:" + pj.id, pj);
+  }
+  const subject = done ? "✅ Paid in full: your project is unlocked" : `Payment received: ${money(it.amount)} (payment ${it.i + 1} of ${pl.items.length})`;
+  const html = `<div style="font-family:Arial,sans-serif;max-width:540px;margin:0 auto;padding:24px;color:#3a4152;font-size:15px;line-height:1.6"><div style="font-weight:700;color:#5b4bff">Vix Automations</div><h2 style="color:#0b1020;margin:12px 0">${escH(subject)}</h2><p>Hi ${escH(String(q.name).split(" ")[0])},</p><p>${escH(text)}</p><p><a href="${escH(origin)}/portal/" style="display:inline-block;background:#5b4bff;color:#fff;text-decoration:none;font-weight:700;padding:12px 20px;border-radius:999px">Open my client dashboard →</a></p><p style="font-size:13px;color:#7c849c">Questions? Reply to this email or WhatsApp +44 7723 149573.</p></div>`;
+  await sendClientEmail(env, { to: q.email, name: q.name, subject, html, text });
+  await sendEmail(env, { subject: `💰 ${done ? "Paid in full" : "Instalment received"}: ${money(it.amount)} from ${q.business || q.name}`, replyTo: q.email, text: text + `\n\nPlan: ${planLabel(pl)}\nOpen your admin page: ${origin}/portal/admin/` });
+}
+
 /* ---------------- Paystack payments ---------------- */
 // Secrets (Cloudflare): PAYSTACK_SECRET_KEY. Amounts are stored in the main unit (e.g. naira) and sent to Paystack in the subunit (kobo).
 const PS_API = "https://api.paystack.co";
@@ -452,47 +564,67 @@ async function adminPayCancel(env, req) {
 }
 async function payInfo(env, url) {
   const q = await get(env, "payreq:" + clean(url.searchParams.get("r"), 40));
-  return q ? json({ request: payPublic(q), ready: !!env.PAYSTACK_SECRET_KEY }) : fail(404, "This payment link is not valid. Please ask us for a new one.");
+  if (!q) return fail(404, "This payment link is not valid. Please ask us for a new one.");
+  const projects = (await Promise.all((q.projectIds || []).map((id) => get(env, "project:" + id)))).filter(Boolean);
+  return json({ request: payPublic(q), plan: q.plan || null, billing: await billingFor(env, q, projects), maxDays: PLAN_MAX_DAYS, ready: !!env.PAYSTACK_SECRET_KEY });
 }
 async function payStart(env, req, origin) {
   const b = await req.json().catch(() => ({}));
   const q = await get(env, "payreq:" + clean(b.r, 40));
   if (!q) return fail(404, "This payment link is not valid.");
-  if (q.status === "paid") return fail(400, "This invoice has already been paid. Thank you!");
   if (q.status === "cancelled") return fail(400, "This payment link has been cancelled. Please ask us for a new one.");
-  const reference = "vix_" + q.id + "_" + rid(6).replace(/[^A-Za-z0-9]/g, "");
+  if (q.status !== "paid" && b.plan) { try { q.plan = buildPlan(q, b.plan); await put(env, "payreq:" + q.id, q); } catch (e) { return fail(400, e.message); } }
+  const it = nextItem(q);
+  if (!it) return fail(400, "This invoice has already been paid in full. Thank you!");
+  const reference = "vix_" + q.id + "_" + it.i + "_" + rid(6).replace(/[^A-Za-z0-9]/g, "");
   try {
     const d = await paystack(env, "/transaction/initialize", { method: "POST", body: JSON.stringify({
-      email: q.email, amount: Math.round(q.total * 100), currency: q.currency, reference,
+      email: q.email, amount: Math.round(it.amount * 100), currency: q.currency, reference,
       callback_url: `${origin}/pay/done/`,
-      metadata: { payreq: q.id, business: q.business, custom_fields: [{ display_name: "Business", variable_name: "business", value: q.business || q.name }] },
+      metadata: { payreq: q.id, instalment: it.i + 1, business: q.business, custom_fields: [{ display_name: "Business", variable_name: "business", value: q.business || q.name }] },
     }) });
-    await env.PORTAL.put("payref:" + reference, q.id);
+    await env.PORTAL.put("payref:" + reference, JSON.stringify({ id: q.id, i: it.i }));
     return json({ url: d.authorization_url });
   } catch (e) { return fail(502, e.message); }
 }
 async function fulfil(env, reference, tx, origin) {
-  const qid = await env.PORTAL.get("payref:" + reference);
-  const q = qid && (await get(env, "payreq:" + qid));
+  const raw = await env.PORTAL.get("payref:" + reference);
+  let ref = null; try { ref = JSON.parse(raw); } catch { ref = raw ? { id: raw, i: 0 } : null; }
+  if (ref && typeof ref !== "object") ref = { id: String(ref), i: 0 };
+  const q = ref && (await get(env, "payreq:" + ref.id));
   if (!q) return { error: "Payment not recognised." };
-  if (q.status === "paid") return { q };
+  const pl = planOf(q), item = pl.items[ref.i || 0];
+  if (!item) return { error: "Payment not recognised." };
+  if (item.status === "paid") return { q, item };
   if (!tx || tx.status !== "success") return { error: "Payment was not completed." };
-  if (Number(tx.amount) !== Math.round(q.total * 100) || String(tx.currency).toUpperCase() !== q.currency) return { error: "Payment amount did not match the invoice. We've been notified." };
+  if (Number(tx.amount) !== Math.round(item.amount * 100) || String(tx.currency).toUpperCase() !== q.currency) return { error: "Payment amount did not match the invoice. We've been notified." };
   // Lock to avoid double fulfilment (webhook + browser at the same time).
-  if (await env.PORTAL.get("paylock:" + q.id)) return { q, pending: true };
-  await env.PORTAL.put("paylock:" + q.id, "1", { expirationTtl: 120 });
-  const amountTxt = (q.currency === "NGN" ? "₦" : q.currency + " ") + q.total.toLocaleString("en-GB");
-  const r = await createClientWithProjects(env, { name: q.name, email: q.email, business: q.business, whatsapp: q.whatsapp, currency: q.currency, services: q.services }, origin,
-    `Payment of ${amountTxt} received via Paystack. Your project has officially started! 🚀`);
+  const lockKey = "paylock:" + q.id + ":" + item.i;
+  if (await env.PORTAL.get(lockKey)) return { q, item, pending: true };
+  await env.PORTAL.put(lockKey, "1", { expirationTtl: 120 });
+  const channel = "Paystack" + (tx.channel ? " (" + String(tx.channel).replace(/_/g, " ") + ")" : "");
+  if (q.status === "paid") {
+    // A later instalment / balance payment.
+    const m = await markItemPaid(env, q, item.i, channel, reference, origin);
+    await put(env, "payreq:" + q.id, q);
+    if (m.it) await afterInstalment(env, q, m.it, origin);
+    return { q, item, fresh: true };
+  }
+  const amountTxt = fmtMoney(item.amount, q.currency);
+  const planTxt = pl.type === "full" ? "" : " (" + planLabel(pl).toLowerCase() + ")";
+  const r = await createClientWithProjects(env, { name: q.name, email: q.email, business: q.business, whatsapp: q.whatsapp, currency: q.currency, services: q.services, payreqId: q.id }, origin,
+    `Payment of ${amountTxt} received via Paystack${planTxt}. Your project has officially started! 🚀`);
+  await markItemPaid(env, q, item.i, channel, reference, origin);
+  q.projectIds = r.projectIds;
   q.status = "paid"; q.paidAt = now(); q.reference = reference; q.clientId = r.client.id; q.invite = r.invite; q.channel = tx.channel || "";
   await emailPaidClient(env, q, r, origin, "Paystack" + (tx.channel ? " (" + String(tx.channel).replace(/_/g, " ") + ")" : ""), reference);
   await put(env, "payreq:" + q.id, q);
   await sendEmail(env, {
-    subject: `💰 Payment received: ${amountTxt} from ${q.business || q.name}`,
+    subject: `💰 Payment received: ${amountTxt} from ${q.business || q.name}${planTxt}`,
     replyTo: q.email,
-    text: `${q.name}${q.business ? " (" + q.business + ")" : ""} just paid ${amountTxt} via Paystack.\n\nServices:\n${q.services.map((s) => "• " + (s.title || defaultTitle(s.type)) + ": " + s.amount.toLocaleString("en-GB")).join("\n")}\n\nReference: ${reference}\nEmail: ${q.email}\nWhatsApp: ${q.whatsapp || "not given"}\n\nTheir dashboard and projects were created automatically.${r.invite ? "\nTheir dashboard link (also shown to them after payment): " + r.invite : ""}\n\nOpen your admin page: ${origin}/portal/admin/`,
+    text: `${q.name}${q.business ? " (" + q.business + ")" : ""} just paid ${amountTxt} via Paystack${planTxt}.\n\nServices:\n${q.services.map((s) => "• " + (s.title || defaultTitle(s.type)) + ": " + s.amount.toLocaleString("en-GB")).join("\n")}\n\nReference: ${reference}\nEmail: ${q.email}\nWhatsApp: ${q.whatsapp || "not given"}\n\nTheir dashboard and projects were created automatically.${r.invite ? "\nTheir dashboard link (also shown to them after payment): " + r.invite : ""}\n\nOpen your admin page: ${origin}/portal/admin/`,
   });
-  return { q, fresh: true };
+  return { q, item, fresh: true };
 }
 async function payVerify(env, url) {
   const reference = clean(url.searchParams.get("reference"), 100);
@@ -503,7 +635,9 @@ async function payVerify(env, url) {
   const r = await fulfil(env, reference, tx, url.origin);
   if (r.error) return fail(400, r.error);
   const c = r.q.clientId && (await get(env, "client:" + r.q.clientId));
-  return json({ ok: true, name: r.q.name, business: r.q.business, total: r.q.total, currency: r.q.currency,
+  const projects = (await Promise.all((r.q.projectIds || []).map((id) => get(env, "project:" + id)))).filter(Boolean);
+  return json({ ok: true, name: r.q.name, business: r.q.business, total: r.q.total, currency: r.q.currency, paidNow: r.item ? r.item.amount : r.q.total,
+    instalment: !!(r.item && r.item.i > 0), billing: await billingFor(env, r.q, projects),
     invite: c && !c.pw ? r.q.invite : null, activated: !!(c && c.pw), loginUrl: url.origin + "/portal/" });
 }
 async function payWebhook(env, req, origin) {
@@ -571,6 +705,7 @@ async function payPackageStart(env, req, origin) {
   if (!pr) return fail(404, "That package was not found.");
   const email = clean(b.email, 200).toLowerCase();
   if (!clean(b.name) || !emailOk(email)) return fail(400, "Please enter your name and a valid email.");
+  if (b.plan) { try { buildPlan({ total: pr.amount, currency: "NGN", usd: pr.usd }, b.plan); } catch (e) { return fail(400, e.message); } }
   const ip = req.headers.get("cf-connecting-ip") || "unknown", rk = "prate:" + ip, n = +(await env.PORTAL.get(rk)) || 0;
   if (n >= 10) return fail(429, "Too many attempts. Please try again in an hour, or message us on WhatsApp.");
   await env.PORTAL.put(rk, String(n + 1), { expirationTtl: 3600 });
@@ -579,6 +714,7 @@ async function payPackageStart(env, req, origin) {
     note: "Paid directly from the website (" + pr.name + ", " + pr.discount + "% founding-client discount applied).", status: "pending", createdAt: now(), source: "website" };
   await put(env, "payreq:" + q.id, q);
   const idx = (await get(env, "payreqs:index")) || []; idx.push(q.id); await put(env, "payreqs:index", idx.slice(-1000));
+  if (b.plan) { try { q.plan = buildPlan(q, b.plan); await put(env, "payreq:" + q.id, q); } catch (e) { return fail(400, e.message); } }
   if (b.mode === "transfer") return json({ r: q.id });
   return payStart(env, new Request(req.url, { method: "POST", body: JSON.stringify({ r: q.id }) }), origin);
 }
@@ -596,13 +732,18 @@ async function adminFeed(env) {
   const pidx = ((await get(env, "payreqs:index")) || []).slice(-60);
   for (const id of pidx) {
     const q = await get(env, "payreq:" + id);
-    if (q && q.status === "pending" && q.transfer) items.push({ kind: "transfer", id: q.id, at: q.transfer.at, unread: !seen["tr:" + q.id],
-      title: "Bank transfer to check: " + (q.currency === "NGN" ? "₦" : q.currency + " ") + q.total.toLocaleString("en-GB") + " from " + (q.business || q.name),
+    if (q && q.status !== "cancelled" && q.transfer) items.push({ kind: "transfer", id: q.id, at: q.transfer.at, unread: !seen["tr:" + q.id],
+      title: "Bank transfer to check: " + fmtMoney(q.transfer.amount || q.total, q.currency) + " from " + (q.business || q.name),
       sub: "Sent to the " + (q.transfer.currency || "?") + " account" + (q.transfer.payer ? " by " + q.transfer.payer : "") + " · reference VIX-" + q.id.slice(0, 6).toUpperCase() + " · confirm in Payments" });
     if (!q || q.status !== "paid") continue;
-    items.push({ kind: "payment", id: q.id, at: q.paidAt, unread: !seen["pay:" + q.id], clientId: q.clientId,
-      title: "Payment received: " + (q.currency === "NGN" ? "₦" : q.currency + " ") + q.total.toLocaleString("en-GB") + " from " + (q.business || q.name),
-      sub: q.services.map((s) => s.title || defaultTitle(s.type)).join(", ") + (q.source === "website" ? " · paid directly on the website" : " · via payment link") });
+    const pl = planOf(q), many = pl.items.length > 1;
+    pl.items.forEach((x) => {
+      if (x.status === "paid") items.push({ kind: "payment", id: q.id + (x.i ? ":" + x.i : ""), at: x.paidAt || q.paidAt, unread: !seen["pay:" + q.id + (x.i ? ":" + x.i : "")], clientId: q.clientId,
+        title: "Payment received: " + fmtMoney(x.amount, q.currency) + " from " + (q.business || q.name) + (many ? " (" + (x.i + 1) + " of " + pl.items.length + ")" : ""),
+        sub: q.services.map((s) => s.title || defaultTitle(s.type)).join(", ") + " · " + planLabel(pl) + (q.source === "website" ? " · paid on the website" : "") });
+      else if (/^\d{4}-/.test(x.due) && new Date(x.due + "T23:59:59+01:00").getTime() < Date.now()) items.push({ kind: "overdue", id: q.id + ":" + x.i, at: x.due + "T23:59:59+01:00", unread: !seen["od:" + q.id + ":" + x.i], clientId: q.clientId,
+        title: "Payment overdue: " + fmtMoney(x.amount, q.currency) + " from " + (q.business || q.name), sub: "Payment " + (x.i + 1) + " of " + pl.items.length + " was due " + x.due + " · their files stay locked until paid" });
+    });
   }
   const cidx = (await get(env, "clients:index")) || [];
   for (const cid of cidx) {
@@ -619,11 +760,12 @@ async function adminFeed(env) {
 async function adminFeedSeen(env, req) {
   const b = await req.json().catch(() => ({}));
   const seen = (await get(env, "feed:seen")) || {};
-  if (b.kind === "payment") seen["pay:" + clean(b.id, 40)] = 1;
+  if (b.kind === "payment") seen["pay:" + clean(b.id, 50)] = 1;
   if (b.kind === "transfer") seen["tr:" + clean(b.id, 40)] = 1;
+  if (b.kind === "overdue") seen["od:" + clean(b.id, 50)] = 1;
   if (b.kind === "brief" || b.kind === "offer" || b.kind === "founding") { const it = await get(env, "brief:" + clean(b.id, 40)); if (it) { it.read = true; await put(env, "brief:" + it.id, it); } }
   if (b.all) {
-    for (const id of ((await get(env, "payreqs:index")) || [])) seen["pay:" + id] = 1;
+    for (const id of ((await get(env, "payreqs:index")) || [])) { seen["pay:" + id] = 1; for (let k = 1; k < 4; k++) seen["pay:" + id + ":" + k] = 1; }
     for (const id of ((await get(env, "briefs:index")) || [])) { const it = await get(env, "brief:" + id); if (it && !it.read) { it.read = true; await put(env, "brief:" + id, it); } }
   }
   await put(env, "feed:seen", seen);
@@ -651,15 +793,18 @@ async function payTransferClaim(env, req) {
   const b = await req.json().catch(() => ({}));
   const q = await get(env, "payreq:" + clean(b.r, 40));
   if (!q) return fail(404, "This payment link is not valid.");
-  if (q.status !== "pending") return fail(400, q.status === "paid" ? "This invoice is already paid. Thank you!" : "This payment link was cancelled.");
-  q.transfer = { at: now(), payer: clean(b.payer, 100), currency: BANK_CCY.includes(b.currency) ? b.currency : "", note: clean(b.note, 300) };
+  if (q.status === "cancelled") return fail(400, "This payment link was cancelled.");
+  if (q.status !== "paid" && b.plan) { try { q.plan = buildPlan(q, b.plan); } catch (e) { return fail(400, e.message); } }
+  const it = nextItem(q);
+  if (!it) return fail(400, "This invoice is already paid in full. Thank you!");
+  q.transfer = { at: now(), i: it.i, amount: it.amount, payer: clean(b.payer, 100), currency: BANK_CCY.includes(b.currency) ? b.currency : "", note: clean(b.note, 300) };
   await put(env, "payreq:" + q.id, q);
   const seen = (await get(env, "feed:seen")) || {}; delete seen["tr:" + q.id]; await put(env, "feed:seen", seen);
-  const amountTxt = (q.currency === "NGN" ? "₦" : q.currency + " ") + q.total.toLocaleString("en-GB");
+  const amountTxt = fmtMoney(it.amount, q.currency) + (planOf(q).items.length > 1 ? ` (payment ${it.i + 1} of ${planOf(q).items.length})` : "");
   await sendEmail(env, {
     subject: `🏦 Bank transfer to check: ${amountTxt} from ${q.business || q.name}`,
     replyTo: q.email,
-    text: `${q.name}${q.business ? " (" + q.business + ")" : ""} says they've sent a bank transfer.\n\nInvoice: ${amountTxt}${q.usd ? " (USD " + q.usd + ")" : ""}\nPaid into: ${q.transfer.currency || "not specified"} account\nSender name on the transfer: ${q.transfer.payer || "not given"}\nReference: VIX-${q.id.slice(0, 6).toUpperCase()}\nNote: ${q.transfer.note || "none"}\n\nWhen the money is in your account, open Admin → Payments and click "Confirm received". Their project and dashboard will start straight away.\n${"https://vixautomations.pages.dev/portal/admin/"}`,
+    text: `${q.name}${q.business ? " (" + q.business + ")" : ""} says they've sent a bank transfer.\n\nAmount: ${amountTxt}${it.usd ? " (USD " + it.usd + ")" : ""}\nPaid into: ${q.transfer.currency || "not specified"} account\nSender name on the transfer: ${q.transfer.payer || "not given"}\nReference: VIX-${q.id.slice(0, 6).toUpperCase()}\nNote: ${q.transfer.note || "none"}\n\nWhen the money is in your account, open Admin → Payments and click "Confirm received". Their project and dashboard will start straight away.\n${"https://vixautomations.pages.dev/portal/admin/"}`,
   });
   return json({ ok: true });
 }
@@ -667,12 +812,24 @@ async function adminPayConfirm(env, req, origin) {
   const b = await req.json().catch(() => ({}));
   const q = await get(env, "payreq:" + clean(b.id, 40));
   if (!q) return fail(404, "Not found.");
-  if (q.status === "paid") return fail(400, "Already confirmed.");
   if (q.status === "cancelled") return fail(400, "This link was cancelled.");
-  const amountTxt = (q.currency === "NGN" ? "₦" : q.currency + " ") + q.total.toLocaleString("en-GB");
-  const r = await createClientWithProjects(env, { name: q.name, email: q.email, business: q.business, whatsapp: q.whatsapp, currency: q.currency, services: q.services }, origin,
+  const nx = nextItem(q);
+  if (!nx) return fail(400, "Already paid in full.");
+  if (q.status === "paid") {
+    const ch = "bank transfer" + (q.transfer && q.transfer.currency ? " (" + q.transfer.currency + ")" : "");
+    const m = await markItemPaid(env, q, nx.i, ch, "VIX-" + q.id.slice(0, 6).toUpperCase(), origin);
+    await put(env, "payreq:" + q.id, q);
+    if (m.it) await afterInstalment(env, q, m.it, origin);
+    const seen0 = (await get(env, "feed:seen")) || {}; seen0["tr:" + q.id] = 1; seen0["pay:" + q.id + ":" + nx.i] = 1; await put(env, "feed:seen", seen0);
+    return json({ ok: true, instalment: true, fullyPaid: fullyPaid(q), amount: nx.amount, currency: q.currency });
+  }
+  const amountTxt = fmtMoney(nx.amount, q.currency);
+  const r = await createClientWithProjects(env, { name: q.name, email: q.email, business: q.business, whatsapp: q.whatsapp, currency: q.currency, services: q.services, payreqId: q.id }, origin,
     `Bank transfer received (${amountTxt}${q.transfer && q.transfer.currency && q.transfer.currency !== q.currency ? " paid in " + q.transfer.currency : ""}). Your project has officially started! 🚀`);
-  q.status = "paid"; q.paidAt = now(); q.channel = "bank transfer" + (q.transfer && q.transfer.currency ? " (" + q.transfer.currency + ")" : ""); q.clientId = r.client.id; q.invite = r.invite;
+  const ch0 = "bank transfer" + (q.transfer && q.transfer.currency ? " (" + q.transfer.currency + ")" : "");
+  await markItemPaid(env, q, nx.i, ch0, "VIX-" + q.id.slice(0, 6).toUpperCase(), origin);
+  q.projectIds = r.projectIds;
+  q.status = "paid"; q.paidAt = now(); q.channel = ch0; q.clientId = r.client.id; q.invite = r.invite;
   const mail = await emailPaidClient(env, q, r, origin, q.channel, "VIX-" + q.id.slice(0, 6).toUpperCase());
   await put(env, "payreq:" + q.id, q);
   const seen = (await get(env, "feed:seen")) || {}; seen["tr:" + q.id] = 1; seen["pay:" + q.id] = 1; await put(env, "feed:seen", seen);
@@ -707,7 +864,7 @@ async function sendClientEmail(env, { to, name, subject, html, text }) {
   } catch (e) { return { sent: false, why: "Email service unreachable" }; }
 }
 function fmtMoney(n, c) { return ({ NGN: "₦", USD: "$", GBP: "£", EUR: "€" }[c] || c + " ") + Number(n).toLocaleString("en-GB", { maximumFractionDigits: 2 }); }
-function paymentEmail({ name, business, services, total, currency, method, reference, invite, loginUrl, origin }) {
+function paymentEmail({ name, business, services, total, currency, method, reference, invite, loginUrl, origin, planNote }) {
   const first = String(name || "").split(" ")[0] || "there";
   const link = invite || loginUrl;
   const cta = invite ? "Create my client dashboard" : "Open my client dashboard";
@@ -725,7 +882,8 @@ function paymentEmail({ name, business, services, total, currency, method, refer
 <p style="margin:0 0 14px">Hi ${escH(first)},</p>
 <p style="margin:0 0 18px">Thank you${business ? " for choosing us for <b>" + escH(business) + "</b>" : ""}! We've received your payment and your project is now underway.</p>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-size:14px">${rows}
-<tr><td style="padding:12px 0 0;font-weight:700;color:#0b1020">Total paid</td><td style="padding:12px 0 0;text-align:right;font-size:20px;font-weight:800;color:#5b4bff">${escH(fmtMoney(total, currency))}</td></tr></table>
+<tr><td style="padding:12px 0 0;font-weight:700;color:#0b1020">${planNote ? "Project total" : "Total paid"}</td><td style="padding:12px 0 0;text-align:right;font-size:20px;font-weight:800;color:#5b4bff">${escH(fmtMoney(total, currency))}</td></tr></table>
+${planNote ? '<div style="margin-top:14px;padding:12px 14px;border-radius:12px;background:#fff8e6;border:1px solid #ffe2a3;font-size:14px;color:#5a4a1a">' + escH(planNote) + "</div>" : ""}
 <p style="margin:16px 0 0;font-size:13px;color:#7c849c">Paid by ${escH(method)} · ${escH(date)}${reference ? " · Ref " + escH(reference) : ""}</p>
 <div style="margin:26px 0;padding:20px;border-radius:14px;background:#f5f3ff;border:1px solid #e3ddff">
 <div style="font-weight:700;color:#0b1020;margin-bottom:6px">Your private client dashboard</div>
@@ -742,7 +900,10 @@ ${invite ? '<div style="font-size:12px;color:#7c849c;margin-top:12px">This perso
   return { subject, html, text };
 }
 async function emailPaidClient(env, q, r, origin, method, reference) {
-  const m = paymentEmail({ name: q.name, business: q.business, services: q.services, total: q.total, currency: q.currency, method, reference, invite: r.invite, loginUrl: r.loginUrl, origin });
+  const pl = planOf(q), paidNow = pl.items.filter((x) => x.status === "paid").reduce((n, x) => n + x.amount, 0), nx = nextItem(q);
+  const planNote = pl.type === "full" ? "" : `Payment plan: ${planLabel(pl)}. Paid today: ${fmtMoney(paidNow, q.currency)}. Remaining: ${fmtMoney(q.total - paidNow, q.currency)}` +
+    (nx ? (nx.due === "delivery" ? ", due when your project is delivered." : `, next payment ${fmtMoney(nx.amount, q.currency)} due ${nx.due}.`) : ".") + " Your finished files and links unlock once you've paid in full.";
+  const m = paymentEmail({ name: q.name, business: q.business, services: q.services, total: q.total, currency: q.currency, method, reference, invite: r.invite, loginUrl: r.loginUrl, origin, planNote });
   const res = await sendClientEmail(env, { to: q.email, name: q.name, subject: m.subject, html: m.html, text: m.text });
   q.clientEmailed = res.sent; if (!res.sent) q.clientEmailError = res.why;
   return res;
