@@ -535,15 +535,15 @@ async function usdToNgn(env) {
   return rate;
 }
 async function fxRates(env) {
-  const cached = await get(env, "fx:all");
+  const cached = await get(env, "fx:all2");
   if (cached) return cached;
-  let rates = { USD: 1, NGN: 1550, GBP: 0.78 };
+  let rates = { USD: 1, NGN: 1550, GBP: 0.78, EUR: 0.92 };
   try {
     const r = await fetch("https://open.er-api.com/v6/latest/USD", { cf: { cacheTtl: 43200 } });
     const d = await r.json();
-    if (d && d.rates && d.rates.NGN > 100 && d.rates.GBP > 0) rates = { USD: 1, NGN: d.rates.NGN, GBP: d.rates.GBP };
+    if (d && d.rates && d.rates.NGN > 100 && d.rates.GBP > 0) rates = { USD: 1, NGN: d.rates.NGN, GBP: d.rates.GBP, EUR: d.rates.EUR || 0.92 };
   } catch (e) {}
-  await put(env, "fx:all", rates, 43200);
+  await put(env, "fx:all2", rates, 43200);
   return rates;
 }
 async function packagePrice(env, key) {
@@ -625,7 +625,7 @@ async function adminFeedSeen(env, req) {
 
 /* ---------------- Bank transfer (manual) payments ---------------- */
 // Account details are entered by the owner in Admin → Settings and stored in KV ("settings:banks"), not in code.
-const BANK_CCY = ["USD", "GBP", "NGN"];
+const BANK_CCY = ["USD", "GBP", "EUR", "NGN"];
 async function payBanks(env) {
   const banks = ((await get(env, "settings:banks")) || []).filter((b) => b && b.accountNumber);
   return json({ banks, rates: await fxRates(env) });
