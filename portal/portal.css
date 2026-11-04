@@ -191,3 +191,30 @@ details.box>div{padding:0 0 16px;display:grid;gap:12px}
   .top .btn span{display:none}
 }
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* notifications */
+.feed-list{display:grid;gap:8px}
+.nf{display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:center;width:100%;text-align:left;padding:14px 16px;border-radius:16px;border:1px solid var(--line);background:rgba(0,0,0,.2);cursor:pointer;transition:border-color .3s,background-color .3s}
+.nf:hover{border-color:var(--line2);background:rgba(255,255,255,.04)}
+.nf .ic{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;font-size:20px}
+.nf.k-payment .ic{background:rgba(79,240,196,.16);color:var(--mint)}
+.nf.k-brief .ic{background:rgba(111,143,255,.18);color:#c9d4ff}
+.nf.k-offer .ic{background:rgba(255,92,135,.16);color:#ff8fab}
+.nf.k-message .ic{background:rgba(255,209,102,.15);color:var(--warn)}
+.nf b{display:block;font-weight:500;color:var(--mute)}
+.nf span{display:block;font-size:12px;color:var(--soft);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nf>div{min-width:0}
+.nf time{font-size:12px;color:var(--soft);white-space:nowrap}
+.nf.unread{border-color:rgba(143,139,255,.55);background:rgba(111,143,255,.08)}
+.nf.unread b{font-weight:800;color:var(--ink)}
+.nf.unread time{color:#c9d4ff;font-weight:600}
+.nf{position:relative}
+.nf.unread::after{content:"";position:absolute;top:10px;right:10px;width:9px;height:9px;border-radius:50%;background:#ff5c87;box-shadow:0 0 12px #ff5c87}
+.nf time{padding-right:14px}
+.nf.fresh{animation:nfIn .8s cubic-bezier(.2,.8,.2,1)}
+@keyframes nfIn{from{transform:translateY(-8px);opacity:0;box-shadow:0 0 0 6px rgba(143,139,255,.25)}}
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+.kpi-row div{padding:14px;border-radius:16px;border:1px solid var(--line);background:rgba(0,0,0,.2)}
+.kpi-row span{display:block;font-size:12px;color:var(--soft)}
+.kpi-row b{font-size:26px;letter-spacing:-.03em}
+@media (max-width:620px){.kpi-row{grid-template-columns:1fr 1fr}.nf{grid-template-columns:auto 1fr}.nf time{grid-column:2}}

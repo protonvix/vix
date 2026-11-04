@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <meta name="referrer" content="no-referrer">
-<title>Secure payment · Vix Automations</title>
+<title>Secure checkout · Vix Automations</title>
 <meta name="theme-color" content="#05060c">
 <link rel="icon" href="/brand/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -20,7 +20,9 @@
 <main class="auth">
   <div class="auth-card pay-card" id="card">
     <a class="logo" href="/"><img src="/brand/vix-icon.svg" alt="" width="32" height="32">Vix Automations</a>
-    <div id="loading" class="note">Loading your invoice…</div>
+    <div id="loading" class="note">Loading…</div>
+
+    <!-- Invoice (payment link from Vix) -->
     <div id="body" hidden>
       <p class="pay-eyebrow">Invoice for <b id="who"></b></p>
       <h1>Pay securely to <em>start your project</em></h1>
@@ -29,12 +31,33 @@
       <p class="note" id="note" hidden></p>
       <button class="btn btn-p" type="button" id="pay"><i class="ph-fill ph-lock-simple" aria-hidden="true"></i><span>Pay now</span></button>
       <p class="err" id="err" role="alert"></p>
-      <div class="trust">
-        <span><i class="ph ph-shield-check" aria-hidden="true"></i>Secured by Paystack</span>
-        <span><i class="ph ph-credit-card" aria-hidden="true"></i>Card, bank transfer or USSD</span>
-      </div>
-      <p class="auth-foot">After payment you'll create your client dashboard to follow your project. By paying you agree to our <a href="/payment.html" target="_blank">payment</a> and <a href="/refund.html" target="_blank">refund</a> policies.</p>
     </div>
+
+    <!-- Direct package checkout -->
+    <form id="pkg" hidden novalidate>
+      <p class="pay-eyebrow">You chose</p>
+      <h1 id="pkg-name"></h1>
+      <ul class="feats" id="pkg-feats"></ul>
+      <div class="total"><span>Total today <small id="pkg-was"></small></span><b id="pkg-total"></b></div>
+      <p class="note" id="pkg-note"></p>
+      <div class="pk-fields">
+        <label>Your full name<input name="name" autocomplete="name" required></label>
+        <label>Email (for your receipt and dashboard)<input name="email" type="email" autocomplete="email" required></label>
+        <label>Business name<input name="business" autocomplete="organization"></label>
+        <label>WhatsApp number<input name="whatsapp" type="tel" autocomplete="tel" placeholder="+234…"></label>
+        <input class="hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px">
+      </div>
+      <button class="btn btn-p" type="submit" id="pkg-pay"><i class="ph-fill ph-lock-simple" aria-hidden="true"></i><span>Pay now</span></button>
+      <p class="err" id="pkg-err" role="alert"></p>
+    </form>
+
+    <div class="trust" id="trust" hidden>
+      <span><i class="ph ph-shield-check" aria-hidden="true"></i>Secured by Paystack</span>
+      <span><i class="ph ph-credit-card" aria-hidden="true"></i>Card, bank transfer or USSD</span>
+      <span><i class="ph ph-rocket-launch" aria-hidden="true"></i>Your project starts right away</span>
+    </div>
+    <p class="auth-foot" id="foot" hidden>After payment you'll create your client dashboard to follow your project. By paying you agree to our <a href="/payment.html" target="_blank">payment</a> and <a href="/refund.html" target="_blank">refund</a> policies.</p>
+
     <div id="state" hidden>
       <i class="ph-fill ph-seal-check pay-big ok" aria-hidden="true" id="state-ic"></i>
       <h1 id="state-h"></h1>
@@ -46,12 +69,39 @@
 <script src="/portal/common.js"></script>
 <script>
 (function () {
-  var r = new URLSearchParams(location.search).get("r") || "", $ = function (s) { return document.getElementById(s); };
+  var qs = new URLSearchParams(location.search), r = qs.get("r") || "", pk = qs.get("p") || "", $ = function (s) { return document.getElementById(s); };
   function state(icon, h, p, btn) {
-    $("loading").hidden = true; $("body").hidden = true; $("state").hidden = false;
+    ["loading", "body", "pkg", "trust", "foot"].forEach(function (id) { $(id).hidden = true; }); $("state").hidden = false;
     $("state-ic").className = "ph-fill " + icon + " pay-big"; $("state-h").innerHTML = h; $("state-p").textContent = p;
     if (btn) { $("state-btn").textContent = btn[0]; $("state-btn").href = btn[1]; } else $("state-btn").hidden = true;
   }
+  function shown(id) { $("loading").hidden = true; $(id).hidden = false; $("trust").hidden = false; $("foot").hidden = false; }
+
+  if (pk) {
+    VX.api("pay/package?p=" + encodeURIComponent(pk)).then(function (d) {
+      var p = d.package;
+      $("pkg-name").innerHTML = VX.esc(p.name).replace("GoHighLevel ", "GoHighLevel <em>") + "</em>";
+      $("pkg-feats").innerHTML = p.features.map(function (f) { return '<li><i class="ph-fill ph-check-circle" aria-hidden="true"></i>' + VX.esc(f) + "</li>"; }).join("");
+      $("pkg-total").textContent = VX.money(p.amount, p.currency);
+      $("pkg-was").textContent = "($" + (p.usd % 1 ? p.usd.toFixed(2) : p.usd) + " after " + p.discount + "% founding-client discount, was $" + p.usdList + ")";
+      $("pkg-note").textContent = "Delivered in " + p.eta + ". Charged in naira at today's exchange rate.";
+      $("pkg-pay").querySelector("span").textContent = "Pay " + VX.money(p.amount, p.currency) + " & start";
+      if (!d.ready) { $("pkg-pay").disabled = true; $("pkg-err").textContent = "Online payment is being set up. Please check back shortly or contact us."; }
+      shown("pkg");
+    }).catch(function (e) { state("ph-warning-circle", "Package <em>not found</em>", e.message, ["See our packages", "/pricing.html"]); });
+    $("pkg").addEventListener("submit", function (e) {
+      e.preventDefault();
+      var f = e.target, ok = true;
+      [f.name, f.email].forEach(function (i) { var good = i.value.trim() && (i.type !== "email" || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(i.value.trim())); i.style.borderColor = good ? "" : "#ff7b7b"; if (!good) ok = false; });
+      if (!ok) { $("pkg-err").textContent = "Please enter your name and a valid email."; return; }
+      var b = $("pkg-pay"); b.disabled = true; $("pkg-err").textContent = ""; b.querySelector("span").textContent = "Opening secure checkout…";
+      VX.api("pay/package", { p: pk, name: f.name.value, email: f.email.value, business: f.business.value, whatsapp: f.whatsapp.value, website: f.website.value })
+        .then(function (d) { location.href = d.url; })
+        .catch(function (x) { $("pkg-err").textContent = x.message; b.disabled = false; b.querySelector("span").textContent = "Try again"; });
+    });
+    return;
+  }
+
   VX.api("pay/info?r=" + encodeURIComponent(r)).then(function (d) {
     var q = d.request;
     if (q.status === "paid") return state("ph-seal-check", "This invoice is <em>paid</em>", "Thank you! Your project is underway. Log in to your dashboard to follow its progress.", ["Go to your dashboard", "/portal/"]);
@@ -62,7 +112,7 @@
     $("pay").querySelector("span").textContent = "Pay " + VX.money(q.total, q.currency);
     if (q.note) { $("note").hidden = false; $("note").textContent = q.note; }
     if (!d.ready) { $("pay").disabled = true; $("err").textContent = "Online payment is being set up. Please check back shortly or contact us."; }
-    $("loading").hidden = true; $("body").hidden = false;
+    shown("body");
   }).catch(function (e) { state("ph-warning-circle", "Link <em>not found</em>", e.message, ["Contact us on WhatsApp", "https://wa.me/447723149573"]); });
   $("pay").addEventListener("click", function () {
     var b = this; b.disabled = true; $("err").textContent = ""; b.querySelector("span").textContent = "Opening secure checkout…";
