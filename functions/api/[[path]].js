@@ -415,7 +415,7 @@ async function paystack(env, path, init) {
   if (!r.ok || d.status === false) throw new Error(d.message || "Paystack error " + r.status);
   return d.data;
 }
-const payPublic = (q) => ({ id: q.id, name: q.name, business: q.business, currency: q.currency, total: q.total, services: q.services.map((s) => ({ type: s.type, title: s.title || defaultTitle(s.type), amount: s.amount })), status: q.status, note: q.note });
+const payPublic = (q) => ({ id: q.id, ref: "VIX-" + q.id.slice(0, 6).toUpperCase(), usd: q.usd || null, transferAt: q.transfer ? q.transfer.at : null, name: q.name, business: q.business, currency: q.currency, total: q.total, services: q.services.map((s) => ({ type: s.type, title: s.title || defaultTitle(s.type), amount: s.amount })), status: q.status, note: q.note });
 async function adminPayCreate(env, req, origin) {
   const b = await req.json().catch(() => ({}));
   const email = clean(b.email, 200).toLowerCase();
@@ -534,6 +534,18 @@ async function usdToNgn(env) {
   await env.PORTAL.put("fx:NGN", String(rate), { expirationTtl: 43200 });
   return rate;
 }
+async function fxRates(env) {
+  const cached = await get(env, "fx:all");
+  if (cached) return cached;
+  let rates = { USD: 1, NGN: 1550, GBP: 0.78 };
+  try {
+    const r = await fetch("https://open.er-api.com/v6/latest/USD", { cf: { cacheTtl: 43200 } });
+    const d = await r.json();
+    if (d && d.rates && d.rates.NGN > 100 && d.rates.GBP > 0) rates = { USD: 1, NGN: d.rates.NGN, GBP: d.rates.GBP };
+  } catch (e) {}
+  await put(env, "fx:all", rates, 43200);
+  return rates;
+}
 async function packagePrice(env, key) {
   const pk = PACKAGES[key]; if (!pk) return null;
   const usd = Math.round(pk.usd * (100 - PACKAGE_DISCOUNT)) / 100;
@@ -555,10 +567,11 @@ async function payPackageStart(env, req, origin) {
   if (n >= 10) return fail(429, "Too many attempts. Please try again in an hour, or message us on WhatsApp.");
   await env.PORTAL.put(rk, String(n + 1), { expirationTtl: 3600 });
   const q = { id: rid(12), name: clean(b.name, 80), email, business: clean(b.business, 120), whatsapp: clean(b.whatsapp, 40), currency: "NGN",
-    services: [{ type: pr.type, title: pr.name, amount: pr.amount, eta: pr.eta }], total: pr.amount,
+    services: [{ type: pr.type, title: pr.name, amount: pr.amount, eta: pr.eta }], total: pr.amount, usd: pr.usd,
     note: "Paid directly from the website (" + pr.name + ", " + pr.discount + "% founding-client discount applied).", status: "pending", createdAt: now(), source: "website" };
   await put(env, "payreq:" + q.id, q);
   const idx = (await get(env, "payreqs:index")) || []; idx.push(q.id); await put(env, "payreqs:index", idx.slice(-1000));
+  if (b.mode === "transfer") return json({ r: q.id });
   return payStart(env, new Request(req.url, { method: "POST", body: JSON.stringify({ r: q.id }) }), origin);
 }
 
@@ -574,7 +587,11 @@ async function adminFeed(env) {
   }
   const pidx = ((await get(env, "payreqs:index")) || []).slice(-60);
   for (const id of pidx) {
-    const q = await get(env, "payreq:" + id); if (!q || q.status !== "paid") continue;
+    const q = await get(env, "payreq:" + id);
+    if (q && q.status === "pending" && q.transfer) items.push({ kind: "transfer", id: q.id, at: q.transfer.at, unread: !seen["tr:" + q.id],
+      title: "Bank transfer to check: " + (q.currency === "NGN" ? "₦" : q.currency + " ") + q.total.toLocaleString("en-GB") + " from " + (q.business || q.name),
+      sub: "Sent to the " + (q.transfer.currency || "?") + " account" + (q.transfer.payer ? " by " + q.transfer.payer : "") + " · reference VIX-" + q.id.slice(0, 6).toUpperCase() + " · confirm in Payments" });
+    if (!q || q.status !== "paid") continue;
     items.push({ kind: "payment", id: q.id, at: q.paidAt, unread: !seen["pay:" + q.id], clientId: q.clientId,
       title: "Payment received: " + (q.currency === "NGN" ? "₦" : q.currency + " ") + q.total.toLocaleString("en-GB") + " from " + (q.business || q.name),
       sub: q.services.map((s) => s.title || defaultTitle(s.type)).join(", ") + (q.source === "website" ? " · paid directly on the website" : " · via payment link") });
@@ -595,6 +612,7 @@ async function adminFeedSeen(env, req) {
   const b = await req.json().catch(() => ({}));
   const seen = (await get(env, "feed:seen")) || {};
   if (b.kind === "payment") seen["pay:" + clean(b.id, 40)] = 1;
+  if (b.kind === "transfer") seen["tr:" + clean(b.id, 40)] = 1;
   if (b.kind === "brief" || b.kind === "offer") { const it = await get(env, "brief:" + clean(b.id, 40)); if (it) { it.read = true; await put(env, "brief:" + it.id, it); } }
   if (b.all) {
     for (const id of ((await get(env, "payreqs:index")) || [])) seen["pay:" + id] = 1;
@@ -602,6 +620,54 @@ async function adminFeedSeen(env, req) {
   }
   await put(env, "feed:seen", seen);
   return json({ ok: true });
+}
+
+
+/* ---------------- Bank transfer (manual) payments ---------------- */
+// Account details are entered by the owner in Admin → Settings and stored in KV ("settings:banks"), not in code.
+const BANK_CCY = ["USD", "GBP", "NGN"];
+async function payBanks(env) {
+  const banks = ((await get(env, "settings:banks")) || []).filter((b) => b && b.accountNumber);
+  return json({ banks, rates: await fxRates(env) });
+}
+async function adminBanksSave(env, req) {
+  const b = await req.json().catch(() => ({}));
+  const list = (Array.isArray(b.banks) ? b.banks : []).slice(0, 8).map((x) => ({
+    id: clean(x.id, 20) || rid(6), label: clean(x.label, 60), currency: BANK_CCY.includes(x.currency) ? x.currency : "NGN",
+    bank: clean(x.bank, 80), accountName: clean(x.accountName, 100), accountNumber: clean(x.accountNumber, 40), extra: clean(x.extra, 600),
+  })).filter((x) => x.accountNumber);
+  await put(env, "settings:banks", list);
+  return json({ ok: true, banks: list });
+}
+async function payTransferClaim(env, req) {
+  const b = await req.json().catch(() => ({}));
+  const q = await get(env, "payreq:" + clean(b.r, 40));
+  if (!q) return fail(404, "This payment link is not valid.");
+  if (q.status !== "pending") return fail(400, q.status === "paid" ? "This invoice is already paid. Thank you!" : "This payment link was cancelled.");
+  q.transfer = { at: now(), payer: clean(b.payer, 100), currency: BANK_CCY.includes(b.currency) ? b.currency : "", note: clean(b.note, 300) };
+  await put(env, "payreq:" + q.id, q);
+  const seen = (await get(env, "feed:seen")) || {}; delete seen["tr:" + q.id]; await put(env, "feed:seen", seen);
+  const amountTxt = (q.currency === "NGN" ? "₦" : q.currency + " ") + q.total.toLocaleString("en-GB");
+  await sendEmail(env, {
+    subject: `🏦 Bank transfer to check: ${amountTxt} from ${q.business || q.name}`,
+    replyTo: q.email,
+    text: `${q.name}${q.business ? " (" + q.business + ")" : ""} says they've sent a bank transfer.\n\nInvoice: ${amountTxt}${q.usd ? " (USD " + q.usd + ")" : ""}\nPaid into: ${q.transfer.currency || "not specified"} account\nSender name on the transfer: ${q.transfer.payer || "not given"}\nReference: VIX-${q.id.slice(0, 6).toUpperCase()}\nNote: ${q.transfer.note || "none"}\n\nWhen the money is in your account, open Admin → Payments and click "Confirm received". Their project and dashboard will start straight away.\n${"https://vixautomations.pages.dev/portal/admin/"}`,
+  });
+  return json({ ok: true });
+}
+async function adminPayConfirm(env, req, origin) {
+  const b = await req.json().catch(() => ({}));
+  const q = await get(env, "payreq:" + clean(b.id, 40));
+  if (!q) return fail(404, "Not found.");
+  if (q.status === "paid") return fail(400, "Already confirmed.");
+  if (q.status === "cancelled") return fail(400, "This link was cancelled.");
+  const amountTxt = (q.currency === "NGN" ? "₦" : q.currency + " ") + q.total.toLocaleString("en-GB");
+  const r = await createClientWithProjects(env, { name: q.name, email: q.email, business: q.business, whatsapp: q.whatsapp, currency: q.currency, services: q.services }, origin,
+    `Bank transfer received (${amountTxt}${q.transfer && q.transfer.currency && q.transfer.currency !== q.currency ? " paid in " + q.transfer.currency : ""}). Your project has officially started! 🚀`);
+  q.status = "paid"; q.paidAt = now(); q.channel = "bank transfer" + (q.transfer && q.transfer.currency ? " (" + q.transfer.currency + ")" : ""); q.clientId = r.client.id; q.invite = r.invite;
+  await put(env, "payreq:" + q.id, q);
+  const seen = (await get(env, "feed:seen")) || {}; seen["tr:" + q.id] = 1; seen["pay:" + q.id] = 1; await put(env, "feed:seen", seen);
+  return json({ ok: true, client: publicClient(r.client), invite: r.invite, loginUrl: r.loginUrl, services: q.services, total: q.total, currency: q.currency });
 }
 
 /* ---------------- router ---------------- */
@@ -648,6 +714,8 @@ export async function onRequest(ctx) {
     if (path === "pay/verify" && m === "GET") return payVerify(env, url);
     if (path === "pay/package" && m === "GET") return payPackage(env, url);
     if (path === "pay/package" && m === "POST") return payPackageStart(env, req, url.origin);
+    if (path === "pay/banks" && m === "GET") return payBanks(env);
+    if (path === "pay/transfer" && m === "POST") return payTransferClaim(env, req);
 
     if (path === "admin/login" && m === "POST") return adminLogin(env, req);
     if (path.startsWith("admin/")) {
@@ -671,6 +739,8 @@ export async function onRequest(ctx) {
       if (a === "payreqs/cancel" && m === "POST") return adminPayCancel(env, req);
       if (a === "feed" && m === "GET") return adminFeed(env);
       if (a === "feed/seen" && m === "POST") return adminFeedSeen(env, req);
+      if (a === "banks" && m === "POST") return adminBanksSave(env, req);
+      if (a === "payreqs/confirm" && m === "POST") return adminPayConfirm(env, req, url.origin);
     }
     return fail(404, "Not found.");
   } catch (e) {

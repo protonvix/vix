@@ -30,7 +30,24 @@
       <div class="total"><span>Total</span><b id="total"></b></div>
       <p class="note" id="note" hidden></p>
       <button class="btn btn-p" type="button" id="pay"><i class="ph-fill ph-lock-simple" aria-hidden="true"></i><span>Pay now</span></button>
+      <button class="btn btn-g xfer-open" type="button" id="xfer-btn" hidden><i class="ph ph-bank" aria-hidden="true"></i>Pay by bank transfer instead · USD, GBP or NGN</button>
       <p class="err" id="err" role="alert"></p>
+    </div>
+
+    <!-- Bank transfer -->
+    <div id="xfer" hidden>
+      <p class="pay-eyebrow">Bank transfer · <b id="x-who"></b></p>
+      <h1>Pay by <em>bank transfer</em></h1>
+      <p class="note">Send the amount shown to <b>one</b> of these accounts, using the reference below. Then tap "I've sent the transfer". Your project starts as soon as we confirm it arrived.</p>
+      <div class="xref"><span>Payment reference</span><b id="x-ref"></b><button type="button" class="cp" data-copy-el="x-ref">Copy</button></div>
+      <div class="banks" id="banks"></div>
+      <form id="x-form" novalidate>
+        <label>Name on the account you paid from<input name="payer" autocomplete="name" required></label>
+        <label>Which account did you pay into?<select name="currency" id="x-ccy"></select></label>
+        <button class="btn btn-p" type="submit"><i class="ph ph-check-circle" aria-hidden="true"></i>I've sent the transfer</button>
+        <p class="err" id="x-err" role="alert"></p>
+      </form>
+      <button class="btn btn-g" type="button" id="x-back"><i class="ph ph-arrow-left" aria-hidden="true"></i>Pay by card instead</button>
     </div>
 
     <!-- Direct package checkout -->
@@ -48,6 +65,7 @@
         <input class="hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px">
       </div>
       <button class="btn btn-p" type="submit" id="pkg-pay"><i class="ph-fill ph-lock-simple" aria-hidden="true"></i><span>Pay now</span></button>
+      <button class="btn btn-g xfer-open" type="button" id="pkg-xfer" hidden><i class="ph ph-bank" aria-hidden="true"></i>Pay by bank transfer · USD, GBP or NGN</button>
       <p class="err" id="pkg-err" role="alert"></p>
     </form>
 
@@ -77,6 +95,52 @@
   }
   function shown(id) { $("loading").hidden = true; $(id).hidden = false; $("trust").hidden = false; $("foot").hidden = false; }
 
+  /* ---- bank transfer ---- */
+  var BANKS = null, invoice = null;
+  var banksReady = VX.api("pay/banks").then(function (d) { BANKS = d; if (d.banks.length) document.querySelectorAll(".xfer-open").forEach(function (b) { b.hidden = false; }); return d; }).catch(function () { BANKS = { banks: [], rates: {} }; });
+  function amountFor(bank, q, rates) {
+    if (bank.currency === q.currency) return { v: q.total, exact: true };
+    if (bank.currency === "USD" && q.usd) return { v: q.usd, exact: true };
+    var usd = q.currency === "USD" ? q.total : (q.usd || q.total / (rates[q.currency] || 1));
+    var v = usd * (rates[bank.currency] || 1);
+    v = bank.currency === "NGN" ? Math.ceil(v / 100) * 100 : Math.ceil(v * 100) / 100;
+    return { v: v, exact: false };
+  }
+  function money2(v, c) { var sym = { NGN: "₦", USD: "$", GBP: "£" }[c] || c + " "; return sym + Number(v).toLocaleString("en-GB", { minimumFractionDigits: c === "NGN" ? 0 : 2, maximumFractionDigits: c === "NGN" ? 0 : 2 }); }
+  function openTransfer(q) {
+    invoice = q;
+    banksReady.then(function () {
+      var rates = BANKS.rates || {}, order = { USD: 0, GBP: 1, NGN: 2 };
+      var list = BANKS.banks.slice().sort(function (a, b) { return order[a.currency] - order[b.currency]; });
+      ["loading", "body", "pkg"].forEach(function (id) { $(id).hidden = true; });
+      $("xfer").hidden = false; $("trust").hidden = true;
+      $("x-who").textContent = q.business || q.name; $("x-ref").textContent = q.ref;
+      $("banks").innerHTML = list.map(function (b) {
+        var a = amountFor(b, q, rates);
+        var rows = [["Bank", b.bank], ["Account name", b.accountName], ["Account number", b.accountNumber]].filter(function (r) { return r[1]; })
+          .map(function (r, i) { return '<div class="brow"><span>' + r[0] + '</span><b id="b-' + b.id + "-" + i + '">' + VX.esc(r[1]) + '</b><button type="button" class="cp" data-copy-el="b-' + b.id + "-" + i + '">Copy</button></div>'; }).join("");
+        return '<div class="bank"><div class="bhead"><span class="ccy">' + b.currency + "</span><b>" + VX.esc(b.label || b.bank) + '</b><span class="bamt">' + (a.exact ? "" : "≈ ") + money2(a.v, b.currency) + "</span></div>" + rows +
+          (b.extra ? '<p class="bextra">' + VX.esc(b.extra).replace(/\n/g, "<br>") + "</p>" : "") + (a.exact ? "" : '<p class="bextra">Converted at today\'s rate. Please send at least this amount.</p>') + "</div>";
+      }).join("");
+      $("x-ccy").innerHTML = list.map(function (b) { return '<option value="' + b.currency + '">' + b.currency + " · " + VX.esc(b.label || b.bank) + "</option>"; }).join("");
+      $("xfer").scrollIntoView({ block: "start" });
+    });
+  }
+  document.addEventListener("click", function (e) {
+    var c = e.target.closest(".cp"); if (!c) return;
+    var el = $(c.dataset.copyEl); if (!el) return;
+    navigator.clipboard && navigator.clipboard.writeText(el.textContent).then(function () { c.textContent = "Copied ✓"; setTimeout(function () { c.textContent = "Copy"; }, 1500); });
+  });
+  $("x-back").addEventListener("click", function () { location.href = location.pathname + "?r=" + encodeURIComponent(invoice.id); });
+  $("x-form").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var f = e.target; if (!f.payer.value.trim()) { $("x-err").textContent = "Please enter the name on the account you paid from."; return; }
+    var b = f.querySelector("button"); b.disabled = true; $("x-err").textContent = "";
+    VX.api("pay/transfer", { r: invoice.id, payer: f.payer.value, currency: f.currency.value })
+      .then(function () { state("ph-hourglass-medium", "Thank you! We're <em>confirming your transfer</em>", "We'll check our account and confirm within a few hours on business days. As soon as it's confirmed, your project starts and we'll send your dashboard link to " + invoice.email + " and WhatsApp. Reference: " + invoice.ref + ".", null); $("state-ic").classList.add("ok"); })
+      .catch(function (x) { $("x-err").textContent = x.message; b.disabled = false; });
+  });
+
   if (pk) {
     VX.api("pay/package?p=" + encodeURIComponent(pk)).then(function (d) {
       var p = d.package;
@@ -89,6 +153,15 @@
       if (!d.ready) { $("pkg-pay").disabled = true; $("pkg-err").textContent = "Online payment is being set up. Please check back shortly or contact us."; }
       shown("pkg");
     }).catch(function (e) { state("ph-warning-circle", "Package <em>not found</em>", e.message, ["See our packages", "/pricing.html"]); });
+    $("pkg-xfer").addEventListener("click", function () {
+      var f = $("pkg"), ok = true;
+      [f.name, f.email].forEach(function (i) { var good = i.value.trim() && (i.type !== "email" || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(i.value.trim())); i.style.borderColor = good ? "" : "#ff7b7b"; if (!good) ok = false; });
+      if (!ok) { $("pkg-err").textContent = "Please enter your name and a valid email."; return; }
+      var b = this; b.disabled = true;
+      VX.api("pay/package", { p: pk, mode: "transfer", name: f.name.value, email: f.email.value, business: f.business.value, whatsapp: f.whatsapp.value, website: f.website.value })
+        .then(function (d) { location.href = location.pathname + "?r=" + encodeURIComponent(d.r) + "&t=1"; })
+        .catch(function (x) { $("pkg-err").textContent = x.message; b.disabled = false; });
+    });
     $("pkg").addEventListener("submit", function (e) {
       e.preventDefault();
       var f = e.target, ok = true;
@@ -106,6 +179,10 @@
     var q = d.request;
     if (q.status === "paid") return state("ph-seal-check", "This invoice is <em>paid</em>", "Thank you! Your project is underway. Log in to your dashboard to follow its progress.", ["Go to your dashboard", "/portal/"]);
     if (q.status === "cancelled") return state("ph-x-circle", "This link was <em>cancelled</em>", "Please contact us for an updated payment link.", ["Contact us on WhatsApp", "https://wa.me/447723149573"]);
+    q.email = q.email || "your email";
+    if (q.transferAt) return state("ph-hourglass-medium", "We're <em>confirming your transfer</em>", "Thank you! You told us you sent a bank transfer. We'll confirm it shortly and your project will start straight away. Reference: " + q.ref + ".", ["Message us on WhatsApp", "https://wa.me/447723149573"]);
+    $("xfer-btn").onclick = function () { openTransfer(q); };
+    if (qs.get("t") === "1") { $("loading").hidden = true; openTransfer(q); return; }
     $("who").textContent = q.business || q.name;
     $("lines").innerHTML = q.services.map(function (s) { return '<li><span><i class="ph ' + (VX.TYPE[s.type] || VX.TYPE.other).icon + '" aria-hidden="true"></i>' + VX.esc(s.title) + "</span><b>" + VX.money(s.amount, q.currency) + "</b></li>"; }).join("");
     $("total").textContent = VX.money(q.total, q.currency);

@@ -18,10 +18,42 @@
   $("#inbox-btn").addEventListener("click", function () { sel = null; drawList(); inbox(); });
   $("#pay-btn").addEventListener("click", function () { sel = null; drawList(); payments(); });
   $("#bell-btn").addEventListener("click", function () { sel = null; drawList(); bell(); });
+  $("#set-btn").addEventListener("click", function () { onBell = false; sel = null; drawList(); settings(); });
+
+  /* ---------- settings: bank accounts shown for transfer payments ---------- */
+  function settings() {
+    $("#main").innerHTML = '<div class="card"><p class="note">Loading…</p></div>';
+    api("pay/banks").then(function (d) {
+      var banks = d.banks.length ? d.banks : [{ currency: "USD", label: "Cleva USD account" }, { currency: "GBP", label: "UK bank account" }, { currency: "NGN", label: "Nigerian bank account" }];
+      var row = function (b, i) {
+        return '<div class="card" style="margin-top:12px" data-row="' + i + '"><div class="row3"><label>Show as<input name="label" value="' + esc(b.label || "") + '" placeholder="e.g. Cleva USD account"></label>' +
+          '<label>Currency<select name="currency">' + ["USD", "GBP", "NGN"].map(function (c) { return "<option" + (b.currency === c ? " selected" : "") + ">" + c + "</option>"; }).join("") + "</select></label>" +
+          '<label>Bank name<input name="bank" value="' + esc(b.bank || "") + '" placeholder="e.g. Lead Bank (via Cleva)"></label></div>' +
+          '<div class="row" style="margin-top:12px"><label>Account name<input name="accountName" value="' + esc(b.accountName || "") + '"></label><label>Account number<input name="accountNumber" value="' + esc(b.accountNumber || "") + '"></label></div>' +
+          '<label style="margin-top:12px">Other details (routing number, sort code, SWIFT, IBAN, account type, bank address)<textarea name="extra" rows="3" placeholder="e.g. ACH routing: 123456789 · Account type: Checking">' + esc(b.extra || "") + "</textarea></label>" +
+          '<input type="hidden" name="id" value="' + esc(b.id || "") + '"><div class="acts" style="margin-top:10px"><button class="btn btn-g btn-sm" type="button" data-del-row>Remove</button></div></div>';
+      };
+      $("#main").innerHTML = '<div class="card"><h2><i class="ph ph-bank" aria-hidden="true"></i>Bank accounts for transfer payments</h2>' +
+        '<p class="note">Clients see these on the payment page when they choose "Pay by bank transfer". They are stored privately in your portal, not in the website code. Leave an account number empty to hide that account. Copy the details exactly from your Cleva or bank app.</p></div>' +
+        '<div id="rows">' + banks.map(row).join("") + "</div>" +
+        '<div class="acts" style="margin-top:12px"><button class="btn btn-g" type="button" id="add-row"><i class="ph ph-plus" aria-hidden="true"></i>Add another account</button><button class="btn btn-p" type="button" id="save-banks"><i class="ph ph-floppy-disk" aria-hidden="true"></i>Save accounts</button><span class="note" id="save-msg"></span></div>';
+      var n = banks.length;
+      $("#add-row").onclick = function () { $("#rows").insertAdjacentHTML("beforeend", row({ currency: "USD" }, n++)); };
+      $("#rows").addEventListener("click", function (e) { if (e.target.closest("[data-del-row]")) e.target.closest("[data-row]").remove(); });
+      $("#save-banks").onclick = function () {
+        var list = Array.prototype.map.call(document.querySelectorAll("[data-row]"), function (r) {
+          var o = {}; ["id", "label", "currency", "bank", "accountName", "accountNumber", "extra"].forEach(function (k) { o[k] = r.querySelector("[name=" + k + "]").value; }); return o;
+        });
+        $("#save-msg").textContent = "Saving…";
+        api("admin/banks", { banks: list }).then(function (d) { $("#save-msg").innerHTML = '<span class="ok">Saved ✓ ' + d.banks.length + " account(s) now show on your payment pages.</span>"; })
+          .catch(function (x) { $("#save-msg").innerHTML = '<span class="err">' + esc(x.message) + "</span>"; });
+      };
+    });
+  }
 
   /* ---------- notifications: everything new, in bold, live ---------- */
-  var ICON = { payment: "ph-currency-circle-dollar", brief: "ph-file-text", offer: "ph-gift", message: "ph-chat-circle-dots" };
-  var LABEL = { payment: "Payment", brief: "Brief / enquiry", offer: "Free design request", message: "Client message" };
+  var ICON = { payment: "ph-currency-circle-dollar", transfer: "ph-bank", brief: "ph-file-text", offer: "ph-gift", message: "ph-chat-circle-dots" };
+  var NLABEL = { payment: "Payment", transfer: "Bank transfer to confirm", brief: "Brief / enquiry", offer: "Free design request", message: "Client message" };
   var lastUnread = null, onBell = false, known = {};
   function chime() {
     try {
@@ -36,7 +68,7 @@
       var fresh = d.items.filter(function (i) { return i.unread && !known[i.kind + i.id]; });
       if (lastUnread !== null && fresh.length) {
         chime();
-        if (window.Notification && Notification.permission === "granted") fresh.slice(0, 3).forEach(function (i) { try { new Notification(LABEL[i.kind] + ": " + i.title, { body: i.sub, icon: "/brand/favicon.svg", tag: i.kind + i.id }); } catch (e) {} });
+        if (window.Notification && Notification.permission === "granted") fresh.slice(0, 3).forEach(function (i) { try { new Notification(NLABEL[i.kind] + ": " + i.title, { body: i.sub, icon: "/brand/favicon.svg", tag: i.kind + i.id }); } catch (e) {} });
       }
       d.items.forEach(function (i) { known[i.kind + i.id] = true; });
       lastUnread = d.unread;
@@ -57,21 +89,21 @@
     $("#main").innerHTML = '<div class="card"><div class="help"><div><h2 style="margin:0"><i class="ph ph-bell-ringing" aria-hidden="true"></i> Notifications</h2><p class="muted">New payments, briefs and messages, newest first. Updates every 30 seconds.</p></div>' +
       '<div class="acts">' + (perm === "default" ? '<button class="btn btn-p btn-sm" type="button" id="alerts-on"><i class="ph ph-bell-simple-ringing" aria-hidden="true"></i>Turn on pop-up alerts</button>' : perm === "granted" ? '<span class="note ok">Pop-up alerts on ✓</span>' : "") +
       '<button class="btn btn-g btn-sm" type="button" id="all-read">Mark all as read</button></div></div>' +
-      '<div class="kpi-row" style="margin-top:16px"><div><span>Payments</span><b>' + count("payment") + '</b></div><div><span>Briefs</span><b>' + count("brief") + '</b></div><div><span>Free design requests</span><b>' + count("offer") + '</b></div><div><span>Client messages</span><b>' + count("message") + "</b></div></div>" +
+      '<div class="kpi-row" style="margin-top:16px"><div><span>Payments</span><b>' + (count("payment") + count("transfer")) + '</b></div><div><span>Briefs</span><b>' + count("brief") + '</b></div><div><span>Free design requests</span><b>' + count("offer") + '</b></div><div><span>Client messages</span><b>' + count("message") + "</b></div></div>" +
       '<div class="feed-list">' + (d.items.map(function (i) {
-        return '<button type="button" class="nf k-' + i.kind + (i.unread ? " unread" : "") + (freshIds[i.kind + i.id] ? " fresh" : "") + '" data-kind="' + i.kind + '" data-id="' + esc(i.id) + '" data-client="' + esc(i.clientId || "") + '"><span class="ic"><i class="ph-fill ' + ICON[i.kind] + '" aria-hidden="true"></i></span><div><b>' + esc(i.title) + "</b><span>" + esc(LABEL[i.kind] + " · " + i.sub) + "</span></div><time>" + VX.date(i.at, true) + "</time></button>";
+        return '<button type="button" class="nf k-' + i.kind + (i.unread ? " unread" : "") + (freshIds[i.kind + i.id] ? " fresh" : "") + '" data-kind="' + i.kind + '" data-id="' + esc(i.id) + '" data-client="' + esc(i.clientId || "") + '"><span class="ic"><i class="ph-fill ' + ICON[i.kind] + '" aria-hidden="true"></i></span><div><b>' + esc(i.title) + "</b><span>" + esc(NLABEL[i.kind] + " · " + i.sub) + "</span></div><time>" + VX.date(i.at, true) + "</time></button>";
       }).join("") || '<div class="empty"><i class="ph ph-bell-simple" aria-hidden="true"></i>Nothing yet. New payments, briefs and messages will appear here in bold.</div>') + "</div></div>";
     var on = $("#alerts-on"); if (on) on.onclick = function () { Notification.requestPermission().then(function () { poll(); }); };
     $("#all-read").onclick = function () { api("admin/feed/seen", { all: true }).then(poll); };
     $("#main").querySelectorAll(".nf").forEach(function (b) {
       b.onclick = function () {
         var k = b.dataset.kind, id = b.dataset.id, cid = b.dataset.client;
-        var go = function () { onBell = false; if (k === "brief" || k === "offer") { inbox(); } else if (cid) { sel = cid; refresh(true).then(function () { drawList(); showClient(cid); }); } };
+        var go = function () { onBell = false; if (k === "transfer") { payments(); } else if (k === "brief" || k === "offer") { inbox(); } else if (cid) { sel = cid; refresh(true).then(function () { drawList(); showClient(cid); }); } };
         if (k === "message") go(); else api("admin/feed/seen", { kind: k, id: id }).then(go, go);
       };
     });
   }
-  ["#new-btn", "#inbox-btn", "#pay-btn"].forEach(function (s) { $(s).addEventListener("click", function () { onBell = false; }); });
+  ["#new-btn", "#inbox-btn", "#pay-btn", "#set-btn"].forEach(function (s) { $(s).addEventListener("click", function () { onBell = false; }); });
   $("#clist").addEventListener("click", function () { onBell = false; });
   setInterval(function () { if (!$("#app").hidden) poll(); }, 30000);
 
@@ -84,10 +116,22 @@
         list.innerHTML = '<h2><i class="ph ph-receipt" aria-hidden="true"></i>Payment links</h2>' + (d.ready ? "" : '<p class="note" style="color:var(--warn)">Paystack is not connected yet (PAYSTACK_SECRET_KEY missing). You can create links, but clients can\'t pay until it\'s set.</p>') +
           '<div style="display:grid;gap:8px">' + (d.requests.map(function (q) {
             var link = location.origin + "/pay/?r=" + q.id;
-            return '<div class="pr-row"><div><b>' + esc(q.business || q.name) + " · " + VX.money(q.total, q.currency) + ' <span class="st ' + q.status + '">' + q.status + "</span></b><span>" + esc(q.email) + " · created " + VX.date(q.createdAt) + (q.paidAt ? " · paid " + VX.date(q.paidAt, true) + (q.channel ? " by " + esc(q.channel) : "") : "") + "</span></div>" +
-              '<div class="acts">' + (q.status === "pending" ? '<button class="btn btn-g btn-sm" type="button" data-copy="' + esc(link) + '">Copy link</button><button class="btn btn-g btn-sm" type="button" data-cancel="' + q.id + '">Cancel</button>' : "") + (q.clientId ? '<button class="btn btn-g btn-sm" type="button" data-client="' + q.clientId + '">Open client</button>' : "") + "</div></div>";
+            var claimed = q.status === "pending" && q.transfer;
+            return '<div class="pr-row"' + (claimed ? ' style="border-color:rgba(255,209,102,.5)"' : "") + '><div><b>' + esc(q.business || q.name) + " · " + VX.money(q.total, q.currency) + ' <span class="st ' + (claimed ? "pending" : q.status) + '">' + (claimed ? "transfer sent · check your bank" : q.status) + "</span></b><span>" + esc(q.email) + " · created " + VX.date(q.createdAt) + (q.paidAt ? " · paid " + VX.date(q.paidAt, true) + (q.channel ? " by " + esc(q.channel) : "") : "") + "</span></div>" +
+              (claimed ? '<span style="display:block;color:var(--warn)">' + esc("Sent to the " + (q.transfer.currency || "?") + " account" + (q.transfer.payer ? " by " + q.transfer.payer : "") + " · ref VIX-" + q.id.slice(0, 6).toUpperCase() + " · " + VX.date(q.transfer.at, true)) + "</span>" : "") +
+              '<div class="acts">' + (q.status === "pending" ? '<button class="btn btn-p btn-sm" type="button" data-confirm="' + q.id + '">Confirm received</button><button class="btn btn-g btn-sm" type="button" data-copy="' + esc(link) + '">Copy link</button><button class="btn btn-g btn-sm" type="button" data-cancel="' + q.id + '">Cancel</button>' : "") + (q.clientId ? '<button class="btn btn-g btn-sm" type="button" data-client="' + q.clientId + '">Open client</button>' : "") + "</div></div>";
           }).join("") || '<p class="note">No payment links yet.</p>') + "</div>";
         list.querySelectorAll("[data-copy]").forEach(function (b) { b.onclick = function () { navigator.clipboard.writeText(b.dataset.copy).then(function () { b.textContent = "Copied ✓"; }); }; });
+        list.querySelectorAll("[data-confirm]").forEach(function (b) {
+          b.onclick = function () {
+            if (!confirm("Only confirm once you can SEE the money in your bank or Cleva account. Start this client's project now?")) return;
+            b.disabled = true;
+            api("admin/payreqs/confirm", { id: b.dataset.confirm }).then(function (d) {
+              sel = d.client.id; refresh();
+              kickoff(d.client, d.services.map(function (s) { return { type: s.type, title: s.title, amount: s.amount }; }), d.total, d.invite, d.loginUrl);
+            }).catch(function (x) { alert(x.message); b.disabled = false; });
+          };
+        });
         list.querySelectorAll("[data-cancel]").forEach(function (b) { b.onclick = function () { if (confirm("Cancel this payment link? The client won't be able to pay with it.")) api("admin/payreqs/cancel", { id: b.dataset.cancel }).then(load); }; });
         list.querySelectorAll("[data-client]").forEach(function (b) { b.onclick = function () { sel = b.dataset.client; refresh(true).then(function () { drawList(); showClient(sel); }); }; });
       }).catch(function (x) { list.innerHTML = '<p class="err">' + esc(x.message) + "</p>"; });
@@ -191,7 +235,7 @@
 
   function kickoff(c, services, total, invite, loginUrl) {
     var first = c.name.split(" ")[0];
-    var names = services.map(function (s) { return s.type === "other" && s.title ? s.title : LABEL[s.type]; });
+    var names = services.map(function (s) { return s.title || LABEL[s.type]; });
     var list = names.length > 1 ? names.slice(0, -1).join(", ") + " and " + names[names.length - 1] : names[0];
     var subject = "Your " + list + " project has started 🚀 | Vix Automations";
     var body = "Hi " + first + ",\n\n" +
