@@ -88,3 +88,13 @@
 .due-now.overdue,.due-now.delivery-due{border-color:rgba(255,139,139,.6);background:rgba(255,92,92,.1)}
 .due-now.overdue span,.due-now.delivery-due span{color:#ff9b9b}
 @media (max-width:420px){.pl-cfg{grid-template-columns:1fr}}
+
+/* authorisation + merchant clarity */
+.consent{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border-radius:14px;border:1px solid var(--line2);background:rgba(0,0,0,.25);font-size:13px;line-height:1.5;color:var(--mute);cursor:pointer}
+.consent input{width:18px;height:18px;margin-top:1px;flex:none;accent-color:#8f8bff}
+.consent b{color:var(--ink)}
+.consent.invalid{border-color:#ff7b7b;background:rgba(255,92,92,.08)}
+.merchant{display:grid;gap:8px;padding:14px;border-radius:16px;background:rgba(79,240,196,.06);border:1px solid rgba(79,240,196,.25)}
+.merchant p{margin:0;display:flex;gap:10px;align-items:flex-start;font-size:13px;line-height:1.5;color:var(--mute)}
+.merchant p i{font-size:18px;color:var(--mint);flex:none;margin-top:1px}
+.merchant b{color:var(--ink)}

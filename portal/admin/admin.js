@@ -35,6 +35,7 @@
       };
       $("#main").innerHTML = '<div class="card" id="ce-card"><h2><i class="ph ph-envelope-simple" aria-hidden="true"></i>Emails to clients</h2><p class="note" id="ce-state">Checking…</p>' +
         '<div class="send" style="margin-top:12px"><input id="ce-to" type="email" placeholder="Send a test to (your other email)"><button class="btn btn-p" type="button" id="ce-test">Send test email</button></div><p class="note" id="ce-msg"></p></div>' +
+        '<div class="card" style="margin-top:16px"><h2><i class="ph ph-globe-hemisphere-west" aria-hidden="true"></i>Card payments</h2><label class="agree-row" style="display:flex;gap:10px;align-items:flex-start;color:var(--mute)"><input type="checkbox" id="intl-on"' + (d.intl ? " checked" : "") + '> <span>Paystack has approved <b>international payments</b> on my account. Show "Cards from any country accepted" on payment pages.</span></label><p class="note" id="intl-msg">Turn this on only after Paystack confirms it (Paystack → Settings → Preferences → Accept international payments). Otherwise foreign cards will be declined.</p></div>' +
         '<div class="card" style="margin-top:16px"><h2><i class="ph ph-bank" aria-hidden="true"></i>Bank accounts for transfer payments</h2>' +
         '<p class="note">Clients see these on the payment page when they choose "Pay by bank transfer". They are stored privately in your portal, not in the website code. Leave an account number empty to hide that account. Copy the details exactly from your Cleva or bank app.</p></div>' +
         '<div id="rows">' + banks.map(row).join("") + "</div>" +
@@ -49,6 +50,7 @@
         api("admin/client-email/test", { to: $("#ce-to").value }).then(function (x) { $("#ce-msg").innerHTML = '<span class="ok">Test sent ✓ via ' + esc(x.via) + ". Check that inbox (and Spam).</span>"; })
           .catch(function (x) { $("#ce-msg").innerHTML = '<span class="err">' + esc(x.message) + "</span>"; }).finally(function () { b.disabled = false; });
       };
+      $("#intl-on").onchange = function () { var on = this.checked; api("admin/paysettings", { intl: on }).then(function () { $("#intl-msg").innerHTML = '<span class="ok">Saved ✓ ' + (on ? "Payment pages now say cards from any country are accepted." : "International card message hidden.") + "</span>"; }); };
       var n = banks.length;
       $("#add-row").onclick = function () { $("#rows").insertAdjacentHTML("beforeend", row({ currency: "USD" }, n++)); };
       $("#rows").addEventListener("click", function (e) { if (e.target.closest("[data-del-row]")) e.target.closest("[data-row]").remove(); });

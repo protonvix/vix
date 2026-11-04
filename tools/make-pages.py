@@ -117,6 +117,9 @@ PAGES["payment"] = dict(
 <h2>How to pay</h2>
 <p>We accept bank transfer to accounts in Nigeria, the UK and the USA, and payment through Payoneer, Cleva and Wise. The payment details are on your invoice. Prices are shown in your currency on our pricing page. Nigerian clients can be invoiced in naira (₦); other clients in pounds (£) or US dollars ($). Please confirm payment details with us directly before sending money, and never pay into an account that isn't on your official invoice.</p>
 
+<h2>Card payments and your authorisation</h2>
+<p>Card and bank payments are processed securely by Paystack. We never see or store your card details, and <b>nothing is ever charged automatically</b>: every payment, including each instalment, needs you to tick an authorisation box for that exact amount and approve it with your bank. Your bank notification and statement will show the payment from <b>Vix Automations</b> (via Paystack). Cards from outside Nigeria are charged in naira and converted by your bank.</p>
+
 <h2>Invoices</h2>
 <p>Invoices are due within 7 days. If a payment is late, we pause work until it arrives, and the delivery date moves by the same amount of time.</p>
 
