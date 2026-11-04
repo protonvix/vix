@@ -366,7 +366,7 @@
       <p class="eyebrow">Founding client programme</p>
       <h2>Be one of our first clients and <em>get more for less</em></h2>
       <p class="lead">We're a new company, so instead of asking you to trust reviews we don't have yet, we make it low-risk: a fixed price in writing, fixes at no extra charge, and 20% off every package for founding clients.</p>
-      <div class="cta-row"><a class="btn btn-glow" href="pricing.html">See packages &amp; pricing</a><a class="btn btn-glass" href="#contact">Apply as a founding client</a></div>
+      <div class="cta-row"><a class="btn btn-glow" href="pricing.html">See packages &amp; pricing</a><a class="btn btn-glass" href="#contact" data-founding>Apply as a founding client</a></div>
     </div>
     <ul class="found-list">
       <li><i class="ph-fill ph-seal-check" aria-hidden="true"></i>Fixed price, agreed upfront</li>
@@ -412,6 +412,7 @@
       <label>What do you need?
         <select name="service" required>
           <option value="">Choose one…</option>
+          <option value="Founding client application">⭐ Founding client application (20% off)</option>
           <option>GoHighLevel setup &amp; automation</option>
           <option>Website design or redesign</option>
           <option>TikTok marketing</option>
@@ -421,6 +422,20 @@
           <option>Not sure yet</option>
         </select>
       </label>
+      <div class="fc-box" id="fc-box" hidden>
+        <p class="fc-title"><i class="ph-fill ph-star" aria-hidden="true"></i>Founding client programme</p>
+        <p>As one of our first clients you get <b>20% off any package</b>, a <b>fixed price in writing</b>, fixes at no extra charge and direct access to the people building your system. In return, we ask for an <b>honest review</b> and permission to share your results once your system is live.</p>
+        <label class="fc-service">Which service are you interested in?
+          <select name="interest">
+            <option>GoHighLevel setup &amp; automation</option>
+            <option>Website design or redesign</option>
+            <option>TikTok marketing</option>
+            <option>SaaS mode / white label</option>
+            <option>Not sure yet</option>
+          </select>
+        </label>
+        <label class="fc-agree"><input type="checkbox" name="fcAgree"> I'm happy to leave an honest review and let Vix Automations share my results once my system is live.</label>
+      </div>
       <label>Tell us a little more<textarea name="message" rows="4" placeholder="What does your business do, and what would you like to improve?"></textarea></label>
       <button class="btn btn-glow" type="submit">Send my message <i class="ph ph-paper-plane-tilt" aria-hidden="true"></i></button>
       <p class="form-status" role="status" aria-live="polite"></p>
