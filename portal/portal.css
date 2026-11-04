@@ -219,3 +219,13 @@ details.box>div{padding:0 0 16px;display:grid;gap:12px}
 .kpi-row b{font-size:26px;letter-spacing:-.03em}
 @media (max-width:620px){.kpi-row{grid-template-columns:1fr 1fr}.nf{grid-template-columns:auto 1fr}.nf time{grid-column:2}}
 .nf.k-transfer .ic{background:rgba(255,209,102,.15);color:var(--warn)}
+
+/* admin top bar on phones: two rows, labelled buttons you can swipe */
+@media (max-width:760px){
+  .admin-page .top{position:static}
+  .admin-page .top .wrap{flex-wrap:wrap;height:auto;padding:12px 0;row-gap:10px}
+  .admin-page .top-r{width:100%;flex-wrap:wrap;gap:8px}
+  .admin-page .top-r::-webkit-scrollbar{display:none}
+  .admin-page .top-r .btn{flex:none}
+  .admin-page .top .btn span{display:inline}
+}
