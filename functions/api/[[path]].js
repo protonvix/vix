@@ -512,6 +512,98 @@ async function payWebhook(env, req, origin) {
   return new Response("ok");
 }
 
+
+/* ---------------- Fixed-price packages: pay directly ---------------- */
+// Prices in USD (same as pricing.html). The founding-client discount is applied here, and the
+// naira amount is worked out on the server, so a visitor can never change the price they pay.
+const PACKAGES = {
+  quickstart: { name: "GoHighLevel Quick Start", usd: 499, type: "ghl", eta: "about 7 days", features: ["Sub-account setup & branding", "1 pipeline + custom fields", "1 funnel or landing page", "5 core automations", "Calendar & phone setup", "Recorded training"] },
+  growth: { name: "GoHighLevel Growth System", usd: 689, type: "ghl", eta: "2–3 weeks", features: ["Everything in Quick Start", "Full customer journey mapping", "Up to 3 funnels / website", "20+ automations & nurture", "Conversation AI bot", "Reputation management", "Reporting dashboard", "30 days post-launch support"] },
+  agency: { name: "GoHighLevel Agency / SaaS", usd: 876, type: "ghl", eta: "3–5 weeks", features: ["Agency account architecture", "SaaS mode & Stripe rebilling", "Custom niche snapshot", "Client onboarding automation", "Custom domain & mobile app branding", "API & integration work", "60 days priority support"] },
+};
+const PACKAGE_DISCOUNT = 20; // % founding-client discount (keep in sync with pricing.js)
+async function usdToNgn(env) {
+  const cached = await env.PORTAL.get("fx:NGN");
+  if (cached) return +cached;
+  let rate = 1550;
+  try {
+    const r = await fetch("https://open.er-api.com/v6/latest/USD", { cf: { cacheTtl: 43200 } });
+    const d = await r.json();
+    if (d && d.rates && d.rates.NGN > 100) rate = d.rates.NGN;
+  } catch (e) {}
+  await env.PORTAL.put("fx:NGN", String(rate), { expirationTtl: 43200 });
+  return rate;
+}
+async function packagePrice(env, key) {
+  const pk = PACKAGES[key]; if (!pk) return null;
+  const usd = Math.round(pk.usd * (100 - PACKAGE_DISCOUNT)) / 100;
+  const ngn = Math.round((usd * (await usdToNgn(env))) / 1000) * 1000;
+  return { key, name: pk.name, type: pk.type, eta: pk.eta, features: pk.features, usdList: pk.usd, usd, discount: PACKAGE_DISCOUNT, currency: "NGN", amount: ngn };
+}
+async function payPackage(env, url) {
+  const pr = await packagePrice(env, clean(url.searchParams.get("p"), 30));
+  return pr ? json({ package: pr, ready: !!env.PAYSTACK_SECRET_KEY }) : fail(404, "That package was not found.");
+}
+async function payPackageStart(env, req, origin) {
+  const b = await req.json().catch(() => ({}));
+  if (b.website) return fail(400, "Please try again.");
+  const pr = await packagePrice(env, clean(b.p, 30));
+  if (!pr) return fail(404, "That package was not found.");
+  const email = clean(b.email, 200).toLowerCase();
+  if (!clean(b.name) || !emailOk(email)) return fail(400, "Please enter your name and a valid email.");
+  const ip = req.headers.get("cf-connecting-ip") || "unknown", rk = "prate:" + ip, n = +(await env.PORTAL.get(rk)) || 0;
+  if (n >= 10) return fail(429, "Too many attempts. Please try again in an hour, or message us on WhatsApp.");
+  await env.PORTAL.put(rk, String(n + 1), { expirationTtl: 3600 });
+  const q = { id: rid(12), name: clean(b.name, 80), email, business: clean(b.business, 120), whatsapp: clean(b.whatsapp, 40), currency: "NGN",
+    services: [{ type: pr.type, title: pr.name, amount: pr.amount, eta: pr.eta }], total: pr.amount,
+    note: "Paid directly from the website (" + pr.name + ", " + pr.discount + "% founding-client discount applied).", status: "pending", createdAt: now(), source: "website" };
+  await put(env, "payreq:" + q.id, q);
+  const idx = (await get(env, "payreqs:index")) || []; idx.push(q.id); await put(env, "payreqs:index", idx.slice(-1000));
+  return payStart(env, new Request(req.url, { method: "POST", body: JSON.stringify({ r: q.id }) }), origin);
+}
+
+/* ---------------- Admin notifications feed ---------------- */
+async function adminFeed(env) {
+  const seen = (await get(env, "feed:seen")) || {};
+  const items = [];
+  const bidx = ((await get(env, "briefs:index")) || []).slice(-60);
+  for (const id of bidx) {
+    const b = await get(env, "brief:" + id); if (!b) continue;
+    const offer = /free design/i.test(b.source);
+    items.push({ kind: offer ? "offer" : "brief", id: b.id, at: b.at, unread: !b.read, title: b.subject, sub: [b.name, b.business, b.email].filter(Boolean).join(" · ") + " · via " + b.source });
+  }
+  const pidx = ((await get(env, "payreqs:index")) || []).slice(-60);
+  for (const id of pidx) {
+    const q = await get(env, "payreq:" + id); if (!q || q.status !== "paid") continue;
+    items.push({ kind: "payment", id: q.id, at: q.paidAt, unread: !seen["pay:" + q.id], clientId: q.clientId,
+      title: "Payment received: " + (q.currency === "NGN" ? "₦" : q.currency + " ") + q.total.toLocaleString("en-GB") + " from " + (q.business || q.name),
+      sub: q.services.map((s) => s.title || defaultTitle(s.type)).join(", ") + (q.source === "website" ? " · paid directly on the website" : " · via payment link") });
+  }
+  const cidx = (await get(env, "clients:index")) || [];
+  for (const cid of cidx) {
+    const c = await get(env, "client:" + cid); if (!c) continue;
+    for (const pid of c.projectIds || []) {
+      const pj = await get(env, "project:" + pid); if (!pj || !pj.unreadAdmin) continue;
+      const last = (pj.messages || []).filter((m) => m.from === "client").slice(-1)[0];
+      if (last) items.push({ kind: "message", id: pj.id, at: last.at, unread: true, clientId: c.id, title: "New message from " + c.name + " (" + pj.title + ")", sub: last.text.slice(0, 160) });
+    }
+  }
+  items.sort((a, b) => String(b.at).localeCompare(String(a.at)));
+  return json({ items: items.slice(0, 80), unread: items.filter((i) => i.unread).length });
+}
+async function adminFeedSeen(env, req) {
+  const b = await req.json().catch(() => ({}));
+  const seen = (await get(env, "feed:seen")) || {};
+  if (b.kind === "payment") seen["pay:" + clean(b.id, 40)] = 1;
+  if (b.kind === "brief" || b.kind === "offer") { const it = await get(env, "brief:" + clean(b.id, 40)); if (it) { it.read = true; await put(env, "brief:" + it.id, it); } }
+  if (b.all) {
+    for (const id of ((await get(env, "payreqs:index")) || [])) seen["pay:" + id] = 1;
+    for (const id of ((await get(env, "briefs:index")) || [])) { const it = await get(env, "brief:" + id); if (it && !it.read) { it.read = true; await put(env, "brief:" + id, it); } }
+  }
+  await put(env, "feed:seen", seen);
+  return json({ ok: true });
+}
+
 /* ---------------- router ---------------- */
 export async function onRequest(ctx) {
   const { request: req } = ctx;
@@ -554,6 +646,8 @@ export async function onRequest(ctx) {
     if (path === "pay/info" && m === "GET") return payInfo(env, url);
     if (path === "pay/start" && m === "POST") return payStart(env, req, url.origin);
     if (path === "pay/verify" && m === "GET") return payVerify(env, url);
+    if (path === "pay/package" && m === "GET") return payPackage(env, url);
+    if (path === "pay/package" && m === "POST") return payPackageStart(env, req, url.origin);
 
     if (path === "admin/login" && m === "POST") return adminLogin(env, req);
     if (path.startsWith("admin/")) {
@@ -575,6 +669,8 @@ export async function onRequest(ctx) {
       if (a === "payreqs" && m === "GET") return adminPayList(env);
       if (a === "payreqs" && m === "POST") return adminPayCreate(env, req, url.origin);
       if (a === "payreqs/cancel" && m === "POST") return adminPayCancel(env, req);
+      if (a === "feed" && m === "GET") return adminFeed(env);
+      if (a === "feed/seen" && m === "POST") return adminFeedSeen(env, req);
     }
     return fail(404, "Not found.");
   } catch (e) {

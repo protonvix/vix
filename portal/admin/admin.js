@@ -6,7 +6,7 @@
   var LABEL = { website: "Website design", ghl: "GoHighLevel setup & automation", tiktok: "TikTok marketing", other: "Project" };
 
   function boot() {
-    api("admin/session").then(function () { $("#login-view").hidden = true; $("#app").hidden = false; refresh(); countInbox().catch(function () {}); })
+    api("admin/session").then(function () { $("#login-view").hidden = true; $("#app").hidden = false; refresh().then(function () { sel = null; drawList(); bell(); }); countInbox().catch(function () {}); })
       .catch(function () { $("#login-view").hidden = false; });
   }
   $("#login-form").addEventListener("submit", function (e) {
@@ -17,6 +17,63 @@
   $("#new-btn").addEventListener("click", function () { sel = null; drawList(); newForm(); });
   $("#inbox-btn").addEventListener("click", function () { sel = null; drawList(); inbox(); });
   $("#pay-btn").addEventListener("click", function () { sel = null; drawList(); payments(); });
+  $("#bell-btn").addEventListener("click", function () { sel = null; drawList(); bell(); });
+
+  /* ---------- notifications: everything new, in bold, live ---------- */
+  var ICON = { payment: "ph-currency-circle-dollar", brief: "ph-file-text", offer: "ph-gift", message: "ph-chat-circle-dots" };
+  var LABEL = { payment: "Payment", brief: "Brief / enquiry", offer: "Free design request", message: "Client message" };
+  var lastUnread = null, onBell = false, known = {};
+  function chime() {
+    try {
+      var A = window.AudioContext || window.webkitAudioContext, ctx = new A();
+      [880, 1320].forEach(function (f, i) { var o = ctx.createOscillator(), g = ctx.createGain(); o.frequency.value = f; o.type = "sine"; g.gain.setValueAtTime(0.0001, ctx.currentTime + i * 0.15); g.gain.exponentialRampToValueAtTime(0.25, ctx.currentTime + i * 0.15 + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + i * 0.15 + 0.4); o.connect(g); g.connect(ctx.destination); o.start(ctx.currentTime + i * 0.15); o.stop(ctx.currentTime + i * 0.15 + 0.45); });
+    } catch (e) {}
+  }
+  function poll() {
+    return api("admin/feed").then(function (d) {
+      $("#bell-n").hidden = !d.unread; $("#bell-n").textContent = d.unread;
+      document.title = (d.unread ? "(" + d.unread + ") " : "") + "Admin · Vix Automations";
+      var fresh = d.items.filter(function (i) { return i.unread && !known[i.kind + i.id]; });
+      if (lastUnread !== null && fresh.length) {
+        chime();
+        if (window.Notification && Notification.permission === "granted") fresh.slice(0, 3).forEach(function (i) { try { new Notification(LABEL[i.kind] + ": " + i.title, { body: i.sub, icon: "/brand/favicon.svg", tag: i.kind + i.id }); } catch (e) {} });
+      }
+      d.items.forEach(function (i) { known[i.kind + i.id] = true; });
+      lastUnread = d.unread;
+      if (onBell) drawBell(d, fresh);
+      return d;
+    }).catch(function () {});
+  }
+  function bell() {
+    onBell = true;
+    $("#main").innerHTML = '<div class="card"><p class="note">Loading notifications…</p></div>';
+    poll();
+  }
+  function drawBell(d, fresh) {
+    if (!onBell) return;
+    var freshIds = {}; (fresh || []).forEach(function (i) { freshIds[i.kind + i.id] = 1; });
+    var count = function (k) { return d.items.filter(function (i) { return i.kind === k && i.unread; }).length; };
+    var perm = window.Notification ? Notification.permission : "unsupported";
+    $("#main").innerHTML = '<div class="card"><div class="help"><div><h2 style="margin:0"><i class="ph ph-bell-ringing" aria-hidden="true"></i> Notifications</h2><p class="muted">New payments, briefs and messages, newest first. Updates every 30 seconds.</p></div>' +
+      '<div class="acts">' + (perm === "default" ? '<button class="btn btn-p btn-sm" type="button" id="alerts-on"><i class="ph ph-bell-simple-ringing" aria-hidden="true"></i>Turn on pop-up alerts</button>' : perm === "granted" ? '<span class="note ok">Pop-up alerts on ✓</span>' : "") +
+      '<button class="btn btn-g btn-sm" type="button" id="all-read">Mark all as read</button></div></div>' +
+      '<div class="kpi-row" style="margin-top:16px"><div><span>Payments</span><b>' + count("payment") + '</b></div><div><span>Briefs</span><b>' + count("brief") + '</b></div><div><span>Free design requests</span><b>' + count("offer") + '</b></div><div><span>Client messages</span><b>' + count("message") + "</b></div></div>" +
+      '<div class="feed-list">' + (d.items.map(function (i) {
+        return '<button type="button" class="nf k-' + i.kind + (i.unread ? " unread" : "") + (freshIds[i.kind + i.id] ? " fresh" : "") + '" data-kind="' + i.kind + '" data-id="' + esc(i.id) + '" data-client="' + esc(i.clientId || "") + '"><span class="ic"><i class="ph-fill ' + ICON[i.kind] + '" aria-hidden="true"></i></span><div><b>' + esc(i.title) + "</b><span>" + esc(LABEL[i.kind] + " · " + i.sub) + "</span></div><time>" + VX.date(i.at, true) + "</time></button>";
+      }).join("") || '<div class="empty"><i class="ph ph-bell-simple" aria-hidden="true"></i>Nothing yet. New payments, briefs and messages will appear here in bold.</div>') + "</div></div>";
+    var on = $("#alerts-on"); if (on) on.onclick = function () { Notification.requestPermission().then(function () { poll(); }); };
+    $("#all-read").onclick = function () { api("admin/feed/seen", { all: true }).then(poll); };
+    $("#main").querySelectorAll(".nf").forEach(function (b) {
+      b.onclick = function () {
+        var k = b.dataset.kind, id = b.dataset.id, cid = b.dataset.client;
+        var go = function () { onBell = false; if (k === "brief" || k === "offer") { inbox(); } else if (cid) { sel = cid; refresh(true).then(function () { drawList(); showClient(cid); }); } };
+        if (k === "message") go(); else api("admin/feed/seen", { kind: k, id: id }).then(go, go);
+      };
+    });
+  }
+  ["#new-btn", "#inbox-btn", "#pay-btn"].forEach(function (s) { $(s).addEventListener("click", function () { onBell = false; }); });
+  $("#clist").addEventListener("click", function () { onBell = false; });
+  setInterval(function () { if (!$("#app").hidden) poll(); }, 30000);
 
   /* ---------- payments: Paystack links ---------- */
   function payments() {

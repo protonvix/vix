@@ -32,3 +32,9 @@
 .st.cancelled{background:rgba(255,255,255,.08);color:var(--soft)}
 .pay-card #body,.pay-card #ok,.pay-card #bad,.pay-card #state{display:grid;gap:16px}
 .pay-card h1{margin:4px 0 0}
+.pay-card #pkg{display:grid;gap:16px}
+.feats{list-style:none;padding:0;margin:0;display:grid;gap:8px;font-size:14px;color:var(--mute)}
+.feats li{display:flex;gap:8px;align-items:flex-start}
+.feats i{color:var(--mint);font-size:17px;margin-top:2px}
+.total small{display:block;font-size:12px;color:var(--soft)}
+.pk-fields{display:grid;gap:12px}
