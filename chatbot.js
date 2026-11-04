@@ -11,7 +11,10 @@
   var PRICES = { quick: 499, growth: 689, agency: 876, retainer: 299, discount: 20 };
 
   // Pages live side by side, so links work from both index.html and pricing.html.
-  var HOME = /(pricing|tiktok|web-design)(\.html)?$/.test(location.pathname) ? "index.html" : "";
+  var HOME = /^\/(index(\.html)?)?$/.test(location.pathname) ? "" : "/";
+  // Free website design offer (keep in sync with offer.js)
+  var OFFER_END = new Date("2026-12-04T23:59:59+01:00").getTime();
+  var offerLive = Date.now() < OFFER_END;
 
   // Visitors in Nigeria are sent to the Nigerian line; everyone else to the UK line.
   function inNigeria() {
@@ -39,23 +42,29 @@
       reply: "Hi there! 👋 We can answer questions about our GoHighLevel services, pricing, payment and timelines. What would you like to know?" },
     { id: "pricing", keys: ["price", "pricing", "cost", "how much", "package", "packages", "plan", "plans", "quote", "fee", "fees", "rate", "rates", "charge", "budget", "expensive", "cheap"],
       reply: "We have three fixed-price packages:<br>• <b>Quick Start</b>: " + usd(PRICES.quick) + "<br>• <b>Growth System</b>: " + usd(PRICES.growth) + " (most popular)<br>• <b>Agency / SaaS</b>: " + usd(PRICES.agency) +
-        "<br>Founding clients currently get <b>" + PRICES.discount + "% off</b>, so from " + off(PRICES.quick) + ". <a href=\"pricing.html\">See full pricing in your currency</a>." },
-    { id: "discount", keys: ["discount", "promo", "coupon", "offer", "deal", "founding", "sale", "cheaper"],
-      reply: "Founding clients get <b>" + PRICES.discount + "% off every package</b>. In return, we ask for an honest review and permission to share your results once your system is live. <a href=\"pricing.html\">See discounted prices</a>." },
+        "<br>Founding clients currently get <b>" + PRICES.discount + "% off</b>, so from " + off(PRICES.quick) + ". You can <b>pay and start straight away</b> on the <a href=\"/pricing.html\">pricing page</a> (shown in your currency). Websites and TikTok are quoted for your project." },
+    { id: "discount", keys: ["discount", "promo", "coupon", "founding", "sale", "cheaper", "percent off", "20%"],
+      reply: "Founding clients get <b>" + PRICES.discount + "% off every package</b>. In return, we ask for an honest review and permission to share your results once your system is live. <a href=\"/pricing.html\">See discounted prices</a>." },
     { id: "retainer", keys: ["retainer", "monthly", "monthly plan", "monthly support", "ongoing", "maintenance", "support plan", "per month", "subscription"],
       reply: "Ongoing support retainers start at <b>" + usd(PRICES.retainer) + "/month</b>. They cover new builds, fixes, optimisation, reporting and priority help. The packages themselves are one-off fixed prices." },
-    { id: "payment", keys: ["pay", "payment", "payoneer", "cleva", "wise", "bank", "transfer", "invoice", "card", "paypal", "deposit"],
-      reply: "You can pay by <b>Payoneer</b>, <b>Cleva</b>, <b>Wise</b>, or <b>bank transfer</b> to accounts in Nigeria, the UK and the USA. Payment details are included on your invoice." },
+    { id: "payment", keys: ["pay", "payment", "payoneer", "cleva", "wise", "bank", "transfer", "invoice", "card", "paypal", "deposit", "paystack", "ussd", "opay", "checkout", "account number"],
+      reply: "You can pay securely on our website:<br>• <b>Card, bank transfer, USSD or OPay</b> in naira through Paystack<br>• <b>Direct bank transfer</b> to our <b>USD, GBP, EUR or NGN</b> accounts (details shown at checkout)<br>For GoHighLevel packages, tap <b>Pay &amp; start now</b> on the <a href=\"/pricing.html\">pricing page</a>. For custom projects we send you a secure payment link. Your project and client dashboard start as soon as payment is confirmed." },
     { id: "currency", keys: ["currency", "naira", "ngn", "pounds", "gbp", "euro", "eur", "dollar", "usd", "cedi", "rand", "exchange"],
-      reply: "Prices are set in US dollars. The <a href=\"pricing.html\">pricing page</a> shows them in your local currency as an estimate, and your invoice shows the exact amount before you pay." },
+      reply: "Prices are set in US dollars. The <a href=\"/pricing.html\">pricing page</a> shows them in your local currency. Card payments are charged in naira at today's rate, and bank transfers can be made in USD, GBP, EUR or NGN. You always see the exact amount before you pay." },
     { id: "tiktok", keys: ["tiktok", "tik tok", "tt", "video", "videos", "editing", "edit", "followers", "views", "viral", "reels", "shorts", "content creation", "social media", "engagement", "posting", "upload"],
-      reply: "Yes! Our <b>TikTok Marketing</b> service includes:<br>• Quality video creation & editing<br>• <b>4 videos posted every week</b> for your niche<br>• Account & engagement management (comments and DMs)<br>• Growth in views, followers and engagement, organically<br>• Optional TikTok Ads, TikTok Shop and Reels/Shorts repurposing<br>TikTok packages are monthly and quoted for your niche. <a href=\"tiktok.html\">See TikTok packages</a> or ask for a free TikTok audit." },
+      reply: "Yes! Our <b>TikTok Marketing</b> service includes:<br>• Quality video creation & editing<br>• <b>4 videos posted every week</b> for your niche<br>• Account & engagement management (comments and DMs)<br>• Growth in views, followers and engagement, organically<br>• Optional TikTok Ads, TikTok Shop and Reels/Shorts repurposing<br>TikTok packages are monthly and quoted for your niche. <a href=\"/tiktok.html\">See TikTok packages</a> or ask for a free TikTok audit." },
     { id: "tiktok_guarantee", keys: ["guarantee followers", "guarantee views", "buy followers", "fake followers", "bots", "how many followers"],
       reply: "We don't buy followers or use bots, which breaks TikTok's rules and doesn't bring customers. No one can honestly guarantee TikTok numbers, but we guarantee the work: 4 quality videos every week, daily engagement and a monthly growth report." },
     { id: "webdesign", boost: 3, keys: ["website", "web design", "web designer", "redesign", "landing page", "wordpress", "shopify", "wix", "squarespace", "webflow", "site", "web page", "webpage", "online store", "ecommerce", "e-commerce"],
-      reply: "Yes! Our <b>Web Design</b> service covers:<br>• New websites for new and existing brands<br>• Fixing website errors on coded sites and no-code builders (WordPress, Shopify, Wix, Squarespace, Webflow)<br>• GoHighLevel websites & funnels<br>Packages: <b>Starter</b>, <b>Business Growth</b> and <b>Premium Brand & E-commerce</b>, each with a custom quote. <a href=\"web-design.html#quote\">Get a custom website quote</a>." },
+      reply: "Yes! Our <b>Web Design</b> service covers:<br>• New websites for new and existing brands<br>• Fixing website errors on any platform (WordPress, Shopify, Wix, Squarespace, Webflow)<br>• GoHighLevel websites & funnels<br>Website prices depend on your pages and features, so each project gets a <b>fixed quote</b>. You can <a href=\"" + HOME + "#designs\">pick from 20 designs</a> or <a href=\"/web-design.html#quote\">describe what you want</a>." + (offerLive ? "<br>🎁 <b>Right now we'll design your website free</b> (until 4 Dec). <a href=\"/free-design.html\">Claim your free design</a>." : "") },
     { id: "webfix", boost: 6, keys: ["fix", "fixing", "repair", "broken", "error", "errors", "not loading", "not working", "bug", "hacked", "slow website", "fix my website", "fix my site", "404"],
-      reply: "We fix website errors on any platform: broken layouts, forms not sending, slow pages, 404s, SSL warnings, plugin conflicts and hacked sites. <a href=\"web-design.html#quote\">Request a website fix quote</a> and tell us what's wrong." },
+      reply: "We fix website errors on any platform: broken layouts, forms not sending, slow pages, 404s, SSL warnings, plugin conflicts and hacked sites. <a href=\"/web-design.html#quote\">Request a website fix quote</a> and tell us what's wrong." },
+    { id: "free_offer", boost: 8, keys: ["free design", "free website", "free web", "free offer", "offer", "for free", "free of charge", "limited time", "countdown", "is it free", "free"],
+      reply: offerLive
+        ? "Yes, it's real! 🎁 Until <b>4 December 2026</b>, we'll design your <b>homepage and up to 3 key pages for free</b>, for desktop and mobile, with one round of changes. If you love it, we quote a fixed price to build and launch it. If not, you owe nothing. <a href=\"/free-design.html\">Claim your free design</a>."
+        : "Our free website design offer ended on 4 December 2026, but we'd still love to design your website. <a href=\"/web-design.html#quote\">Get a fixed quote</a>." },
+    { id: "dashboard", boost: 6, keys: ["dashboard", "portal", "client area", "log in", "login", "sign in", "track", "progress", "my project", "project status", "password", "deliveries", "download my"],
+      reply: "Every paying client gets a private <b>client dashboard</b> to follow each stage of their project, read updates, download files and message us. You'll get your link by email right after payment. Already set up? <a href=\"/portal/\">Log in to your dashboard</a>. Lost access? Message us on WhatsApp for a new link." },
     { id: "services", keys: ["service", "services", "what do you do", "help with", "do you do"],
       reply: "We set up and automate GoHighLevel for you:<br>• CRM & pipeline setup<br>• Funnels & websites<br>• Workflow automation<br>• Reputation & review requests<br>• SaaS mode & white label<br>• Integrations & API<br>• Conversation AI & Voice AI bots<br>• Snapshots & migrations<br>• Website design & error fixes<br>• TikTok marketing (4 videos/week)<br>• Ongoing support<br><a href=\"" + HOME + "#services\">See all services</a>." },
     { id: "ghl", keys: ["gohighlevel", "highlevel", "ghl", "what is", "crm"],
@@ -79,9 +88,9 @@
     { id: "guarantee", keys: ["guarantee", "refund", "money back", "not working", "broken", "fix", "warranty"],
       reply: "Our promise: we agree the scope in writing first. If anything in that scope doesn't work as described, we fix it at no extra charge." },
     { id: "location", keys: ["where", "location", "country", "based", "worldwide", "international", "nigeria", "uk", "usa", "remote"],
-      reply: "We work remotely with clients worldwide, and accept payment via Payoneer, Cleva, Wise or bank transfer in Nigeria, the UK and the USA." },
+      reply: "We're based in Lagos and London and work remotely with clients worldwide. You can pay online by card or by bank transfer in USD, GBP, EUR or NGN." },
     { id: "book", keys: ["book", "call", "meeting", "consult", "consultation", "strategy", "appointment", "schedule", "audit", "start", "get started", "hire"],
-      reply: "Great! You can <a href=\"" + HOME + "#contact\">book a free 30-minute strategy call</a>, or message us on WhatsApp and we'll set a time that suits you." },
+      reply: "Great! <a href=\"" + HOME + "#contact\">Send us a quick message</a> to book a free 30-minute strategy call, or <a href=\"" + waLink(WHATSAPP_GREETING + "booking a strategy call.", true) + "\" target=\"_blank\" rel=\"noopener\">message us on WhatsApp</a> and we'll set a time that suits you." },
     { id: "human", keys: ["human", "person", "real", "agent", "talk", "speak", "whatsapp", "contact", "email", "phone", "number", "reach"],
       reply: "Of course! Message us on <a href=\"" + waLink() + "\" target=\"_blank\" rel=\"noopener\">WhatsApp</a> or email <a href=\"mailto:" + EMAIL + "\">" + EMAIL + "</a>. We usually reply within 1 business day." },
     { id: "thanks", keys: ["thanks", "thank you", "thx", "cheers", "great", "awesome", "ok", "okay", "cool"],
@@ -91,6 +100,7 @@
   ];
 
   var QUICK = [
+    ["🎁 Free website design", "Is the free website design offer real?"],
     ["Pricing", "How much does it cost?"],
     ["Services", "What services do you offer?"],
     ["TikTok", "Tell me about TikTok marketing"],
@@ -98,6 +108,7 @@
     ["How to pay", "How can I pay?"],
     ["Timeline", "How long does it take?"],
     ["Book a call", "I want to book a call"],
+    ["My dashboard", "How do I access my client dashboard?"],
     ["Talk to a person", "I want to talk to a person"]
   ];
 
@@ -134,7 +145,7 @@
   root.innerHTML =
     '<div class="vx-panel" id="vx-panel" role="dialog" aria-modal="false" aria-labelledby="vx-title" hidden>' +
       '<div class="vx-head">' +
-        '<img src="brand/vix-icon.svg" alt="" width="36" height="36">' +
+        '<img src="/brand/vix-icon.svg" alt="" width="36" height="36">' +
         '<div><b id="vx-title">Vix Assistant</b><span>Automated assistant · replies instantly</span></div>' +
         '<button type="button" class="vx-close" aria-label="Close chat">&times;</button>' +
       '</div>' +
@@ -190,6 +201,7 @@
     botReply(topic ? topic.reply : fallback(text));
   }
 
+  if (!offerLive) QUICK = QUICK.filter(function (q) { return !/^🎁/.test(q[0]); });
   QUICK.forEach(function (q) {
     var b = document.createElement("button");
     b.type = "button";
@@ -206,7 +218,7 @@
     if (open) {
       if (!started) {
         started = true;
-        addMessage("bot", "Hi! 👋 Welcome to Vix Automations. Ask us anything about our services, pricing, payment or timelines, or tap a topic below.", true);
+        addMessage("bot", "Hi! 👋 Welcome to Vix Automations. Ask us anything about our services, pricing, payment or timelines, or tap a topic below." + (offerLive ? "<br>🎁 We're designing websites <b>free</b> until 4 Dec." : "") + "", true);
       }
       setTimeout(function () { input.focus(); }, 50);
     }
