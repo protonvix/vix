@@ -22,12 +22,14 @@
 <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
 <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
 <link rel="stylesheet" href="home.css">
+<link rel="stylesheet" href="offer.css">
 <link rel="stylesheet" href="chat.css">
 <script type="importmap">{"imports":{"three":"https://unpkg.com/three@0.160.0/build/three.module.js"}}</script>
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
 <div class="progress" aria-hidden="true"><i id="progress"></i></div>
+<div class="o-bar" id="o-bar" data-offer hidden><span>🎁 <strong>Free website design</strong> for your brand, limited time · Ends in <b id="o-bar-left">30 days</b></span><a href="free-design.html">Claim yours</a><button type="button" id="o-bar-x" aria-label="Hide this offer bar"><i class="ph ph-x" aria-hidden="true"></i></button></div>
 
 <!-- Header -->
 <header class="hdr" id="top">
@@ -59,7 +61,7 @@
     <aside class="menu-side">
       <div class="menu-preview"><img id="menu-img" src="media/gohighlevel-explained.jpg" alt=""></div>
       <div class="menu-meta">
-        <div><h3>Explore</h3><a href="web-design.html">Web design</a><a href="tiktok.html">TikTok marketing</a><a href="portfolio.html">Portfolio</a><a href="about.html">About us</a><a href="portal/">Client login</a></div>
+        <div><h3>Explore</h3><a href="free-design.html" data-offer>🎁 Free website design</a><a href="web-design.html">Web design</a><a href="tiktok.html">TikTok marketing</a><a href="portfolio.html">Portfolio</a><a href="about.html">About us</a><a href="portal/">Client login</a></div>
         <div><h3>Talk to us</h3><a href="https://wa.me/447723149573" target="_blank" rel="noopener">WhatsApp UK</a><a href="https://wa.me/message/WV3WLO4FC656K" target="_blank" rel="noopener">WhatsApp Nigeria</a><a href="mailto:vixautomations@gmail.com">Email us</a></div>
       </div>
     </aside>
@@ -285,6 +287,22 @@
       <div class="day"><b>Wed</b><span>Behind the scenes</span><small>Build trust and personality</small></div>
       <div class="day"><b>Fri</b><span>Trend + sound</span><small>Ride the algorithm</small></div>
       <div class="day"><b>Sun</b><span>Offer video</span><small>Turn viewers into buyers</small></div>
+    </div>
+  </div>
+</section>
+
+<!-- Free design offer (hides itself after the deadline) -->
+<section class="sec" id="free-offer" data-offer hidden style="padding-bottom:0">
+  <div class="wrap">
+    <div class="o-banner reveal">
+      <div>
+        <p class="eyebrow">🎁 Limited-time offer</p>
+        <h2>Get your website <em>designed free</em></h2>
+        <p class="lead">For 30 days, we'll design your homepage and key pages at no cost. Pick a style, tell us about your brand, and see your new website before you spend anything.</p>
+        <div class="count" aria-hidden="true"><div><b data-u="d">30</b><span>Days</span></div><div><b data-u="h">00</b><span>Hours</span></div><div><b data-u="m">00</b><span>Min</span></div><div><b data-u="s">00</b><span>Sec</span></div></div>
+        <div class="cta-row"><a class="btn btn-glow" href="free-design.html">Claim my free design <i class="ph ph-arrow-right" aria-hidden="true"></i></a></div>
+      </div>
+      <div class="o-banner-vis" aria-hidden="true"><img src="assets/designs/d18-sm.jpg" alt=""><img src="assets/designs/d12-sm.jpg" alt=""><img src="assets/designs/d1-sm.jpg" alt=""></div>
     </div>
   </div>
 </section>
