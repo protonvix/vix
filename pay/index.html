@@ -30,7 +30,7 @@
       <div class="total"><span>Total</span><b id="total"></b></div>
       <p class="note" id="note" hidden></p>
       <button class="btn btn-p" type="button" id="pay"><i class="ph-fill ph-lock-simple" aria-hidden="true"></i><span>Pay now</span></button>
-      <button class="btn btn-g xfer-open" type="button" id="xfer-btn" hidden><i class="ph ph-bank" aria-hidden="true"></i>Pay by bank transfer instead · USD, GBP or NGN</button>
+      <button class="btn btn-g xfer-open" type="button" id="xfer-btn" hidden><i class="ph ph-bank" aria-hidden="true"></i>Pay by bank transfer instead · USD, GBP, EUR or NGN</button>
       <p class="err" id="err" role="alert"></p>
     </div>
 
@@ -65,7 +65,7 @@
         <input class="hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px">
       </div>
       <button class="btn btn-p" type="submit" id="pkg-pay"><i class="ph-fill ph-lock-simple" aria-hidden="true"></i><span>Pay now</span></button>
-      <button class="btn btn-g xfer-open" type="button" id="pkg-xfer" hidden><i class="ph ph-bank" aria-hidden="true"></i>Pay by bank transfer · USD, GBP or NGN</button>
+      <button class="btn btn-g xfer-open" type="button" id="pkg-xfer" hidden><i class="ph ph-bank" aria-hidden="true"></i>Pay by bank transfer · USD, GBP, EUR or NGN</button>
       <p class="err" id="pkg-err" role="alert"></p>
     </form>
 
@@ -106,11 +106,11 @@
     v = bank.currency === "NGN" ? Math.ceil(v / 100) * 100 : Math.ceil(v * 100) / 100;
     return { v: v, exact: false };
   }
-  function money2(v, c) { var sym = { NGN: "₦", USD: "$", GBP: "£" }[c] || c + " "; return sym + Number(v).toLocaleString("en-GB", { minimumFractionDigits: c === "NGN" ? 0 : 2, maximumFractionDigits: c === "NGN" ? 0 : 2 }); }
+  function money2(v, c) { var sym = { NGN: "₦", USD: "$", GBP: "£", EUR: "€" }[c] || c + " "; return sym + Number(v).toLocaleString("en-GB", { minimumFractionDigits: c === "NGN" ? 0 : 2, maximumFractionDigits: c === "NGN" ? 0 : 2 }); }
   function openTransfer(q) {
     invoice = q;
     banksReady.then(function () {
-      var rates = BANKS.rates || {}, order = { USD: 0, GBP: 1, NGN: 2 };
+      var rates = BANKS.rates || {}, order = { USD: 0, GBP: 1, EUR: 2, NGN: 3 };
       var list = BANKS.banks.slice().sort(function (a, b) { return order[a.currency] - order[b.currency]; });
       ["loading", "body", "pkg"].forEach(function (id) { $(id).hidden = true; });
       $("xfer").hidden = false; $("trust").hidden = true;

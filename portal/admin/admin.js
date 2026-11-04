@@ -24,10 +24,10 @@
   function settings() {
     $("#main").innerHTML = '<div class="card"><p class="note">Loading…</p></div>';
     api("pay/banks").then(function (d) {
-      var banks = d.banks.length ? d.banks : [{ currency: "USD", label: "Cleva USD account" }, { currency: "GBP", label: "UK bank account" }, { currency: "NGN", label: "Nigerian bank account" }];
+      var banks = d.banks.length ? d.banks : [{ currency: "USD", label: "USD account (US)" }, { currency: "GBP", label: "GBP account (UK)" }, { currency: "EUR", label: "EUR account (Europe)" }, { currency: "NGN", label: "Naira account (Nigeria)" }];
       var row = function (b, i) {
         return '<div class="card" style="margin-top:12px" data-row="' + i + '"><div class="row3"><label>Show as<input name="label" value="' + esc(b.label || "") + '" placeholder="e.g. Cleva USD account"></label>' +
-          '<label>Currency<select name="currency">' + ["USD", "GBP", "NGN"].map(function (c) { return "<option" + (b.currency === c ? " selected" : "") + ">" + c + "</option>"; }).join("") + "</select></label>" +
+          '<label>Currency<select name="currency">' + ["USD", "GBP", "EUR", "NGN"].map(function (c) { return "<option" + (b.currency === c ? " selected" : "") + ">" + c + "</option>"; }).join("") + "</select></label>" +
           '<label>Bank name<input name="bank" value="' + esc(b.bank || "") + '" placeholder="e.g. Lead Bank (via Cleva)"></label></div>' +
           '<div class="row" style="margin-top:12px"><label>Account name<input name="accountName" value="' + esc(b.accountName || "") + '"></label><label>Account number<input name="accountNumber" value="' + esc(b.accountNumber || "") + '"></label></div>' +
           '<label style="margin-top:12px">Other details (routing number, sort code, SWIFT, IBAN, account type, bank address)<textarea name="extra" rows="3" placeholder="e.g. ACH routing: 123456789 · Account type: Checking">' + esc(b.extra || "") + "</textarea></label>" +
