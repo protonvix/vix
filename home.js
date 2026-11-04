@@ -201,8 +201,19 @@
 
   /* Contact form: email (FormSubmit) + WhatsApp */
   var form = $("#contact-form"), status = $(".form-status", form);
+  /* Founding client application: the button pre-selects it and shows the terms */
+  var svc = $("select[name=service]", form), fcBox = $("#fc-box");
+  function syncFounding() { var on = svc.value === "Founding client application"; fcBox.hidden = !on; }
+  svc.addEventListener("change", syncFounding);
+  $$("[data-founding]").forEach(function (a) {
+    a.addEventListener("click", function () {
+      svc.value = "Founding client application"; svc.classList.remove("invalid"); syncFounding();
+      setTimeout(function () { var n = $("input[name=name]", form); if (n) n.focus({ preventScroll: true }); }, 700);
+    });
+  });
+  if (/founding/i.test(location.hash + location.search)) { svc.value = "Founding client application"; syncFounding(); }
   function say(msg, type) { status.textContent = msg; status.className = "form-status" + (type ? " " + type : ""); }
-  form.addEventListener("input", function (e) { e.target.classList.remove("invalid"); });
+  form.addEventListener("input", function (e) { e.target.classList.remove("invalid"); if (e.target.name === "fcAgree") e.target.closest(".fc-agree").classList.remove("invalid"); });
   form.addEventListener("submit", function (e) {
     e.preventDefault();
     var ok = true;
@@ -210,14 +221,22 @@
       var v = f.value.trim(), good = v && (f.type !== "email" || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v));
       f.classList.toggle("invalid", !good); if (!good) ok = false;
     });
-    if (!ok) { say("Please add your name, a valid email and what you need.", "err"); return; }
+    var founding = svc.value === "Founding client application", agree = $("input[name=fcAgree]", form);
+    if (founding && !agree.checked) { agree.closest(".fc-agree").classList.add("invalid"); ok = false; }
+    if (!ok) { say(founding && !agree.checked ? "Please tick the box to confirm the founding client terms." : "Please add your name, a valid email and what you need.", "err"); return; }
     var d = Object.fromEntries(new FormData(form).entries());
     var text = "Name: " + d.name + "\nBusiness: " + (d.business || "-") + "\nService: " + d.service + "\nEmail: " + d.email + "\nWhatsApp: " + (d.whatsapp || "-") + "\n\nMessage:\n" + (d.message || "-");
+    var subject = "New enquiry: " + d.service + " (" + d.name + ")", source = "Main website contact form";
+    if (founding) {
+      subject = "⭐ Founding client application: " + (d.business || d.name) + " (" + d.interest + ")";
+      source = "Founding client programme";
+      text = "⭐ FOUNDING CLIENT APPLICATION\n\nInterested in: " + d.interest + "\nAgreed: 20% off any package in return for an honest review and permission to share results once live.\n\n" + text;
+    }
     var btn = $("button[type=submit]", form); btn.disabled = true;
     say("Sending…");
-    fetch("/api/brief", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ source: "Main website contact form", subject: "New enquiry: " + d.service + " (" + d.name + ")", name: d.name, email: d.email, whatsapp: d.whatsapp, business: d.business, service: d.service, text: text }) })
+    fetch("/api/brief", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ source: source, subject: subject, name: d.name, email: d.email, whatsapp: d.whatsapp, business: d.business, service: founding ? "Founding client: " + d.interest : d.service, text: text }) })
       .then(function (r) { return r.json().then(function (j) { if (!r.ok) throw new Error(j.error); return j; }); })
-      .then(function () { form.reset(); say("Thank you! Your message is in our inbox. We'll reply by email within one business day.", "ok"); })
+      .then(function () { form.reset(); syncFounding(); say(founding ? "Thank you! Your founding client application is in. We'll reply by email within one business day with your 20% founding price." : "Thank you! Your message is in our inbox. We'll reply by email within one business day.", "ok"); })
       .catch(function () { say("Sorry, that didn't send. Please email us at " + EMAIL + ".", "err"); })
       .finally(function () { btn.disabled = false; });
   });

@@ -448,3 +448,12 @@ h2{font-size:clamp(36px,5.4vw,68px);line-height:1.02;letter-spacing:-.045em;font
 .doc-cta .cta-row{margin:0}
 .doc-page .foot{padding-top:32px}
 @media (max-width:620px){.doc{padding-top:120px}.doc-tabs{border-radius:18px}.doc-cta{padding:24px}}
+
+/* founding client application */
+.fc-box{padding:18px;border-radius:18px;border:1px solid rgba(255,209,102,.45);background:linear-gradient(180deg,rgba(255,209,102,.1),rgba(255,209,102,.02));display:grid;gap:12px}
+.fc-box p{margin:0;font-size:14px;line-height:1.6;color:#d6dbea}
+.fc-box b{color:#fff}
+.fc-title{display:flex;align-items:center;gap:8px;font-weight:700;color:#ffd166!important;font-size:15px!important}
+.fc-agree{display:flex!important;align-items:flex-start;gap:10px!important;font-weight:400!important;color:#d6dbea!important}
+.fc-agree input{width:18px!important;height:18px;margin-top:3px;flex:none;padding:0!important;accent-color:#ffd166}
+.fc-agree.invalid{color:#ff9b9b!important}

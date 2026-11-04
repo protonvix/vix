@@ -590,8 +590,8 @@ async function adminFeed(env) {
   const bidx = ((await get(env, "briefs:index")) || []).slice(-60);
   for (const id of bidx) {
     const b = await get(env, "brief:" + id); if (!b) continue;
-    const offer = /free design/i.test(b.source);
-    items.push({ kind: offer ? "offer" : "brief", id: b.id, at: b.at, unread: !b.read, title: b.subject, sub: [b.name, b.business, b.email].filter(Boolean).join(" · ") + " · via " + b.source });
+    const offer = /free design/i.test(b.source), founding = /founding/i.test(b.source);
+    items.push({ kind: offer ? "offer" : founding ? "founding" : "brief", id: b.id, at: b.at, unread: !b.read, title: b.subject, sub: [b.name, b.business, b.email].filter(Boolean).join(" · ") + " · via " + b.source });
   }
   const pidx = ((await get(env, "payreqs:index")) || []).slice(-60);
   for (const id of pidx) {
@@ -621,7 +621,7 @@ async function adminFeedSeen(env, req) {
   const seen = (await get(env, "feed:seen")) || {};
   if (b.kind === "payment") seen["pay:" + clean(b.id, 40)] = 1;
   if (b.kind === "transfer") seen["tr:" + clean(b.id, 40)] = 1;
-  if (b.kind === "brief" || b.kind === "offer") { const it = await get(env, "brief:" + clean(b.id, 40)); if (it) { it.read = true; await put(env, "brief:" + it.id, it); } }
+  if (b.kind === "brief" || b.kind === "offer" || b.kind === "founding") { const it = await get(env, "brief:" + clean(b.id, 40)); if (it) { it.read = true; await put(env, "brief:" + it.id, it); } }
   if (b.all) {
     for (const id of ((await get(env, "payreqs:index")) || [])) seen["pay:" + id] = 1;
     for (const id of ((await get(env, "briefs:index")) || [])) { const it = await get(env, "brief:" + id); if (it && !it.read) { it.read = true; await put(env, "brief:" + id, it); } }
