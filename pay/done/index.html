@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<title>Payment received · Vix Automations</title>
+<meta name="theme-color" content="#05060c">
+<link rel="icon" href="/brand/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
+<link rel="stylesheet" href="/portal/portal.css">
+<link rel="stylesheet" href="/pay/pay.css">
+</head>
+<body>
+<main class="auth">
+  <div class="auth-card pay-card">
+    <a class="logo" href="/"><img src="/brand/vix-icon.svg" alt="" width="32" height="32">Vix Automations</a>
+    <div id="wait"><div class="spin" aria-hidden="true"></div><p class="note" style="text-align:center">Confirming your payment with Paystack…</p></div>
+    <div id="ok" hidden>
+      <div class="burst" aria-hidden="true"></div>
+      <i class="ph-fill ph-seal-check pay-big ok" aria-hidden="true"></i>
+      <h1>Payment received. <em>Your project has started!</em> 🚀</h1>
+      <p id="ok-p"></p>
+      <ol class="next">
+        <li><b>Create your client dashboard</b> to follow every step, see updates and download your files.</li>
+        <li><b>We'll contact you within one business day</b> with your next steps.</li>
+        <li><b>Paystack has emailed your receipt.</b> Keep it for your records.</li>
+      </ol>
+      <a class="btn btn-p" id="ok-btn" href="/portal/">Create my dashboard</a>
+    </div>
+    <div id="bad" hidden>
+      <i class="ph-fill ph-warning-circle pay-big warn" aria-hidden="true"></i>
+      <h1>We're checking your <em>payment</em></h1>
+      <p id="bad-p"></p>
+      <a class="btn btn-wa" href="https://wa.me/447723149573?text=Hello%20Vix%20Automations%2C%20I%20just%20made%20a%20payment%20and%20need%20help." target="_blank" rel="noopener"><i class="ph-fill ph-whatsapp-logo" aria-hidden="true"></i>Message us</a>
+    </div>
+  </div>
+</main>
+<script src="/portal/common.js"></script>
+<script>
+(function () {
+  var qs = new URLSearchParams(location.search), ref = qs.get("reference") || qs.get("trxref") || "", $ = function (s) { return document.getElementById(s); };
+  history.replaceState(null, "", location.pathname); // keep the reference out of the address bar and history
+  function bad(msg) { $("wait").hidden = true; $("bad").hidden = false; $("bad-p").textContent = msg + " Reference: " + (ref || "none") + "."; }
+  if (!ref) return bad("We couldn't find a payment reference.");
+  var tries = 0;
+  (function check() {
+    VX.api("pay/verify?reference=" + encodeURIComponent(ref)).then(function (d) {
+      $("wait").hidden = true; $("ok").hidden = false;
+      $("ok-p").textContent = "Thank you" + (d.name ? ", " + d.name.split(" ")[0] : "") + "! We've received " + VX.money(d.total, d.currency) + (d.business ? " for " + d.business : "") + ".";
+      if (d.invite) { $("ok-btn").href = d.invite; $("ok-btn").textContent = "Create my dashboard"; }
+      else { $("ok-btn").href = d.loginUrl; $("ok-btn").textContent = d.activated ? "Log in to your dashboard" : "Go to your dashboard"; }
+      var box = document.querySelector(".burst"), c = ["#9db4ff", "#c3a6ff", "#7ff3d4", "#ffd166", "#ff5c87"];
+      if (!matchMedia("(prefers-reduced-motion: reduce)").matches) for (var i = 0; i < 50; i++) { var p = document.createElement("i"); p.style.left = Math.random() * 100 + "%"; p.style.background = c[i % 5]; p.style.animationDelay = Math.random() * .6 + "s"; box.appendChild(p); }
+    }).catch(function (e) {
+      if (++tries < 4 && (e.status === 502 || e.status >= 500)) return setTimeout(check, 3000);
+      bad(e.message);
+    });
+  })();
+})();
+</script>
+</body>
+</html>

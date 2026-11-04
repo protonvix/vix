@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<title>Secure payment · Vix Automations</title>
+<meta name="theme-color" content="#05060c">
+<link rel="icon" href="/brand/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
+<link rel="stylesheet" href="/portal/portal.css">
+<link rel="stylesheet" href="/pay/pay.css">
+</head>
+<body>
+<main class="auth">
+  <div class="auth-card pay-card" id="card">
+    <a class="logo" href="/"><img src="/brand/vix-icon.svg" alt="" width="32" height="32">Vix Automations</a>
+    <div id="loading" class="note">Loading your invoice…</div>
+    <div id="body" hidden>
+      <p class="pay-eyebrow">Invoice for <b id="who"></b></p>
+      <h1>Pay securely to <em>start your project</em></h1>
+      <ul class="lines" id="lines"></ul>
+      <div class="total"><span>Total</span><b id="total"></b></div>
+      <p class="note" id="note" hidden></p>
+      <button class="btn btn-p" type="button" id="pay"><i class="ph-fill ph-lock-simple" aria-hidden="true"></i><span>Pay now</span></button>
+      <p class="err" id="err" role="alert"></p>
+      <div class="trust">
+        <span><i class="ph ph-shield-check" aria-hidden="true"></i>Secured by Paystack</span>
+        <span><i class="ph ph-credit-card" aria-hidden="true"></i>Card, bank transfer or USSD</span>
+      </div>
+      <p class="auth-foot">After payment you'll create your client dashboard to follow your project. By paying you agree to our <a href="/payment.html" target="_blank">payment</a> and <a href="/refund.html" target="_blank">refund</a> policies.</p>
+    </div>
+    <div id="state" hidden>
+      <i class="ph-fill ph-seal-check pay-big ok" aria-hidden="true" id="state-ic"></i>
+      <h1 id="state-h"></h1>
+      <p id="state-p"></p>
+      <a class="btn btn-p" href="/portal/" id="state-btn">Go to your dashboard</a>
+    </div>
+  </div>
+</main>
+<script src="/portal/common.js"></script>
+<script>
+(function () {
+  var r = new URLSearchParams(location.search).get("r") || "", $ = function (s) { return document.getElementById(s); };
+  function state(icon, h, p, btn) {
+    $("loading").hidden = true; $("body").hidden = true; $("state").hidden = false;
+    $("state-ic").className = "ph-fill " + icon + " pay-big"; $("state-h").innerHTML = h; $("state-p").textContent = p;
+    if (btn) { $("state-btn").textContent = btn[0]; $("state-btn").href = btn[1]; } else $("state-btn").hidden = true;
+  }
+  VX.api("pay/info?r=" + encodeURIComponent(r)).then(function (d) {
+    var q = d.request;
+    if (q.status === "paid") return state("ph-seal-check", "This invoice is <em>paid</em>", "Thank you! Your project is underway. Log in to your dashboard to follow its progress.", ["Go to your dashboard", "/portal/"]);
+    if (q.status === "cancelled") return state("ph-x-circle", "This link was <em>cancelled</em>", "Please contact us for an updated payment link.", ["Contact us on WhatsApp", "https://wa.me/447723149573"]);
+    $("who").textContent = q.business || q.name;
+    $("lines").innerHTML = q.services.map(function (s) { return '<li><span><i class="ph ' + (VX.TYPE[s.type] || VX.TYPE.other).icon + '" aria-hidden="true"></i>' + VX.esc(s.title) + "</span><b>" + VX.money(s.amount, q.currency) + "</b></li>"; }).join("");
+    $("total").textContent = VX.money(q.total, q.currency);
+    $("pay").querySelector("span").textContent = "Pay " + VX.money(q.total, q.currency);
+    if (q.note) { $("note").hidden = false; $("note").textContent = q.note; }
+    if (!d.ready) { $("pay").disabled = true; $("err").textContent = "Online payment is being set up. Please check back shortly or contact us."; }
+    $("loading").hidden = true; $("body").hidden = false;
+  }).catch(function (e) { state("ph-warning-circle", "Link <em>not found</em>", e.message, ["Contact us on WhatsApp", "https://wa.me/447723149573"]); });
+  $("pay").addEventListener("click", function () {
+    var b = this; b.disabled = true; $("err").textContent = ""; b.querySelector("span").textContent = "Opening secure checkout…";
+    VX.api("pay/start", { r: r }).then(function (d) { location.href = d.url; })
+      .catch(function (e) { $("err").textContent = e.message; b.disabled = false; b.querySelector("span").textContent = "Try again"; });
+  });
+})();
+</script>
+</body>
+</html>

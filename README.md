@@ -42,3 +42,10 @@ Upload the three files to any static host (Netlify, Vercel, GitHub Pages, Cloudf
 - Needs two settings in the Cloudflare Pages project (Settings → Bindings / Variables and Secrets):
   - KV namespace binding named `PORTAL`
   - Secret `ADMIN_PASSWORD` (your admin password; never put it in the code)
+
+## Online payments (Paystack)
+
+- Admin → **Payments** creates a payment link (`/pay/?r=…`) for a client's quote.
+- The client pays on Paystack and returns to `/pay/done/`; the payment is verified with Paystack, their dashboard and projects are created, and you're emailed.
+- Webhook (set in Paystack → Settings → API Keys & Webhooks): `https://vixautomations.pages.dev/api/paystack/webhook`
+- Needs the secret `PAYSTACK_SECRET_KEY` in the Cloudflare Pages project (never in the code).

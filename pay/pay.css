@@ -1,0 +1,34 @@
+/* Payment pages */
+.pay-card{position:relative;overflow:hidden;width:min(480px,100%)}
+.pay-card h1 em{font-size:1.05em}
+.pay-eyebrow{margin:6px 0 -6px;font-size:13px;color:var(--soft);letter-spacing:.04em}
+.pay-eyebrow b{color:var(--ink)}
+.lines{list-style:none;padding:0;margin:4px 0 0;display:grid;gap:8px}
+.lines li{display:flex;justify-content:space-between;gap:12px;padding:12px 14px;border-radius:14px;background:rgba(0,0,0,.25);border:1px solid var(--line);font-size:14px}
+.lines li span{display:flex;gap:8px;align-items:center;color:var(--mute)}
+.lines li i{color:#9db4ff;font-size:18px}
+.total{display:flex;justify-content:space-between;align-items:baseline;padding:6px 4px}
+.total span{color:var(--mute)}
+.total b{font-size:32px;letter-spacing:-.03em;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.trust{display:flex;flex-wrap:wrap;gap:8px 16px;justify-content:center;font-size:12px;color:var(--soft)}
+.trust span{display:inline-flex;align-items:center;gap:6px}
+.trust i{font-size:16px;color:var(--mint)}
+.pay-big{font-size:56px;display:block}
+.pay-big.ok{color:var(--mint)}
+.pay-big.warn{color:var(--warn)}
+.next{margin:0;padding-left:20px;display:grid;gap:8px;color:var(--mute);font-size:14px}
+.next b{color:var(--ink)}
+.spin{width:44px;height:44px;margin:12px auto;border-radius:50%;border:3px solid rgba(255,255,255,.12);border-top-color:#9db4ff;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.burst{position:absolute;inset:0;pointer-events:none}
+.burst i{position:absolute;top:-10px;width:7px;height:12px;border-radius:2px;animation:fall 2.6s ease-in forwards}
+@keyframes fall{to{transform:translateY(560px) rotate(540deg);opacity:0}}
+.pr-row{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:12px 14px;border-radius:14px;border:1px solid var(--line);background:rgba(0,0,0,.2)}
+.pr-row b{display:block}
+.pr-row span{font-size:12px;color:var(--soft)}
+.st{font-size:11px;font-weight:700;border-radius:999px;padding:3px 9px;text-transform:uppercase;letter-spacing:.06em}
+.st.paid{background:rgba(79,240,196,.18);color:var(--mint)}
+.st.pending{background:rgba(255,209,102,.15);color:var(--warn)}
+.st.cancelled{background:rgba(255,255,255,.08);color:var(--soft)}
+.pay-card #body,.pay-card #ok,.pay-card #bad,.pay-card #state{display:grid;gap:16px}
+.pay-card h1{margin:4px 0 0}
