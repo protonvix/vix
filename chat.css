@@ -49,3 +49,13 @@
   .vx-panel { height: 60vh; max-height: calc(100vh - 240px); min-height: 340px; }}
 @media (prefers-reduced-motion: reduce) {
   .vx-typing i { animation: none; }}
+
+/* Keep the assistant readable on dark pages and above fixed headers */
+.vx-fabs { z-index: 125; }
+.vx-panel { color: #0f172a; }
+.vx-bot { color: #1e2638; }
+.vx-user { color: #fff; }
+.vx-head, .vx-head b { color: #fff; }
+.vx-form input { color: #0f172a; background: #fff; }
+.vx-quick { scrollbar-width: none; }
+@media (max-width: 600px) { .vx-panel { max-height: calc(100svh - 200px); } }
