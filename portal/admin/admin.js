@@ -33,10 +33,22 @@
           '<label style="margin-top:12px">Other details (routing number, sort code, SWIFT, IBAN, account type, bank address)<textarea name="extra" rows="3" placeholder="e.g. ACH routing: 123456789 · Account type: Checking">' + esc(b.extra || "") + "</textarea></label>" +
           '<input type="hidden" name="id" value="' + esc(b.id || "") + '"><div class="acts" style="margin-top:10px"><button class="btn btn-g btn-sm" type="button" data-del-row>Remove</button></div></div>';
       };
-      $("#main").innerHTML = '<div class="card"><h2><i class="ph ph-bank" aria-hidden="true"></i>Bank accounts for transfer payments</h2>' +
+      $("#main").innerHTML = '<div class="card" id="ce-card"><h2><i class="ph ph-envelope-simple" aria-hidden="true"></i>Emails to clients</h2><p class="note" id="ce-state">Checking…</p>' +
+        '<div class="send" style="margin-top:12px"><input id="ce-to" type="email" placeholder="Send a test to (your other email)"><button class="btn btn-p" type="button" id="ce-test">Send test email</button></div><p class="note" id="ce-msg"></p></div>' +
+        '<div class="card" style="margin-top:16px"><h2><i class="ph ph-bank" aria-hidden="true"></i>Bank accounts for transfer payments</h2>' +
         '<p class="note">Clients see these on the payment page when they choose "Pay by bank transfer". They are stored privately in your portal, not in the website code. Leave an account number empty to hide that account. Copy the details exactly from your Cleva or bank app.</p></div>' +
         '<div id="rows">' + banks.map(row).join("") + "</div>" +
         '<div class="acts" style="margin-top:12px"><button class="btn btn-g" type="button" id="add-row"><i class="ph ph-plus" aria-hidden="true"></i>Add another account</button><button class="btn btn-p" type="button" id="save-banks"><i class="ph ph-floppy-disk" aria-hidden="true"></i>Save accounts</button><span class="note" id="save-msg"></span></div>';
+      api("admin/client-email").then(function (x) {
+        $("#ce-state").innerHTML = x.ready === "resend" ? '<span class="ok">On ✓ Payment confirmations are emailed from your own domain.</span>'
+          : x.ready === "emailjs" ? '<span class="ok">On ✓ Payment confirmations are emailed from your Gmail (via EmailJS).</span>'
+          : '<span style="color:var(--warn)">Off. Clients see their dashboard link on screen after paying, but don\'t get an email yet. Add the EmailJS settings in Cloudflare to switch it on.</span>';
+      });
+      $("#ce-test").onclick = function () {
+        var b = this; b.disabled = true; $("#ce-msg").textContent = "Sending…";
+        api("admin/client-email/test", { to: $("#ce-to").value }).then(function (x) { $("#ce-msg").innerHTML = '<span class="ok">Test sent ✓ via ' + esc(x.via) + ". Check that inbox (and Spam).</span>"; })
+          .catch(function (x) { $("#ce-msg").innerHTML = '<span class="err">' + esc(x.message) + "</span>"; }).finally(function () { b.disabled = false; });
+      };
       var n = banks.length;
       $("#add-row").onclick = function () { $("#rows").insertAdjacentHTML("beforeend", row({ currency: "USD" }, n++)); };
       $("#rows").addEventListener("click", function (e) { if (e.target.closest("[data-del-row]")) e.target.closest("[data-row]").remove(); });
@@ -117,7 +129,7 @@
           '<div style="display:grid;gap:8px">' + (d.requests.map(function (q) {
             var link = location.origin + "/pay/?r=" + q.id;
             var claimed = q.status === "pending" && q.transfer;
-            return '<div class="pr-row"' + (claimed ? ' style="border-color:rgba(255,209,102,.5)"' : "") + '><div><b>' + esc(q.business || q.name) + " · " + VX.money(q.total, q.currency) + ' <span class="st ' + (claimed ? "pending" : q.status) + '">' + (claimed ? "transfer sent · check your bank" : q.status) + "</span></b><span>" + esc(q.email) + " · created " + VX.date(q.createdAt) + (q.paidAt ? " · paid " + VX.date(q.paidAt, true) + (q.channel ? " by " + esc(q.channel) : "") : "") + "</span></div>" +
+            return '<div class="pr-row"' + (claimed ? ' style="border-color:rgba(255,209,102,.5)"' : "") + '><div><b>' + esc(q.business || q.name) + " · " + VX.money(q.total, q.currency) + ' <span class="st ' + (claimed ? "pending" : q.status) + '">' + (claimed ? "transfer sent · check your bank" : q.status) + "</span></b><span>" + esc(q.email) + " · created " + VX.date(q.createdAt) + (q.paidAt ? " · paid " + VX.date(q.paidAt, true) + (q.channel ? " by " + esc(q.channel) : "") + (q.clientEmailed ? " · confirmation emailed ✓" : q.clientEmailError ? " · confirmation not emailed" : "") : "") + "</span></div>" +
               (claimed ? '<span style="display:block;color:var(--warn)">' + esc("Sent to the " + (q.transfer.currency || "?") + " account" + (q.transfer.payer ? " by " + q.transfer.payer : "") + " · ref VIX-" + q.id.slice(0, 6).toUpperCase() + " · " + VX.date(q.transfer.at, true)) + "</span>" : "") +
               '<div class="acts">' + (q.status === "pending" ? '<button class="btn btn-p btn-sm" type="button" data-confirm="' + q.id + '">Confirm received</button><button class="btn btn-g btn-sm" type="button" data-copy="' + esc(link) + '">Copy link</button><button class="btn btn-g btn-sm" type="button" data-cancel="' + q.id + '">Cancel</button>' : "") + (q.clientId ? '<button class="btn btn-g btn-sm" type="button" data-client="' + q.clientId + '">Open client</button>' : "") + "</div></div>";
           }).join("") || '<p class="note">No payment links yet.</p>') + "</div>";
@@ -128,7 +140,7 @@
             b.disabled = true;
             api("admin/payreqs/confirm", { id: b.dataset.confirm }).then(function (d) {
               sel = d.client.id; refresh();
-              kickoff(d.client, d.services.map(function (s) { return { type: s.type, title: s.title, amount: s.amount }; }), d.total, d.invite, d.loginUrl);
+              kickoff(d.client, d.services.map(function (s) { return { type: s.type, title: s.title, amount: s.amount }; }), d.total, d.invite, d.loginUrl, d);
             }).catch(function (x) { alert(x.message); b.disabled = false; });
           };
         });
@@ -227,13 +239,14 @@
         .then(function (d) {
           sel = d.client.id;
           var total = services.reduce(function (n, s) { return n + (+s.amount || 0); }, 0);
-          kickoff(d.client, services, total, d.invite, d.loginUrl);
+          kickoff(d.client, services, total, d.invite, d.loginUrl, d);
           refresh();
         }).catch(function (x) { $("#new-err").textContent = x.message; btn.disabled = false; });
     });
   }
 
-  function kickoff(c, services, total, invite, loginUrl) {
+  function kickoff(c, services, total, invite, loginUrl, res) {
+    res = res || {};
     var first = c.name.split(" ")[0];
     var names = services.map(function (s) { return s.title || LABEL[s.type]; });
     var list = names.length > 1 ? names.slice(0, -1).join(", ") + " and " + names[names.length - 1] : names[0];
@@ -248,7 +261,8 @@
     var waNum = (c.whatsapp || "").replace(/[^\d]/g, "").replace(/^0/, "234");
     var waText = "Hi " + first + ", thank you for your payment! Your " + list + " project has officially started 🚀\n\n" + (invite ? "Create your client dashboard here to track progress and receive your deliveries:\n" + invite : "Track your progress here:\n" + loginUrl) + "\n\nWe've also sent this to your email.\n– Promise, Vix Automations";
     $("#main").innerHTML = '<div class="card result"><h2 class="ok"><i class="ph-fill ph-check-circle" aria-hidden="true"></i>' + esc(c.name) + "'s project has started</h2>" +
-      "<p class=\"muted\" style=\"margin:0\">Now send the kickoff message. The email opens in Gmail, ready to send from your own inbox.</p>" +
+      (res.clientEmailed ? '<p class="ok" style="margin:0"><i class="ph-fill ph-envelope-simple-open" aria-hidden="true"></i> Payment confirmation and dashboard link emailed to ' + esc(c.email) + ' automatically. You can also send it on WhatsApp below.</p>'
+        : '<p class="muted" style="margin:0">Send the kickoff message: the email opens in Gmail, ready to send from your own inbox.' + (res.clientEmailError ? ' <span style="color:var(--warn)">(Automatic email not sent: ' + esc(res.clientEmailError) + ")</span>" : "") + "</p>") +
       '<label>Subject<input readonly value="' + esc(subject) + '"></label><label>Email<textarea readonly>' + esc(body) + "</textarea></label>" +
       '<div class="acts"><a class="btn btn-p" target="_blank" rel="noopener" href="' + esc(gmail) + '"><i class="ph ph-envelope-simple" aria-hidden="true"></i>Open in Gmail</a>' +
       (waNum ? '<a class="btn btn-wa" target="_blank" rel="noopener" href="https://wa.me/' + waNum + "?text=" + encodeURIComponent(waText) + '"><i class="ph-fill ph-whatsapp-logo" aria-hidden="true"></i>Send on WhatsApp</a>' : "") +

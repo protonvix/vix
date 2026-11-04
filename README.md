@@ -49,3 +49,10 @@ Upload the three files to any static host (Netlify, Vercel, GitHub Pages, Cloudf
 - The client pays on Paystack and returns to `/pay/done/`; the payment is verified with Paystack, their dashboard and projects are created, and you're emailed.
 - Webhook (set in Paystack → Settings → API Keys & Webhooks): `https://vixautomations.pages.dev/api/paystack/webhook`
 - Needs the secret `PAYSTACK_SECRET_KEY` in the Cloudflare Pages project (never in the code).
+
+## Payment confirmation emails to clients
+
+Sent automatically after a Paystack payment, a confirmed bank transfer, or "Mark as paid": receipt plus a "Create my client dashboard" button.
+- **Without a domain (EmailJS + Gmail):** Cloudflare secrets `EMAILJS_SERVICE_ID`, `EMAILJS_TEMPLATE_ID`, `EMAILJS_PUBLIC_KEY`, `EMAILJS_PRIVATE_KEY`. Template: To Email `{{to_email}}`, Subject `{{subject}}`, Content `{{{message_html}}}`. Enable "API access from non-browser environments" in EmailJS → Account → Security.
+- **With your own domain (Resend):** verify the domain in Resend and set `EMAIL_FROM` (e.g. `Vix Automations <hello@yourdomain.com>`). This takes priority over EmailJS.
+- Admin → Settings shows the status and can send a test email.
