@@ -257,3 +257,14 @@ details.box>div{padding:0 0 16px;display:grid;gap:12px}
 .lnk.locked .ic{background:rgba(255,255,255,.06);color:var(--soft)}
 @media (max-width:620px){.pay-sched li{grid-template-columns:1fr auto}.pay-sched li em{grid-column:1;grid-row:2;font-size:12px}}
 .nf.k-overdue .ic{background:rgba(255,92,92,.16);color:#ff9b9b}
+
+/* admin chats */
+.chats{display:grid;grid-template-columns:280px 1fr;gap:14px;margin-top:14px;min-height:460px}
+.chat-list{max-height:560px;overflow:auto;align-content:start}
+.chat-list .citem span+span{opacity:.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chat-pane{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:18px;padding:14px;background:rgba(0,0,0,.18);min-width:0}
+.chat-head{display:grid;gap:2px;padding:2px 4px 12px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.chat-head span{font-size:12px;color:var(--soft);overflow-wrap:anywhere}
+.chat-pane .chat{flex:1;max-height:440px;min-height:220px}
+.reply-box textarea{width:100%}
+@media (max-width:760px){.chats{grid-template-columns:1fr}.chat-list{max-height:220px}}

@@ -153,6 +153,7 @@ async function clientMessage(env, req) {
   p.messages = (p.messages || []).concat({ at: now(), from: "client", text }).slice(-200);
   p.unreadAdmin = (p.unreadAdmin || 0) + 1;
   await put(env, "project:" + p.id, p);
+  await sendEmail(env, { subject: `💬 ${c.business || c.name}: new message`, replyTo: c.email, text: `${text}\n\n— ${c.name}${c.business ? " (" + c.business + ")" : ""}, about "${p.title}"\n\nReply in your admin page (Chats): ${new URL(req.url).origin}/portal/admin/` });
   return json({ ok: true, project: withStages(p) });
 }
 async function seen(env, req) {
@@ -301,7 +302,15 @@ async function adminPost(env, req) {
   else p.updates.push({ at: now(), text });
   p.unreadClient = (p.unreadClient || 0) + 1;
   await put(env, "project:" + p.id, p);
-  return json({ ok: true, project: withStages(p) });
+  let mail = { sent: false, why: "" };
+  if (b.kind === "message" && b.email !== false) {
+    const c = await get(env, "client:" + p.clientId);
+    if (c && c.email) {
+      const m = messageEmail({ name: c.name, text, link: new URL(req.url).origin + "/portal/", project: p.title });
+      mail = await sendClientEmail(env, { to: c.email, name: c.name, subject: m.subject, html: m.html, text: m.text });
+    }
+  }
+  return json({ ok: true, project: withStages(p), emailed: mail.sent, emailError: mail.sent ? "" : mail.why });
 }
 async function adminMetric(env, req) {
   const b = await req.json().catch(() => ({}));
@@ -955,6 +964,45 @@ async function sendClientEmail(env, { to, name, subject, html, text }) {
     return r.ok ? { sent: true, via: "emailjs" } : { sent: false, why: "EmailJS " + r.status + ": " + (await r.text()).slice(0, 200) };
   } catch (e) { return { sent: false, why: "Email service unreachable" }; }
 }
+async function adminBriefReply(env, req, origin) {
+  const b = await req.json().catch(() => ({}));
+  const id = clean(b.id, 40), item = await get(env, "brief:" + id);
+  if (!item) return fail(404, "Not found.");
+  const text = clean(b.text, 6000);
+  if (!text) return fail(400, "Write your reply first.");
+  if (!item.email) return fail(400, "This person didn't leave an email address. Reply on WhatsApp instead.");
+  // If they're already a client, the reply also lands in their dashboard chat.
+  let chat = false;
+  const cid = await env.PORTAL.get("email:" + item.email.toLowerCase());
+  const c = cid && (await get(env, "client:" + cid));
+  if (c && (c.projectIds || []).length) {
+    const p = await get(env, "project:" + c.projectIds[c.projectIds.length - 1]);
+    if (p) { p.messages = (p.messages || []).concat({ at: now(), from: "vix", text }).slice(-200); p.unreadClient = (p.unreadClient || 0) + 1; await put(env, "project:" + p.id, p); chat = true; }
+  }
+  const m = messageEmail({ name: item.name, text, link: c ? origin + "/portal/" : "", subject: "Re: " + item.subject.replace(/^(re:\s*)+/i, "") });
+  const mail = await sendClientEmail(env, { to: item.email, name: item.name, subject: m.subject, html: m.html, text: m.text });
+  item.replies = (item.replies || []).concat({ at: now(), text, emailed: mail.sent, chat }).slice(-50);
+  item.read = true;
+  await put(env, "brief:" + id, item);
+  return json({ ok: true, emailed: mail.sent, emailError: mail.sent ? "" : mail.why, chat, isClient: !!c });
+}
+function messageEmail({ name, text, link, project, subject }) {
+  const first = String(name || "").split(" ")[0] || "there";
+  subject = subject || "New message from Vix Automations" + (project ? " about " + project : "");
+  const paras = escH(text).split(/\n{2,}/).map((x) => `<p style="margin:0 0 14px">${x.replace(/\n/g, "<br>")}</p>`).join("");
+  const html = `<!doctype html><html><body style="margin:0;background:#f3f5fb;font-family:Arial,Helvetica,sans-serif">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f3f5fb;padding:28px 12px"><tr><td align="center">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:18px;overflow:hidden;border:1px solid #e3e7f2">
+<tr><td style="background:#5b4bff;background:linear-gradient(135deg,#3b2cff,#8b5cff);padding:20px 28px;color:#ffffff;font-size:15px;font-weight:700">Vix Automations</td></tr>
+<tr><td style="padding:26px 28px;color:#3a4152;font-size:15px;line-height:1.65">
+<p style="margin:0 0 14px">Hi ${escH(first)},</p>${paras}
+${link ? `<p style="margin:22px 0 6px"><a href="${escH(link)}" style="display:inline-block;background:#5b4bff;color:#ffffff;text-decoration:none;font-weight:700;padding:13px 22px;border-radius:999px">${project ? "Reply in your dashboard" : "Open your client dashboard"}</a></p>` : ""}
+<p style="margin:22px 0 0">Best regards,<br><b>Promise Felix</b><br>Vix Automations</p></td></tr>
+<tr><td style="padding:16px 28px;background:#f8f9fc;color:#7c849c;font-size:12px">You can reply to this email directly${link ? " or message us from your dashboard" : ""}. WhatsApp: +44 7723 149573</td></tr>
+</table></td></tr></table></body></html>`;
+  const plain = `Hi ${first},\n\n${text}\n\n${link ? (project ? "Reply in your dashboard: " : "Your client dashboard: ") + link + "\n\n" : ""}Best regards,\nPromise Felix\nVix Automations\nWhatsApp: +44 7723 149573`;
+  return { subject, html, text: plain };
+}
 function fmtMoney(n, c) { return ({ NGN: "₦", USD: "$", GBP: "£", EUR: "€" }[c] || c + " ") + Number(n).toLocaleString("en-GB", { maximumFractionDigits: 2 }); }
 function paymentEmail({ name, business, services, total, currency, method, reference, invite, loginUrl, origin, planNote }) {
   const first = String(name || "").split(" ")[0] || "there";
@@ -1072,6 +1120,7 @@ export async function onRequest(ctx) {
       if (a === "read" && m === "POST") return adminMarkRead(env, req);
       if (a === "briefs" && m === "GET") return adminBriefs(env);
       if (a === "briefs" && m === "POST") return adminBriefUpdate(env, req);
+      if (a === "briefs/reply" && m === "POST") return adminBriefReply(env, req, url.origin);
       if (a === "test-email" && m === "POST") return adminTestEmail(env);
       if (a === "payreqs" && m === "GET") return adminPayList(env);
       if (a === "payreqs" && m === "POST") return adminPayCreate(env, req, url.origin);
