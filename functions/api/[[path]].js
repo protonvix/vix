@@ -371,16 +371,90 @@ function cors(req) {
   const ok = o && (BRIEF_ORIGINS.includes(o) || /^https:\/\/[a-z0-9-]+\.(vixautomations|vixautomationsportfolio)\.pages\.dev$/.test(o) || /^http:\/\/localhost(:\d+)?$/.test(o));
   return ok ? { "access-control-allow-origin": o, "access-control-allow-methods": "POST, OPTIONS", "access-control-allow-headers": "content-type", "access-control-max-age": "86400", vary: "Origin" } : null;
 }
+
+/* ---------- phone push notifications (Web Push, no third-party service) ---------- */
+const enc = new TextEncoder();
+const b64u = (buf) => btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+const unb64u = (s) => Uint8Array.from(atob(s.replace(/-/g, "+").replace(/_/g, "/") + "===".slice((s.length + 3) % 4)), (c) => c.charCodeAt(0));
+const cat = (...a) => { const o = new Uint8Array(a.reduce((n, x) => n + x.length, 0)); let i = 0; for (const x of a) { o.set(x, i); i += x.length; } return o; };
+async function vapidKeys(env) {
+  let k = await get(env, "push:vapid");
+  if (!k) {
+    const kp = await crypto.subtle.generateKey({ name: "ECDSA", namedCurve: "P-256" }, true, ["sign", "verify"]);
+    k = { priv: await crypto.subtle.exportKey("jwk", kp.privateKey), pub: b64u(await crypto.subtle.exportKey("raw", kp.publicKey)) };
+    await put(env, "push:vapid", k);
+  }
+  return k;
+}
+async function vapidAuth(env, endpoint) {
+  const k = await vapidKeys(env);
+  const key = await crypto.subtle.importKey("jwk", k.priv, { name: "ECDSA", namedCurve: "P-256" }, false, ["sign"]);
+  const head = b64u(enc.encode(JSON.stringify({ typ: "JWT", alg: "ES256" })));
+  const body = b64u(enc.encode(JSON.stringify({ aud: new URL(endpoint).origin, exp: Math.floor(Date.now() / 1000) + 12 * 3600, sub: "mailto:" + NOTIFY_EMAIL })));
+  const sig = await crypto.subtle.sign({ name: "ECDSA", hash: "SHA-256" }, key, enc.encode(head + "." + body));
+  return `vapid t=${head}.${body}.${b64u(sig)}, k=${k.pub}`;
+}
+async function hkdf(salt, ikm, info, bytes) {
+  const k = await crypto.subtle.importKey("raw", ikm, "HKDF", false, ["deriveBits"]);
+  return new Uint8Array(await crypto.subtle.deriveBits({ name: "HKDF", hash: "SHA-256", salt, info }, k, bytes * 8));
+}
+// RFC 8291 (aes128gcm) payload encryption.
+async function encryptPush(sub, payload) {
+  const ua = unb64u(sub.keys.p256dh), auth = unb64u(sub.keys.auth);
+  const eph = await crypto.subtle.generateKey({ name: "ECDH", namedCurve: "P-256" }, true, ["deriveBits"]);
+  const as = new Uint8Array(await crypto.subtle.exportKey("raw", eph.publicKey));
+  const uaKey = await crypto.subtle.importKey("raw", ua, { name: "ECDH", namedCurve: "P-256" }, false, []);
+  const shared = new Uint8Array(await crypto.subtle.deriveBits({ name: "ECDH", public: uaKey }, eph.privateKey, 256));
+  const ikm = await hkdf(auth, shared, cat(enc.encode("WebPush: info\0"), ua, as), 32);
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const cek = await hkdf(salt, ikm, enc.encode("Content-Encoding: aes128gcm\0"), 16);
+  const nonce = await hkdf(salt, ikm, enc.encode("Content-Encoding: nonce\0"), 12);
+  const aes = await crypto.subtle.importKey("raw", cek, "AES-GCM", false, ["encrypt"]);
+  const ct = new Uint8Array(await crypto.subtle.encrypt({ name: "AES-GCM", iv: nonce }, aes, cat(enc.encode(payload), new Uint8Array([2]))));
+  return cat(salt, new Uint8Array([0, 0, 16, 0]), new Uint8Array([as.length]), as, ct);
+}
+async function pushAdmin(env, { title, body, url }) {
+  const subs = (await get(env, "push:subs")) || [];
+  if (!subs.length) return { sent: 0 };
+  const payload = JSON.stringify({ title: String(title).slice(0, 120), body: String(body || "").slice(0, 300), url: url || "/portal/admin/" });
+  let sent = 0; const keep = [];
+  await Promise.all(subs.map(async (s) => {
+    try {
+      const r = await fetch(s.endpoint, { method: "POST", headers: { authorization: await vapidAuth(env, s.endpoint), "content-encoding": "aes128gcm", "content-type": "application/octet-stream", ttl: "86400", urgency: "high" }, body: await encryptPush(s, payload) });
+      if (r.status === 404 || r.status === 410) return; // phone unsubscribed: forget it
+      if (r.ok) sent++;
+      keep.push(s);
+    } catch (e) { keep.push(s); }
+  }));
+  if (keep.length !== subs.length) await put(env, "push:subs", keep);
+  return { sent, devices: keep.length };
+}
+async function pushKey(env) { return json({ key: (await vapidKeys(env)).pub }); }
+async function pushSubscribe(env, req) {
+  const b = await req.json().catch(() => ({}));
+  const s = b.subscription || {};
+  if (!/^https:\/\//.test(s.endpoint || "") || !s.keys || !s.keys.p256dh || !s.keys.auth) return fail(400, "Invalid subscription.");
+  const subs = ((await get(env, "push:subs")) || []).filter((x) => x.endpoint !== s.endpoint);
+  subs.push({ endpoint: s.endpoint, keys: { p256dh: s.keys.p256dh, auth: s.keys.auth }, device: clean(b.device, 80), at: now() });
+  await put(env, "push:subs", subs.slice(-10));
+  return json({ ok: true, devices: subs.length });
+}
+async function pushTest(env) {
+  const r = await pushAdmin(env, { title: "🔔 Phone alerts are on", body: "You'll get a notification here for every new quote, payment and client message." });
+  return json({ ok: true, ...r });
+}
 async function sendEmail(env, { subject, text, replyTo }) {
-  if (!env.RESEND_API_KEY) return { sent: false, why: "RESEND_API_KEY not set" };
+  const pushing = pushAdmin(env, { title: subject, body: String(text || "").split("\n").filter(Boolean)[0] || "" }).catch(() => {});
+  if (!env.RESEND_API_KEY) { await pushing; return { sent: false, why: "RESEND_API_KEY not set" }; }
   try {
     const r = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: { authorization: "Bearer " + env.RESEND_API_KEY, "content-type": "application/json" },
       body: JSON.stringify({ from: env.EMAIL_FROM || "Vix Automations Website <onboarding@resend.dev>", to: [env.NOTIFY_EMAIL || NOTIFY_EMAIL], reply_to: replyTo || undefined, subject, text }),
     });
+    await pushing;
     return r.ok ? { sent: true } : { sent: false, why: "Resend " + r.status + ": " + (await r.text()).slice(0, 200) };
-  } catch (e) { return { sent: false, why: "Email service unreachable" }; }
+  } catch (e) { await pushing; return { sent: false, why: "Email service unreachable" }; }
 }
 async function brief(env, req, h) {
   const reply = (d, st) => json(d, st || 200, h);
@@ -1006,6 +1080,9 @@ export async function onRequest(ctx) {
       if (a === "feed/seen" && m === "POST") return adminFeedSeen(env, req);
       if (a === "banks" && m === "POST") return adminBanksSave(env, req);
       if (a === "paysettings" && m === "POST") return adminPaySettingsSave(env, req);
+      if (a === "push/key" && m === "GET") return pushKey(env);
+      if (a === "push/subscribe" && m === "POST") return pushSubscribe(env, req);
+      if (a === "push/test" && m === "POST") return pushTest(env);
       if (a === "client-email" && m === "GET") return json({ ready: clientEmailReady(env) });
       if (a === "client-email/test" && m === "POST") return adminTestClientEmail(env, req, url.origin);
       if (a === "payreqs/confirm" && m === "POST") return adminPayConfirm(env, req, url.origin);

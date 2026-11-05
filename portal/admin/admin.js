@@ -75,6 +75,42 @@
       [880, 1320].forEach(function (f, i) { var o = ctx.createOscillator(), g = ctx.createGain(); o.frequency.value = f; o.type = "sine"; g.gain.setValueAtTime(0.0001, ctx.currentTime + i * 0.15); g.gain.exponentialRampToValueAtTime(0.25, ctx.currentTime + i * 0.15 + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + i * 0.15 + 0.4); o.connect(g); g.connect(ctx.destination); o.start(ctx.currentTime + i * 0.15); o.stop(ctx.currentTime + i * 0.15 + 0.45); });
     } catch (e) {}
   }
+
+  /* ---------- phone push notifications ---------- */
+  var IOS = /iphone|ipad|ipod/i.test(navigator.userAgent), STANDALONE = (window.matchMedia && matchMedia("(display-mode: standalone)").matches) || navigator.standalone;
+  var PUSH_OK = "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
+  function phoneBox() {
+    var inner;
+    if (IOS && !STANDALONE) inner = '<p class="muted" style="margin:6px 0 0">On iPhone: tap the <b>Share</b> button in Safari, choose <b>Add to Home Screen</b>, then open <b>Vix Admin</b> from your home screen and come back here to turn alerts on. (Needs iOS 16.4 or newer.)</p>';
+    else if (!PUSH_OK) inner = '<p class="muted" style="margin:6px 0 0">This browser can\'t show phone notifications. On Android use Chrome; on iPhone use Safari and add this page to your Home Screen.</p>';
+    else inner = '<div class="acts" style="margin-top:10px"><button class="btn btn-p btn-sm" type="button" id="push-on"><i class="ph ph-device-mobile" aria-hidden="true"></i>Turn on phone notifications</button><button class="btn btn-g btn-sm" type="button" id="push-test" hidden>Send a test notification</button></div><p class="note" id="push-msg" style="margin:8px 0 0"></p>';
+    return '<div class="card" style="margin-top:16px;padding:16px 18px"><b><i class="ph ph-bell-ringing" aria-hidden="true"></i> Phone notifications</b><p class="muted" style="margin:4px 0 0">Get a pop-up on this phone for every new quote, payment and client message, even when this page is closed.</p>' + inner + "</div>";
+  }
+  function keyBytes(k) { var s = atob(k.replace(/-/g, "+").replace(/_/g, "/") + "===".slice((k.length + 3) % 4)); var a = new Uint8Array(s.length); for (var i = 0; i < s.length; i++) a[i] = s.charCodeAt(i); return a; }
+  function wirePhone() {
+    var on = $("#push-on"), test = $("#push-test"), msg = $("#push-msg"); if (!on) return;
+    navigator.serviceWorker.register("/portal/admin/sw.js", { scope: "/portal/admin/" }).then(function (reg) { return reg.pushManager.getSubscription(); }).then(function (s) {
+      if (s && Notification.permission === "granted") { on.innerHTML = '<i class="ph ph-check" aria-hidden="true"></i>Phone notifications on'; test.hidden = false; }
+    }).catch(function () {});
+    on.onclick = function () {
+      on.disabled = true; msg.textContent = "Setting up…";
+      Notification.requestPermission().then(function (p) {
+        if (p !== "granted") throw new Error("Notifications are blocked. Allow them for this site in your phone's browser settings, then try again.");
+        return Promise.all([navigator.serviceWorker.register("/portal/admin/sw.js", { scope: "/portal/admin/" }).then(function () { return navigator.serviceWorker.ready; }), api("admin/push/key")]);
+      }).then(function (r) {
+        var reg = r[0], key = r[1].key;
+        return reg.pushManager.getSubscription().then(function (old) { return old || reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: keyBytes(key) }); });
+      }).then(function (sub) {
+        return api("admin/push/subscribe", { subscription: sub.toJSON(), device: (IOS ? "iPhone" : /android/i.test(navigator.userAgent) ? "Android" : "Computer") });
+      }).then(function () {
+        on.innerHTML = '<i class="ph ph-check" aria-hidden="true"></i>Phone notifications on'; test.hidden = false;
+        msg.textContent = "Done! Sending you a test notification now…";
+        return api("admin/push/test", {});
+      }).then(function (d) { msg.textContent = d && d.sent ? "Test sent ✓ You should see it on this phone in a few seconds." : "Saved, but the test didn't send. Try 'Send a test notification'."; on.disabled = false; })
+        .catch(function (e) { msg.textContent = e.message; on.disabled = false; });
+    };
+    test.onclick = function () { msg.textContent = "Sending…"; api("admin/push/test", {}).then(function (d) { msg.textContent = d.sent ? "Test sent to " + d.sent + " device" + (d.sent > 1 ? "s" : "") + " ✓" : "No device received it. Tap 'Turn on phone notifications' again."; }); };
+  }
   function poll() {
     return api("admin/feed").then(function (d) {
       $("#bell-n").hidden = !d.unread; $("#bell-n").textContent = d.unread;
@@ -102,13 +138,14 @@
     var perm = window.Notification ? Notification.permission : "unsupported";
     $("#main").innerHTML = '<div class="card"><div class="help"><div><h2 style="margin:0"><i class="ph ph-bell-ringing" aria-hidden="true"></i> Notifications</h2><p class="muted">New payments, briefs and messages, newest first. Updates every 30 seconds.</p></div>' +
       '<div class="acts">' + (perm === "default" ? '<button class="btn btn-p btn-sm" type="button" id="alerts-on"><i class="ph ph-bell-simple-ringing" aria-hidden="true"></i>Turn on pop-up alerts</button>' : perm === "granted" ? '<span class="note ok">Pop-up alerts on ✓</span>' : "") +
-      '<button class="btn btn-g btn-sm" type="button" id="all-read">Mark all as read</button></div></div>' +
+      '<button class="btn btn-g btn-sm" type="button" id="all-read">Mark all as read</button></div></div>' + phoneBox() +
       '<div class="kpi-row" style="margin-top:16px"><div><span>Payments</span><b>' + (count("payment") + count("transfer") + count("overdue")) + '</b></div><div><span>Briefs &amp; founding</span><b>' + (count("brief") + count("founding")) + '</b></div><div><span>Free design requests</span><b>' + count("offer") + '</b></div><div><span>Client messages</span><b>' + count("message") + "</b></div></div>" +
       '<div class="feed-list">' + (d.items.map(function (i) {
         return '<button type="button" class="nf k-' + i.kind + (i.unread ? " unread" : "") + (freshIds[i.kind + i.id] ? " fresh" : "") + '" data-kind="' + i.kind + '" data-id="' + esc(i.id) + '" data-client="' + esc(i.clientId || "") + '"><span class="ic"><i class="ph-fill ' + ICON[i.kind] + '" aria-hidden="true"></i></span><div><b>' + esc(i.title) + "</b><span>" + esc(NLABEL[i.kind] + " · " + i.sub) + "</span></div><time>" + VX.date(i.at, true) + "</time></button>";
       }).join("") || '<div class="empty"><i class="ph ph-bell-simple" aria-hidden="true"></i>Nothing yet. New payments, briefs and messages will appear here in bold.</div>') + "</div></div>";
     var on = $("#alerts-on"); if (on) on.onclick = function () { Notification.requestPermission().then(function () { poll(); }); };
     $("#all-read").onclick = function () { api("admin/feed/seen", { all: true }).then(poll); };
+    wirePhone();
     $("#main").querySelectorAll(".nf").forEach(function (b) {
       b.onclick = function () {
         var k = b.dataset.kind, id = b.dataset.id, cid = b.dataset.client;
