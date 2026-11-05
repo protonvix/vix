@@ -16,6 +16,7 @@
   $("#logout").addEventListener("click", function () { api("logout", {}).finally(function () { location.reload(); }); });
   $("#new-btn").addEventListener("click", function () { sel = null; drawList(); newForm(); });
   $("#inbox-btn").addEventListener("click", function () { sel = null; drawList(); inbox(); });
+  $("#chat-btn").addEventListener("click", function () { sel = null; drawList(); chats(); });
   $("#pay-btn").addEventListener("click", function () { sel = null; drawList(); payments(); });
   $("#bell-btn").addEventListener("click", function () { sel = null; drawList(); bell(); });
   $("#set-btn").addEventListener("click", function () { onBell = false; sel = null; drawList(); settings(); });
@@ -149,12 +150,14 @@
     $("#main").querySelectorAll(".nf").forEach(function (b) {
       b.onclick = function () {
         var k = b.dataset.kind, id = b.dataset.id, cid = b.dataset.client;
-        var go = function () { onBell = false; if (k === "transfer" || k === "overdue") { payments(); } else if (k === "brief" || k === "offer" || k === "founding") { inbox(); } else if (cid) { sel = cid; refresh(true).then(function () { drawList(); showClient(cid); }); } };
+        var go = function () { onBell = false; if (k === "transfer" || k === "overdue") { payments(); } else if (k === "brief" || k === "offer" || k === "founding") { inbox(); } else if (k === "message" && cid) { sel = null; refresh().then(function () { drawList(); chats(cid); }); } else if (cid) { sel = cid; refresh(true).then(function () { drawList(); showClient(cid); }); } };
         if (k === "message") go(); else api("admin/feed/seen", { kind: k, id: id }).then(go, go);
       };
     });
   }
-  ["#new-btn", "#inbox-btn", "#pay-btn", "#set-btn"].forEach(function (s) { $(s).addEventListener("click", function () { onBell = false; }); });
+  ["#new-btn", "#inbox-btn", "#pay-btn", "#set-btn", "#chat-btn"].forEach(function (s) { $(s).addEventListener("click", function () { onBell = false; }); });
+  ["#new-btn", "#inbox-btn", "#pay-btn", "#set-btn", "#bell-btn"].forEach(function (s) { $(s).addEventListener("click", function () { onChats = false; }); });
+  $("#clist").addEventListener("click", function () { onChats = false; });
   $("#clist").addEventListener("click", function () { onBell = false; });
   setInterval(function () { if (!$("#app").hidden) poll(); }, 30000);
 
@@ -238,8 +241,10 @@
         var wa = (b.whatsapp || "").replace(/[^\d]/g, "").replace(/^0/, "234");
         return '<div class="card" style="margin-top:12px' + (b.read ? ";opacity:.75" : "") + '"><div class="help"><div><h2 style="margin:0">' + (b.read ? "" : '<span class="pill-new" style="margin:0 8px 0 0">New</span>') + esc(b.subject) + '</h2><p class="muted">' + esc([b.name, b.business, b.email, b.whatsapp].filter(Boolean).join(" · ")) + " · " + VX.date(b.at, true) + " · via " + esc(b.source) + (b.emailed ? " · emailed ✓" : " · not emailed") + "</p></div></div>" +
           '<details class="box" style="margin-top:12px"' + (b.read ? "" : " open") + '><summary>Full message</summary><div><pre style="white-space:pre-wrap;margin:0;font:inherit;font-size:14px;color:#c4cbe0">' + esc(b.text) + "</pre></div></details>" +
+          ((b.replies || []).length ? '<div class="chat" style="margin-top:12px;max-height:none">' + b.replies.map(function (r) { return '<div class="msg mine">' + esc(r.text) + "<time>You · " + VX.date(r.at, true) + (r.emailed ? " · emailed ✓" : " · not emailed") + (r.chat ? " · in their dashboard ✓" : "") + "</time></div>"; }).join("") + "</div>" : "") +
+          (b.email ? '<form class="reply-box" data-rf="' + b.id + '" hidden style="margin-top:12px"><label>Reply to ' + esc(b.name) + " (" + esc(b.email) + ')<textarea name="text" rows="6" required placeholder="Write your reply…">Hi ' + esc((b.name || "").split(" ")[0]) + ',\n\nThank you for your message.\n\n</textarea></label><div class="acts" style="margin-top:10px"><button class="btn btn-p btn-sm" type="submit"><i class="ph ph-paper-plane-tilt" aria-hidden="true"></i>Send email</button><button class="btn btn-g btn-sm" type="button" data-cx>Cancel</button></div><p class="note" data-rmsg style="margin:8px 0 0"></p></form>' : "") +
           '<div class="acts" style="margin-top:12px">' +
-          (b.email ? '<a class="btn btn-p btn-sm" target="_blank" rel="noopener" href="https://mail.google.com/mail/?view=cm&fs=1&to=' + encodeURIComponent(b.email) + "&su=" + encodeURIComponent("Re: " + b.subject) + '"><i class="ph ph-envelope-simple" aria-hidden="true"></i>Reply by email</a>' : "") +
+          (b.email ? '<button class="btn btn-p btn-sm" type="button" data-reply="' + b.id + '"><i class="ph ph-envelope-simple" aria-hidden="true"></i>Reply by email</button>' : "") +
           (wa ? '<a class="btn btn-wa btn-sm" target="_blank" rel="noopener" href="https://wa.me/' + wa + '"><i class="ph-fill ph-whatsapp-logo" aria-hidden="true"></i>WhatsApp</a>' : "") +
           '<button class="btn btn-g btn-sm" type="button" data-read="' + b.id + '" data-v="' + (!b.read) + '">' + (b.read ? "Mark unread" : "Mark as read") + "</button>" +
           '<button class="btn btn-g btn-sm" type="button" data-del="' + b.id + '">Delete</button></div></div>';
@@ -251,10 +256,70 @@
           .catch(function (x) { $("#mail-state").innerHTML = '<span class="err">' + esc(x.message) + "</span>"; }).finally(function () { b.disabled = false; });
       };
       $("#main").querySelectorAll("[data-read]").forEach(function (b) { b.onclick = function () { api("admin/briefs", { id: b.dataset.read, read: b.dataset.v === "true" }).then(inbox); }; });
+      $("#main").querySelectorAll("[data-reply]").forEach(function (b) {
+        b.onclick = function () { var f = $("#main").querySelector('[data-rf="' + b.dataset.reply + '"]'); f.hidden = false; var t = f.text; t.focus(); t.setSelectionRange(t.value.length, t.value.length); };
+      });
+      $("#main").querySelectorAll("[data-rf]").forEach(function (f) {
+        f.querySelector("[data-cx]").onclick = function () { f.hidden = true; };
+        f.addEventListener("submit", function (e) {
+          e.preventDefault();
+          var btn = f.querySelector("button[type=submit]"), out = f.querySelector("[data-rmsg]"), brief = d.briefs.find(function (x) { return x.id === f.dataset.rf; });
+          btn.disabled = true; out.textContent = "Sending…";
+          api("admin/briefs/reply", { id: f.dataset.rf, text: f.text.value }).then(function (r) {
+            if (r.emailed) { out.innerHTML = '<span class="ok">Sent to ' + esc(brief.email) + " ✓" + (r.chat ? " Also added to their dashboard chat." : "") + "</span>"; setTimeout(inbox, 1800); return; }
+            var gm = "https://mail.google.com/mail/?view=cm&fs=1&to=" + encodeURIComponent(brief.email) + "&su=" + encodeURIComponent("Re: " + brief.subject) + "&body=" + encodeURIComponent(f.text.value + "\n\nBest regards,\nPromise Felix\nVix Automations");
+            out.innerHTML = (r.chat ? '<span class="ok">Added to their dashboard chat ✓</span> ' : "") + '<span style="color:var(--warn)">Automatic email isn\'t set up yet (' + esc(r.emailError || "client emails off") + ').</span> <a class="btn btn-p btn-sm" target="_blank" rel="noopener" href="' + esc(gm) + '">Send it from Gmail (1 tap)</a>';
+            btn.disabled = false;
+          }).catch(function (x) { out.innerHTML = '<span class="err">' + esc(x.message) + "</span>"; btn.disabled = false; });
+        });
+      });
       $("#main").querySelectorAll("[data-del]").forEach(function (b) { b.onclick = function () { if (confirm("Delete this message?")) api("admin/briefs", { id: b.dataset.del, delete: true }).then(inbox); }; });
     }).catch(function (x) { $("#main").innerHTML = '<div class="card"><p class="err">' + esc(x.message) + "</p></div>"; });
   }
 
+
+  /* ---------- chats ---------- */
+  var onChats = false, chatSel = null, chatTimer = null;
+  function convos() {
+    var list = [];
+    clients.forEach(function (c) { c.projects.forEach(function (p) { var ms = p.messages || [], last = ms[ms.length - 1]; list.push({ c: c, p: p, last: last, at: last ? last.at : p.paidAt || c.createdAt }); }); });
+    return list.sort(function (a, b) { return (b.p.unreadAdmin || 0) - (a.p.unreadAdmin || 0) || String(b.at).localeCompare(String(a.at)); });
+  }
+  function chats(clientId) {
+    onChats = true; onBell = false;
+    if (clientId) { var f = convos().find(function (x) { return x.c.id === clientId; }); if (f) chatSel = f.p.id; }
+    drawChats(true);
+    clearInterval(chatTimer);
+    chatTimer = setInterval(function () { if (!onChats || $("#app").hidden) { clearInterval(chatTimer); return; } refresh().then(function () { if (onChats) drawChats(false); }); }, 15000);
+  }
+  function drawChats(scroll) {
+    var all = convos();
+    if (!all.length) { $("#main").innerHTML = '<div class="card"><h2 style="margin:0"><i class="ph ph-chats-circle" aria-hidden="true"></i> Chats</h2><div class="empty"><i class="ph ph-chat-teardrop-text" aria-hidden="true"></i>No clients yet. Once you add a client, you can chat with them here and they\'ll see it on their dashboard.</div></div>'; return; }
+    if (!chatSel || !all.some(function (x) { return x.p.id === chatSel; })) chatSel = all[0].p.id;
+    var cur = all.find(function (x) { return x.p.id === chatSel; });
+    var draft = $("#chat-text") ? $("#chat-text").value : "";
+    var listH = all.map(function (x) {
+      return '<button type="button" class="citem" data-cv="' + x.p.id + '" aria-current="' + (x.p.id === chatSel) + '"><b>' + esc(x.c.name) + (x.p.unreadAdmin && x.p.id !== chatSel ? '<span class="dot-r">' + x.p.unreadAdmin + "</span>" : "") + "</b><span>" + esc((x.c.business ? x.c.business + " · " : "") + x.p.title) + "</span><span>" + (x.last ? esc((x.last.from === "vix" ? "You: " : "") + x.last.text.slice(0, 60)) : "No messages yet") + "</span></button>";
+    }).join("");
+    var ms = cur.p.messages || [];
+    var thread = ms.length ? ms.map(function (m) { return '<div class="msg ' + (m.from === "vix" ? "mine" : "them") + '">' + esc(m.text) + "<time>" + (m.from === "vix" ? "You" : esc(cur.c.name.split(" ")[0])) + " · " + VX.date(m.at, true) + "</time></div>"; }).join("") : '<div class="empty"><i class="ph ph-chat-teardrop-text" aria-hidden="true"></i>Say hello 👋 Your message appears on ' + esc(cur.c.name.split(" ")[0]) + "'s dashboard straight away" + (cur.c.activated ? "" : " (they haven't created their dashboard yet, so it's also emailed when email is set up)") + ".</div>";
+    $("#main").innerHTML = '<div class="card"><div class="help"><div><h2 style="margin:0"><i class="ph ph-chats-circle" aria-hidden="true"></i> Chats</h2><p class="muted">Messages you send here appear instantly on the client\'s dashboard. New replies show up here automatically.</p></div></div>' +
+      '<div class="chats"><div class="clist chat-list">' + listH + '</div><div class="chat-pane"><div class="chat-head"><b>' + esc(cur.c.name) + "</b><span>" + esc([cur.c.business, cur.p.title, cur.c.email].filter(Boolean).join(" · ")) + '</span></div><div class="chat" id="chat-thread">' + thread + '</div><form class="send" id="chat-form"><textarea id="chat-text" name="text" rows="2" placeholder="Message ' + esc(cur.c.name.split(" ")[0]) + '…" required></textarea><button class="btn btn-p" type="submit"><i class="ph ph-paper-plane-tilt" aria-hidden="true"></i>Send</button></form><p class="note" id="chat-msg" style="margin:6px 0 0"></p></div></div></div>';
+    $("#chat-text").value = draft;
+    var th = $("#chat-thread"); th.scrollTop = th.scrollHeight;
+    $("#main").querySelector(".chat-list").onclick = function (e) { var b = e.target.closest("[data-cv]"); if (b) { chatSel = b.dataset.cv; $("#chat-text").value = ""; drawChats(true); } };
+    if (cur.p.unreadAdmin) api("admin/read", { projectId: cur.p.id }).then(function () { cur.p.unreadAdmin = 0; drawList(); }).catch(function () {});
+    $("#chat-text").addEventListener("keydown", function (e) { if (e.key === "Enter" && !e.shiftKey && window.innerWidth > 760) { e.preventDefault(); $("#chat-form").requestSubmit(); } });
+    $("#chat-form").addEventListener("submit", function (e) {
+      e.preventDefault();
+      var t = $("#chat-text"), btn = e.target.querySelector("button"); if (!t.value.trim()) return;
+      btn.disabled = true;
+      api("admin/post", { projectId: cur.p.id, text: t.value, kind: "message" }).then(function (d) {
+        t.value = "";
+        return refresh().then(function () { drawChats(true); $("#chat-msg").innerHTML = d.emailed ? '<span class="ok">Sent ✓ Also emailed to ' + esc(cur.c.email) + "</span>" : '<span class="ok">Sent to their dashboard ✓</span>' + (d.emailError ? ' <span class="muted">(email copy not sent: ' + esc(d.emailError) + ")</span>" : ""); });
+      }).catch(function (x) { $("#chat-msg").innerHTML = '<span class="err">' + esc(x.message) + "</span>"; btn.disabled = false; });
+    });
+  }
   function refresh(keep) {
     return api("admin/clients").then(function (d) {
       clients = d.clients; drawList();
@@ -262,6 +327,8 @@
     });
   }
   function drawList() {
+    var tot = clients.reduce(function (n, c) { return n + c.projects.reduce(function (m, p) { return m + (p.unreadAdmin || 0); }, 0); }, 0);
+    $("#chat-n").hidden = !tot; $("#chat-n").textContent = tot;
     $("#clist").innerHTML = clients.length ? clients.map(function (c) {
       var unread = c.projects.reduce(function (n, p) { return n + (p.unreadAdmin || 0); }, 0);
       return '<button type="button" class="citem" data-id="' + c.id + '" aria-current="' + (c.id === sel) + '"><b>' + esc(c.name) + (unread ? '<span class="dot-r">' + unread + "</span>" : "") + "</b><span>" + esc(c.business || c.email) + " · " + c.projects.map(function (p) { return (VX.TYPE[p.type] || VX.TYPE.other).label; }).join(", ") + (c.activated ? "" : " · not activated") + "</span></button>";
@@ -381,7 +448,7 @@
           req = api("admin/deliverable", fd);
         }
         btn.disabled = true; if (msg) msg.textContent = "Saving…";
-        req.then(function () { if (msg) msg.innerHTML = '<span class="ok">Saved ✓</span>'; return refresh(true); })
+        req.then(function (d) { if (msg) msg.innerHTML = '<span class="ok">Saved ✓</span>'; if (kind === "message") alert(d && d.emailed ? "Sent ✓ It's on their dashboard and emailed to them." : "Sent to their dashboard ✓" + (d && d.emailError ? "\n\n(Email not sent: " + d.emailError + ")" : "")); return refresh(true); })
           .catch(function (x) { if (msg) msg.innerHTML = '<span class="err">' + esc(x.message) + "</span>"; btn.disabled = false; });
       });
     });

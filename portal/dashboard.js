@@ -135,6 +135,33 @@
     });
   }
 
+
+  /* live chat: check for new messages from Vix every 15 seconds */
+  function chatHtml(p) {
+    return (p.messages || []).map(function (m) { return '<div class="msg ' + (m.from === "client" ? "mine" : "them") + '">' + esc(m.text) + "<time>" + (m.from === "client" ? "You" : "Vix Automations") + " · " + VX.date(m.at, true) + "</time></div>"; }).join("");
+  }
+  setInterval(function () {
+    if (!data || $("#dash-view").hidden || document.visibilityState !== "visible") return;
+    api("me").then(function (d) {
+      var oldP = data.projects.find(function (x) { return x.id === current; });
+      var newP = d.projects.find(function (x) { return x.id === current; });
+      data = d;
+      if (!oldP || !newP) return;
+      var before = (oldP.messages || []).length, after = (newP.messages || []).length;
+      if (after > before) {
+        var chat = $("#chat");
+        if (chat) { chat.innerHTML = chatHtml(newP); chat.scrollTop = chat.scrollHeight; }
+        var last = newP.messages[after - 1];
+        if (last && last.from === "vix") {
+          $("#toast-t").textContent = "💬 New message from Vix Automations";
+          $("#toast-s").textContent = last.text.length > 90 ? last.text.slice(0, 90) + "…" : last.text;
+          $("#toast").classList.add("show"); setTimeout(function () { $("#toast").classList.remove("show"); }, 8000);
+          api("seen", { projectId: newP.id }).catch(function () {});
+        }
+      }
+    }).catch(function () {});
+  }, 15000);
+
   var announced = {};
   function announce(p) {
     if (announced[p.id]) return; announced[p.id] = true;
