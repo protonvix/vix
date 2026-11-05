@@ -261,14 +261,14 @@
     var list = names.length > 1 ? names.slice(0, -1).join(", ") + " and " + names[names.length - 1] : names[0];
     var subject = "Your " + list + " project has started 🚀 | Vix Automations";
     var body = "Hi " + first + ",\n\n" +
-      "Thank you" + (total ? " for your payment of " + VX.money(total, c.currency) : "") + ". Your " + list + " project has officially started!\n\n" +
+      (total ? "Thank you for your payment of " + VX.money(total, c.currency) + ". Your " + list + " project has officially started!" : "Your free " + list + " project has officially started! We'll share your first design preview on your dashboard for you to review.") + "\n\n" +
       (invite ? "Create your private client dashboard here:\n" + invite + "\n\n(This link works once and lasts 14 days.)\n\n" : "Log in to your client dashboard here:\n" + loginUrl + "\n\n") +
       "On your dashboard you can:\n• See exactly where your project is, step by step\n• Read every update from our team\n• Download your website and files the moment they're ready\n• Track your growth numbers\n• Send us questions or change requests\n\n" +
       "We'll be in touch shortly with your next steps. If you need anything, just reply to this email or message us on WhatsApp: +44 7723 149573.\n\n" +
       "Welcome aboard,\nPromise Felix\nVix Automations\nhttps://vixautomations.pages.dev";
     var gmail = "https://mail.google.com/mail/?view=cm&fs=1&to=" + encodeURIComponent(c.email) + "&su=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(body);
     var waNum = (c.whatsapp || "").replace(/[^\d]/g, "").replace(/^0/, "234");
-    var waText = "Hi " + first + ", thank you for your payment! Your " + list + " project has officially started 🚀\n\n" + (invite ? "Create your client dashboard here to track progress and receive your deliveries:\n" + invite : "Track your progress here:\n" + loginUrl) + "\n\nWe've also sent this to your email.\n– Promise, Vix Automations";
+    var waText = "Hi " + first + ", " + (total ? "thank you for your payment! " : "great news! ") + "Your " + list + " project has officially started 🚀\n\n" + (invite ? "Create your client dashboard here to track progress and receive your deliveries:\n" + invite : "Track your progress here:\n" + loginUrl) + "\n\nWe've also sent this to your email.\n– Promise, Vix Automations";
     $("#main").innerHTML = '<div class="card result"><h2 class="ok"><i class="ph-fill ph-check-circle" aria-hidden="true"></i>' + esc(c.name) + "'s project has started</h2>" +
       (res.clientEmailed ? '<p class="ok" style="margin:0"><i class="ph-fill ph-envelope-simple-open" aria-hidden="true"></i> Payment confirmation and dashboard link emailed to ' + esc(c.email) + ' automatically. You can also send it on WhatsApp below.</p>'
         : '<p class="muted" style="margin:0">Send the kickoff message: the email opens in Gmail, ready to send from your own inbox.' + (res.clientEmailError ? ' <span style="color:var(--warn)">(Automatic email not sent: ' + esc(res.clientEmailError) + ")</span>" : "") + "</p>") +

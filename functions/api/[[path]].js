@@ -225,7 +225,7 @@ async function createClientWithProjects(env, b, origin, note) {
       id: pid, clientId: c.id, type: s.type, title: clean(s.title, 120) || defaultTitle(s.type),
       amount: Math.max(0, +s.amount || 0), currency: clean(b.currency, 4) || c.currency, paidAt: now(),
       stage: 0, progress: 5, status: "Your project has started", eta: clean(s.eta, 40),
-      previewUrl: "", liveUrl: "", payreqId: b.payreqId || "", updates: [{ at: now(), text: note || "Payment received. Your project has officially started! 🚀" }],
+      previewUrl: "", liveUrl: "", payreqId: b.payreqId || "", updates: [{ at: now(), text: note || (+s.amount > 0 ? "Payment received. Your project has officially started! 🚀" : "Your free website design has started! 🚀 We'll share your first design preview here for you to review.") }],
       deliverables: [], metrics: [], messages: [], unreadAdmin: 0, unreadClient: 1,
     };
     await put(env, "project:" + pid, p);
@@ -242,7 +242,7 @@ async function adminCreate(env, req, origin) {
     const services = (b.services || []).filter((x) => STAGES[x.type]).map((x) => ({ type: x.type, title: clean(x.title, 120) || defaultTitle(x.type), amount: Math.max(0, +x.amount || 0) }));
     const total = services.reduce((n, x) => n + x.amount, 0);
     let mail = { sent: false, why: "" };
-    if (b.sendEmail !== false) {
+    if (b.sendEmail !== false && total > 0) {
       const m = paymentEmail({ name: r.client.name, business: r.client.business, services, total, currency: clean(b.currency, 4) || r.client.currency, method: "bank transfer", reference: "", invite: r.invite, loginUrl: r.loginUrl, origin });
       mail = await sendClientEmail(env, { to: r.client.email, name: r.client.name, subject: m.subject, html: m.html, text: m.text });
     }
