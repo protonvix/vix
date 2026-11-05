@@ -401,7 +401,7 @@ async function brief(env, req, h) {
   };
   if (!item.name || !item.text) return reply({ error: "Please add your name and details." }, 400);
   const mail = await sendEmail(env, {
-    subject: item.subject,
+    subject: "🔔 " + item.subject,
     replyTo: item.email,
     text: item.text + "\n\n— — —\nFrom: " + item.name + (item.business ? " (" + item.business + ")" : "") + "\nEmail: " + (item.email || "not given") + "\nWhatsApp/phone: " + (item.whatsapp || "not given") + "\nSent via: " + item.source + "\nReply to this email to answer them directly. All briefs are also saved in your admin portal: https://vixautomations.pages.dev/portal/admin/",
   });
