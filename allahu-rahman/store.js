@@ -18,12 +18,25 @@
   let wish = store.get("wish", []).filter(byId);
 
   /* ---------- WhatsApp ---------- */
-  const wa = text => {
-    const num = (S.whatsapp || "").replace(/\D/g, "");
+  // line: "orders" (sales, checkout) or "care" (questions, delivery, returns)
+  const wa = (text, line = "orders") => {
+    const l = (S.whatsapp || {})[line] || {};
+    const num = (l.number || "").replace(/\D/g, "");
     return (num ? `https://wa.me/${num}` : "https://wa.me/") + "?text=" + encodeURIComponent(text);
   };
-  const hello = wa(`Hello ${S.name}, I would like to make an enquiry.`);
-  ["#waFloat", "#faqWhatsApp", "#footWhatsApp"].forEach(s => { const a = $(s); if (a) a.href = hello; });
+  const greet = {
+    orders: `Hello ${S.name}, I would like to place an order.`,
+    care: `Hello ${S.name}, I have a question.`,
+  };
+  $$("[data-wa]").forEach(a => { a.href = wa(greet[a.dataset.wa] || greet.care, a.dataset.wa); });
+  $$("[data-wa-num]").forEach(el => { const l = S.whatsapp[el.dataset.waNum]; if (l) el.textContent = l.display; });
+
+  /* floating WhatsApp chooser */
+  const waBtn = $("#waFloat"), waMenu = $("#waMenu");
+  const setWa = open => { if (open) $("#toast").classList.remove("show"); waMenu.classList.toggle("open", open); waMenu.setAttribute("aria-hidden", !open); waBtn.setAttribute("aria-expanded", open); };
+  waBtn.addEventListener("click", e => { e.stopPropagation(); setWa(!waMenu.classList.contains("open")); });
+  document.addEventListener("click", e => { if (!e.target.closest("#waMenu")) setWa(false); });
+  document.addEventListener("keydown", e => { if (e.key === "Escape") setWa(false); });
   $("#year").textContent = new Date().getFullYear();
   const stat = $("#statProducts"); if (stat) stat.textContent = P.length;
 
@@ -319,7 +332,7 @@
     }
     const res = P.filter(p => matches(p, q)).slice(0, 8);
     $("#popResults").innerHTML = res.length ? res.map(p => `<button class="sr-item" data-open="${p.id}"><img src="${p.img}" alt=""><span>${esc(p.name)}<small>${esc(catName(p.cat))}</small></span><strong>${naira(p.price)}</strong></button>`).join("")
-      : `<p class="sr-hint">No match for "${esc(q)}". Message us on WhatsApp and we will check if we can source it.</p>`;
+      : `<p class="sr-hint">No match for "${esc(q)}". <a href="${wa(`Hello ${S.name}, do you have ${q}?`, "orders")}" target="_blank" rel="noopener" style="color:var(--emerald);font-weight:600;text-decoration:underline">Ask our sales line</a> and we will check if we can source it.</p>`;
   }
   $("#openSearch").addEventListener("click", () => {
     closeAll(false); lastFocus = document.activeElement;
@@ -360,7 +373,7 @@
     const name = $("#joinName").value.trim(), err = $("#joinError");
     if (name.length < 2) { err.textContent = "Enter your first name so we know who to add."; err.hidden = false; $("#joinName").focus(); return; }
     err.hidden = true;
-    window.open(wa(`Hello ${S.name}, my name is ${name}. Please add me to your new arrivals updates.`), "_blank", "noopener");
+    window.open(wa(`Hello ${S.name}, my name is ${name}. Please add me to your new arrivals updates.`, "orders"), "_blank", "noopener");
     toast(`Thanks ${name}, send the WhatsApp message to join`);
     e.target.reset();
   });

@@ -250,17 +250,20 @@
         <div class="reveal">
           <p class="eyebrow">Help centre</p>
           <h2>Questions, answered</h2>
-          <p class="muted">Cannot find what you need? Send us a message and we usually reply the same day.</p>
-          <a class="btn btn-primary" id="faqWhatsApp" href="#" target="_blank" rel="noopener"><i class="ph ph-whatsapp-logo"></i> Chat with us</a>
+          <p class="muted">Cannot find what you need? Message the right line below and we usually reply the same day.</p>
+          <div class="lines">
+            <a class="line-card" data-wa="care" href="#" target="_blank" rel="noopener"><i class="ph-fill ph-whatsapp-logo"></i><span><small>Customer care</small><strong data-wa-num="care">0703 312 1920</strong><em>Questions, sizes, delivery, returns</em></span></a>
+            <a class="line-card" data-wa="orders" href="#" target="_blank" rel="noopener"><i class="ph-fill ph-whatsapp-logo"></i><span><small>Orders & sales</small><strong data-wa-num="orders">0816 427 4103</strong><em>New orders, bulk and wholesale</em></span></a>
+          </div>
         </div>
         <div class="faq" id="faqList">
-          <details class="reveal"><summary>How do I place an order?<i class="ph ph-plus"></i></summary><p>Add items to your bag, open the bag and tap "Send order on WhatsApp". Your list, sizes, colours and total are written for you. We reply to confirm stock and delivery.</p></details>
+          <details class="reveal"><summary>How do I place an order?<i class="ph ph-plus"></i></summary><p>Add items to your bag, open the bag and tap "Send order on WhatsApp". Your list, sizes, colours and total go straight to our orders line (0816 427 4103), and we reply to confirm stock and delivery.</p></details>
           <details class="reveal"><summary>How much is delivery and how long does it take?<i class="ph ph-plus"></i></summary><p>Delivery cost depends on your location and the size of the order. We tell you the exact fee before you pay, along with the expected delivery date.</p></details>
           <details class="reveal"><summary>How do I pay?<i class="ph ph-plus"></i></summary><p>Once your order is confirmed on WhatsApp we send our account details for bank transfer. Please only pay into the account we send you in the chat.</p></details>
-          <details class="reveal"><summary>How do I know my size?<i class="ph ph-plus"></i></summary><p>Shoes and slippers use EU sizes (for example 38 or 41). Tell us your usual size or foot length and we will recommend the best fit for that style.</p></details>
+          <details class="reveal"><summary>How do I know my size?<i class="ph ph-plus"></i></summary><p>Shoes and slippers use EU sizes (for example 38 or 41). Tell customer care (0703 312 1920) your usual size or foot length and we will recommend the best fit for that style.</p></details>
           <details class="reveal"><summary>Are the colours in the photos accurate?<i class="ph ph-plus"></i></summary><p>We photograph our stock as closely to real life as we can. If you want to be sure, ask us for a live photo or video of the exact item before you pay.</p></details>
-          <details class="reveal"><summary>Can I buy in bulk for resale?<i class="ph ph-plus"></i></summary><p>Yes. Many of our slippers and sandals are available by the dozen. Message us with the item and quantity for a wholesale price.</p></details>
-          <details class="reveal"><summary>What if an item arrives damaged or wrong?<i class="ph ph-plus"></i></summary><p>Contact us within 48 hours of delivery with photos. See our <a href="terms.html#returns">returns policy</a> for full details.</p></details>
+          <details class="reveal"><summary>Can I buy in bulk for resale?<i class="ph ph-plus"></i></summary><p>Yes. Many of our slippers and sandals are available by the dozen. Message our orders line (0816 427 4103) with the item and quantity for a wholesale price.</p></details>
+          <details class="reveal"><summary>What if an item arrives damaged or wrong?<i class="ph ph-plus"></i></summary><p>Message customer care (0703 312 1920) within 48 hours of delivery with photos. See our <a href="terms.html#returns">returns policy</a> for full details.</p></details>
         </div>
       </div>
     </section>
@@ -289,9 +292,10 @@
       <div class="foot-brand">
         <a class="brand" href="#top"><span class="brand-mark" aria-hidden="true">AR</span><span class="brand-text">Allahu Rahman<small>Online Store</small></span></a>
         <p>Shoes, bags, clothing, baby wear and home essentials, chosen with care and delivered to you.</p>
-        <div class="socials">
-          <a class="icon-btn outline" id="footWhatsApp" href="#" target="_blank" rel="noopener" aria-label="WhatsApp"><i class="ph ph-whatsapp-logo"></i></a>
-        </div>
+        <ul class="foot-lines">
+          <li><a data-wa="orders" href="#" target="_blank" rel="noopener"><i class="ph ph-whatsapp-logo"></i> <span>Orders & sales</span> <strong data-wa-num="orders">0816 427 4103</strong></a></li>
+          <li><a data-wa="care" href="#" target="_blank" rel="noopener"><i class="ph ph-whatsapp-logo"></i> <span>Customer care</span> <strong data-wa-num="care">0703 312 1920</strong></a></li>
+        </ul>
       </div>
       <div>
         <h4>Shop</h4>
@@ -328,7 +332,12 @@
   </footer>
 
   <!-- Floating WhatsApp -->
-  <a class="wa-float" id="waFloat" href="#" target="_blank" rel="noopener" aria-label="Chat on WhatsApp"><i class="ph-fill ph-whatsapp-logo"></i></a>
+  <div class="wa-menu" id="waMenu" aria-hidden="true">
+    <p class="wa-menu-head">Chat with us on WhatsApp<span>Pick the right line for a faster reply</span></p>
+    <a class="line-card" data-wa="orders" href="#" target="_blank" rel="noopener"><i class="ph-fill ph-whatsapp-logo"></i><span><small>Orders & sales</small><strong data-wa-num="orders">0816 427 4103</strong><em>Place an order, bulk and wholesale</em></span></a>
+    <a class="line-card" data-wa="care" href="#" target="_blank" rel="noopener"><i class="ph-fill ph-whatsapp-logo"></i><span><small>Customer care</small><strong data-wa-num="care">0703 312 1920</strong><em>Questions, sizes, delivery, returns</em></span></a>
+  </div>
+  <button class="wa-float" id="waFloat" type="button" aria-label="Chat on WhatsApp" aria-expanded="false" aria-controls="waMenu"><i class="ph-fill ph-whatsapp-logo"></i></button>
 
   <!-- Overlay + drawers -->
   <div class="overlay" id="overlay" hidden></div>

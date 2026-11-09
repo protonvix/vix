@@ -11,7 +11,10 @@ A fast storefront in plain HTML, CSS and JavaScript (no build step). Shoppers br
 - `images/`: product photos
 
 ## Before launch
-1. **WhatsApp number**: in `products.js`, set `whatsapp: "234XXXXXXXXXX"` (digits only, international format). Until it is set, WhatsApp asks the shopper to pick a contact.
+1. **WhatsApp lines** (set in `products.js` under `whatsapp`):
+   - **Orders & sales, 0816 427 4103**: bag checkout, "Order this now", bulk/wholesale, new arrival alerts, "can you source this" requests.
+   - **Customer care, 0703 312 1920**: general questions, size help, delivery updates, returns and damaged items.
+   - The floating WhatsApp button lets shoppers pick a line; both numbers also show in the FAQ, footer and terms.
 2. **Prices**: only these came from your posts: chest freezer ₦250,000, crystal flat slides (M6874) ₦7,500, sparkle heel slides (5531) ₦9,000, jelly flip flops (S415R-3) ₦4,500. Every other price is an estimate. Check them all.
 3. **Extra products**: clothing, baby wear and accessories use licensed stock photos (Unsplash) so the store looks full. Swap them for photos of your real stock, or delete products you don't carry.
 4. **Policies**: read `terms.html` and make sure the delivery and returns rules match how you work.

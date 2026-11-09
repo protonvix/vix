@@ -497,3 +497,27 @@ body.lock { overflow: hidden; }
   .reveal { transform: none; }
   .mobile-menu li { transform: none; }
 }
+
+/* ---------- WhatsApp lines ---------- */
+.lines { display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 360px; }
+.line-card { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: var(--r-lg); background: var(--surface); border: 1px solid var(--line); color: var(--ink); transition: transform .3s var(--ease), border-color .3s var(--ease), box-shadow .3s var(--ease); }
+.line-card:hover { transform: translateY(-2px); border-color: var(--wa); box-shadow: var(--shadow); }
+.line-card:active { transform: scale(0.98); }
+.line-card > i { flex: none; width: 40px; height: 40px; display: grid; place-items: center; border-radius: var(--r-sm); background: var(--wa); color: #fff; font-size: 24px; }
+.line-card span { display: flex; flex-direction: column; min-width: 0; }
+.line-card small { font-size: 12px; line-height: 16px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--gold); }
+.line-card strong { font-size: 16px; line-height: 24px; }
+.line-card em { font-style: normal; font-size: 12px; line-height: 16px; color: var(--muted); }
+.foot-lines { margin-top: 16px; }
+.foot-lines li { margin-bottom: 8px; }
+.foot-lines a { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; line-height: 20px; transition: color .3s var(--ease); }
+.foot-lines a:hover { color: #E8CF9C; }
+.foot-lines i { color: #7FD8A0; font-size: 18px; }
+.foot-lines strong { color: #fff; }
+.wa-menu { position: fixed; right: 24px; bottom: 96px; z-index: 41; width: min(320px, calc(100% - 32px)); padding: 16px; display: flex; flex-direction: column; gap: 8px; background: var(--bg); border: 1px solid var(--line); border-radius: var(--r-xl); box-shadow: var(--shadow-lg); opacity: 0; pointer-events: none; transform: translateY(16px) scale(.98); transform-origin: bottom right; transition: opacity .3s var(--ease), transform .5s var(--ease); }
+.wa-menu.open { opacity: 1; pointer-events: auto; transform: none; }
+.wa-menu-head { font-weight: 700; padding: 0 4px 4px; }
+.wa-menu-head span { display: block; font-weight: 500; font-size: 12px; line-height: 16px; color: var(--muted); }
+.wa-menu .line-card { border-radius: var(--r-md); }
+.wa-float[aria-expanded="true"] { transform: rotate(-8deg) scale(0.96); }
+@media (max-width: 560px) { .wa-menu { right: 16px; bottom: 88px; } }

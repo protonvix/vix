@@ -16,9 +16,13 @@
 window.STORE = {
   name: "Allahu Rahman Online Store",
   short: "Allahu Rahman",
-  // WhatsApp number in international format, digits only, e.g. "2348012345678".
-  // Leave empty and WhatsApp will ask the shopper to pick a contact.
-  whatsapp: "",
+  // Two WhatsApp lines, international format, digits only.
+  //   orders: checkout, "order now", bulk/wholesale, new arrival alerts
+  //   care:   questions, size help, delivery updates, returns
+  whatsapp: {
+    orders: { number: "2348164274103", display: "0816 427 4103", label: "Orders & sales" },
+    care:   { number: "2347033121920", display: "0703 312 1920", label: "Customer care" },
+  },
   email: "",
   currency: "₦",
 };
