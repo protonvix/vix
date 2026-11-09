@@ -1,0 +1,404 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Allahu Rahman Online Store | Shoes, bags, clothing, baby wear and home essentials</title>
+  <meta name="description" content="Shop shoes, slippers, bags, clothing, baby wear, accessories and home essentials at Allahu Rahman Online Store. Pick your size and colour, then order on WhatsApp in minutes.">
+  <meta name="theme-color" content="#0E3B2E">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Allahu Rahman Online Store">
+  <meta property="og:description" content="Shoes, bags, clothing, baby wear and home essentials. Order on WhatsApp in minutes.">
+  <meta property="og:image" content="images/crystal-bow-heels.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>
+  <link rel="stylesheet" href="store.css">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+
+  <div class="announce" role="note">
+    <div class="announce-track">
+      <span><i class="ph ph-whatsapp-logo"></i> Order on WhatsApp in a few taps</span>
+      <span><i class="ph ph-truck"></i> Delivery to your city</span>
+      <span><i class="ph ph-seal-check"></i> Every item checked before dispatch</span>
+      <span><i class="ph ph-sparkle"></i> New styles added every week</span>
+    </div>
+  </div>
+
+  <header class="nav-wrap">
+    <nav class="nav" aria-label="Main">
+      <a class="brand" href="#top" aria-label="Allahu Rahman Online Store home">
+        <span class="brand-mark" aria-hidden="true">AR</span>
+        <span class="brand-text">Allahu Rahman<small>Online Store</small></span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="#shop" data-nav="shop">Shop</a></li>
+        <li><a href="#shop" data-filter="clothing">Clothing</a></li>
+        <li><a href="#shop" data-filter="shoes">Shoes</a></li>
+        <li><a href="#shop" data-filter="bags">Bags</a></li>
+        <li><a href="#shop" data-filter="kids">Baby & kids</a></li>
+        <li><a href="#shop" data-filter="home">Home</a></li>
+      </ul>
+      <div class="nav-actions">
+        <button class="icon-btn" id="openSearch" aria-label="Search products"><i class="ph ph-magnifying-glass"></i></button>
+        <button class="icon-btn" id="openWish" aria-label="Open wishlist"><i class="ph ph-heart"></i><span class="count" id="wishCount" hidden>0</span></button>
+        <button class="icon-btn" id="openCart" aria-label="Open shopping bag"><i class="ph ph-handbag"></i><span class="count" id="cartCount" hidden>0</span></button>
+        <button class="menu-toggle" id="menuToggle" aria-label="Open menu" aria-expanded="false" aria-controls="mobileMenu"><span></span><span></span></button>
+      </div>
+    </nav>
+  </header>
+
+  <div class="mobile-menu" id="mobileMenu" aria-hidden="true">
+    <ul>
+      <li><a href="#shop" data-nav="shop">Shop all</a></li>
+      <li><a href="#shop" data-filter="clothing">Clothing</a></li>
+      <li><a href="#shop" data-filter="shoes">Shoes & sneakers</a></li>
+      <li><a href="#shop" data-filter="slippers">Slippers & sandals</a></li>
+      <li><a href="#shop" data-filter="bags">Bags</a></li>
+      <li><a href="#shop" data-filter="kids">Baby & kids</a></li>
+      <li><a href="#shop" data-filter="accessories">Accessories</a></li>
+      <li><a href="#shop" data-filter="home">Home & kitchen</a></li>
+      <li><a href="#faq">Help & FAQ</a></li>
+    </ul>
+  </div>
+
+  <main id="main">
+    <!-- HERO -->
+    <section class="hero" id="top">
+      <div class="container hero-grid">
+        <div class="hero-copy reveal">
+          <p class="eyebrow"><i class="ph ph-sparkle"></i> New season edit is in</p>
+          <h1>Style for the whole family, delivered to your door.</h1>
+          <p class="lead">Shoes, slippers, bags, clothing, baby wear and home essentials in one place. Pick your size and colour, then confirm your order with us on WhatsApp in minutes.</p>
+          <div class="hero-cta">
+            <a class="btn btn-primary btn-lg" href="#shop">Shop new arrivals <i class="ph ph-arrow-right"></i></a>
+            <a class="link-quiet" href="#how">How ordering works</a>
+          </div>
+          <ul class="hero-proof">
+            <li><strong id="statProducts">35</strong><span>styles in stock</span></li>
+            <li><strong>7</strong><span>departments</span></li>
+            <li><strong><i class="ph-fill ph-whatsapp-logo"></i></strong><span>chat to order</span></li>
+          </ul>
+        </div>
+        <div class="hero-art reveal" aria-hidden="true">
+          <figure class="art art-a"><img src="images/hero-shopping.jpg" alt=""></figure>
+          <figure class="art art-b"><img src="images/crystal-bow-heels.jpg" alt=""></figure>
+          <figure class="art art-c"><img src="images/quilted-chain-bag-white.jpg" alt=""></figure>
+          <div class="float-card">
+            <img src="images/max-crystal-slides.jpg" alt="">
+            <div><span>Crystal flat slides</span><strong>₦7,500</strong></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TRUST -->
+    <section class="trust" aria-label="Why shop with us">
+      <div class="container trust-grid">
+        <div><i class="ph ph-whatsapp-logo"></i><p><strong>Order on WhatsApp</strong><span>Talk to a real person, no account needed</span></p></div>
+        <div><i class="ph ph-truck"></i><p><strong>Delivery to your city</strong><span>Fee confirmed before you pay</span></p></div>
+        <div><i class="ph ph-seal-check"></i><p><strong>Quality checked</strong><span>Every item inspected before dispatch</span></p></div>
+        <div><i class="ph ph-ruler"></i><p><strong>Size help</strong><span>Not sure? We guide you to the right fit</span></p></div>
+      </div>
+    </section>
+
+    <!-- CATEGORIES -->
+    <section class="section" id="departments">
+      <div class="container">
+        <div class="section-head reveal">
+          <div>
+            <p class="eyebrow">Departments</p>
+            <h2>Shop by category</h2>
+          </div>
+          <a class="link-quiet" href="#shop">View everything <i class="ph ph-arrow-right"></i></a>
+        </div>
+        <div class="cat-grid" id="catGrid"></div>
+      </div>
+    </section>
+
+    <!-- SHOP -->
+    <section class="section shop" id="shop">
+      <div class="container">
+        <div class="section-head reveal">
+          <div>
+            <p class="eyebrow">The collection</p>
+            <h2 id="shopTitle">All products</h2>
+          </div>
+          <div class="shop-tools">
+            <label class="search-field">
+              <i class="ph ph-magnifying-glass"></i>
+              <input type="search" id="searchInput" placeholder="Search products" aria-label="Search products">
+            </label>
+            <label class="select-field">
+              <span class="sr-only">Sort products</span>
+              <select id="sortSelect">
+                <option value="featured">Featured</option>
+                <option value="low">Price: low to high</option>
+                <option value="high">Price: high to low</option>
+                <option value="name">Name A to Z</option>
+              </select>
+              <i class="ph ph-caret-down"></i>
+            </label>
+          </div>
+        </div>
+        <div class="chips" id="chips" role="tablist" aria-label="Filter by category"></div>
+        <div class="grid" id="productGrid" aria-live="polite"></div>
+        <div class="empty" id="emptyState" hidden>
+          <i class="ph ph-magnifying-glass"></i>
+          <h3>No products match that search</h3>
+          <p>Try a shorter word like "slides" or "bag", or message us and we will find it for you.</p>
+          <button class="btn btn-ghost" id="clearSearch">Clear search</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- EDITORIAL -->
+    <section class="section editorial">
+      <div class="container edit-grid">
+        <a class="edit-card reveal" href="#shop" data-filter="slippers">
+          <img src="images/sparkle-heel-slides.jpg" alt="Sparkle wave low heel slides in black, gold and silver" loading="lazy">
+          <div class="edit-copy">
+            <p class="eyebrow light">Slippers & sandals</p>
+            <h3>Sparkle for every day of the week</h3>
+            <span class="btn btn-light">Shop slides from ₦4,500</span>
+          </div>
+        </a>
+        <a class="edit-card reveal" href="#shop" data-filter="bags">
+          <img src="images/signature-mini-totes.jpg" alt="Signature print mini totes in six colours" loading="lazy">
+          <div class="edit-copy">
+            <p class="eyebrow light">Bags</p>
+            <h3>Six colours. One perfect mini tote.</h3>
+            <span class="btn btn-light">Shop bags</span>
+          </div>
+        </a>
+      </div>
+    </section>
+
+    <!-- TAGLINE REVEAL -->
+    <section class="tagline" aria-label="Our promise">
+      <div class="container">
+        <p class="tagline-text" id="taglineText">Quality you can feel, prices that make sense, and a real person on WhatsApp to help you choose.</p>
+      </div>
+    </section>
+
+    <!-- BEST SELLERS -->
+    <section class="section">
+      <div class="container">
+        <div class="section-head reveal">
+          <div>
+            <p class="eyebrow">Customer favourites</p>
+            <h2>Best sellers this week</h2>
+          </div>
+          <div class="rail-ctrl">
+            <button class="icon-btn outline" data-rail="-1" aria-label="Scroll left"><i class="ph ph-arrow-left"></i></button>
+            <button class="icon-btn outline" data-rail="1" aria-label="Scroll right"><i class="ph ph-arrow-right"></i></button>
+          </div>
+        </div>
+        <div class="rail" id="bestRail"></div>
+      </div>
+    </section>
+
+    <!-- KIDS + HOME SPLIT -->
+    <section class="section">
+      <div class="container split">
+        <article class="split-card kids reveal">
+          <div class="split-copy">
+            <p class="eyebrow">Baby & kids</p>
+            <h2>Soft on skin, ready for every celebration</h2>
+            <p>Rompers, newborn gift sets and smart outfits for naming ceremonies, birthdays and Sallah.</p>
+            <a class="btn btn-primary" href="#shop" data-filter="kids">Shop baby & kids</a>
+          </div>
+          <img src="images/baby-bear-romper.jpg" alt="Baby wearing a teddy ear hooded romper" loading="lazy">
+        </article>
+        <article class="split-card home reveal">
+          <div class="split-copy">
+            <p class="eyebrow light">Home & kitchen</p>
+            <h2>Upgrade the kitchen without the market stress</h2>
+            <p>Gold cutlery sets, utensil sets, cleaning tools and appliances like our 158 litre chest freezer.</p>
+            <a class="btn btn-light" href="#shop" data-filter="home">Shop home & kitchen</a>
+          </div>
+          <img src="images/chest-freezer-158l.jpg" alt="158 litre chest freezer with lid open" loading="lazy">
+        </article>
+      </div>
+    </section>
+
+    <!-- HOW IT WORKS -->
+    <section class="section how" id="how">
+      <div class="container">
+        <div class="section-head center reveal">
+          <div>
+            <p class="eyebrow">How ordering works</p>
+            <h2>From browsing to your doorstep in three steps</h2>
+          </div>
+        </div>
+        <ol class="steps">
+          <li class="reveal"><span class="step-n">01</span><i class="ph ph-hand-tap"></i><h3>Pick your items</h3><p>Choose colour, size and quantity, then add to your bag. Add as many items as you like.</p></li>
+          <li class="reveal"><span class="step-n">02</span><i class="ph ph-whatsapp-logo"></i><h3>Send your order on WhatsApp</h3><p>One tap sends your full list to us. We confirm stock, delivery fee and the total.</p></li>
+          <li class="reveal"><span class="step-n">03</span><i class="ph ph-package"></i><h3>Pay and receive</h3><p>Pay by transfer once everything is confirmed, and we pack and dispatch your order.</p></li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="section" id="faq">
+      <div class="container faq-wrap">
+        <div class="reveal">
+          <p class="eyebrow">Help centre</p>
+          <h2>Questions, answered</h2>
+          <p class="muted">Cannot find what you need? Send us a message and we usually reply the same day.</p>
+          <a class="btn btn-primary" id="faqWhatsApp" href="#" target="_blank" rel="noopener"><i class="ph ph-whatsapp-logo"></i> Chat with us</a>
+        </div>
+        <div class="faq" id="faqList">
+          <details class="reveal"><summary>How do I place an order?<i class="ph ph-plus"></i></summary><p>Add items to your bag, open the bag and tap "Send order on WhatsApp". Your list, sizes, colours and total are written for you. We reply to confirm stock and delivery.</p></details>
+          <details class="reveal"><summary>How much is delivery and how long does it take?<i class="ph ph-plus"></i></summary><p>Delivery cost depends on your location and the size of the order. We tell you the exact fee before you pay, along with the expected delivery date.</p></details>
+          <details class="reveal"><summary>How do I pay?<i class="ph ph-plus"></i></summary><p>Once your order is confirmed on WhatsApp we send our account details for bank transfer. Please only pay into the account we send you in the chat.</p></details>
+          <details class="reveal"><summary>How do I know my size?<i class="ph ph-plus"></i></summary><p>Shoes and slippers use EU sizes (for example 38 or 41). Tell us your usual size or foot length and we will recommend the best fit for that style.</p></details>
+          <details class="reveal"><summary>Are the colours in the photos accurate?<i class="ph ph-plus"></i></summary><p>We photograph our stock as closely to real life as we can. If you want to be sure, ask us for a live photo or video of the exact item before you pay.</p></details>
+          <details class="reveal"><summary>Can I buy in bulk for resale?<i class="ph ph-plus"></i></summary><p>Yes. Many of our slippers and sandals are available by the dozen. Message us with the item and quantity for a wholesale price.</p></details>
+          <details class="reveal"><summary>What if an item arrives damaged or wrong?<i class="ph ph-plus"></i></summary><p>Contact us within 48 hours of delivery with photos. See our <a href="terms.html#returns">returns policy</a> for full details.</p></details>
+        </div>
+      </div>
+    </section>
+
+    <!-- FINAL CTA -->
+    <section class="section final">
+      <div class="container">
+        <div class="final-card reveal">
+          <div>
+            <h2>Seen something you love?</h2>
+            <p>Join our WhatsApp updates for new arrivals and restocks before anyone else.</p>
+          </div>
+          <form class="join" id="joinForm" novalidate>
+            <label class="sr-only" for="joinName">Your first name</label>
+            <input id="joinName" name="name" type="text" placeholder="Your first name" autocomplete="given-name" required>
+            <button class="btn btn-gold" type="submit">Get new arrival alerts</button>
+            <p class="form-error" id="joinError" role="alert" hidden></p>
+          </form>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container foot-grid">
+      <div class="foot-brand">
+        <a class="brand" href="#top"><span class="brand-mark" aria-hidden="true">AR</span><span class="brand-text">Allahu Rahman<small>Online Store</small></span></a>
+        <p>Shoes, bags, clothing, baby wear and home essentials, chosen with care and delivered to you.</p>
+        <div class="socials">
+          <a class="icon-btn outline" id="footWhatsApp" href="#" target="_blank" rel="noopener" aria-label="WhatsApp"><i class="ph ph-whatsapp-logo"></i></a>
+        </div>
+      </div>
+      <div>
+        <h4>Shop</h4>
+        <ul>
+          <li><a href="#shop" data-filter="clothing">Clothing</a></li>
+          <li><a href="#shop" data-filter="shoes">Shoes & sneakers</a></li>
+          <li><a href="#shop" data-filter="slippers">Slippers & sandals</a></li>
+          <li><a href="#shop" data-filter="bags">Bags</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>More</h4>
+        <ul>
+          <li><a href="#shop" data-filter="kids">Baby & kids</a></li>
+          <li><a href="#shop" data-filter="accessories">Accessories</a></li>
+          <li><a href="#shop" data-filter="home">Home & kitchen</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Help</h4>
+        <ul>
+          <li><a href="#how">How to order</a></li>
+          <li><a href="#faq">FAQ</a></li>
+          <li><a href="terms.html#returns">Returns</a></li>
+          <li><a href="privacy.html">Privacy policy</a></li>
+          <li><a href="terms.html">Terms of sale</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="container foot-base">
+      <p>© <span id="year">2026</span> Allahu Rahman Online Store. All rights reserved.</p>
+      <p class="pay"><i class="ph ph-bank"></i> Bank transfer <i class="ph ph-whatsapp-logo"></i> WhatsApp orders</p>
+    </div>
+  </footer>
+
+  <!-- Floating WhatsApp -->
+  <a class="wa-float" id="waFloat" href="#" target="_blank" rel="noopener" aria-label="Chat on WhatsApp"><i class="ph-fill ph-whatsapp-logo"></i></a>
+
+  <!-- Overlay + drawers -->
+  <div class="overlay" id="overlay" hidden></div>
+
+  <aside class="drawer" id="cartDrawer" aria-label="Shopping bag" aria-hidden="true">
+    <div class="drawer-head">
+      <h3>Your bag <span id="cartItemsLabel"></span></h3>
+      <button class="icon-btn" data-close aria-label="Close bag"><i class="ph ph-x"></i></button>
+    </div>
+    <div class="drawer-body" id="cartBody"></div>
+    <div class="drawer-foot" id="cartFoot">
+      <div class="sum-row"><span>Subtotal</span><strong id="cartSubtotal">₦0</strong></div>
+      <p class="muted small">Delivery fee is confirmed on WhatsApp based on your location.</p>
+      <label class="note-field"><span>Delivery city or area (optional)</span><input type="text" id="cartCity" placeholder="e.g. Ikeja, Lagos"></label>
+      <a class="btn btn-wa btn-lg block" id="checkoutBtn" href="#" target="_blank" rel="noopener"><i class="ph-fill ph-whatsapp-logo"></i> Send order on WhatsApp</a>
+    </div>
+  </aside>
+
+  <aside class="drawer" id="wishDrawer" aria-label="Wishlist" aria-hidden="true">
+    <div class="drawer-head">
+      <h3>Wishlist</h3>
+      <button class="icon-btn" data-close aria-label="Close wishlist"><i class="ph ph-x"></i></button>
+    </div>
+    <div class="drawer-body" id="wishBody"></div>
+  </aside>
+
+  <!-- Search overlay -->
+  <div class="search-pop" id="searchPop" aria-hidden="true" role="dialog" aria-label="Search">
+    <div class="search-pop-inner">
+      <label class="search-field big">
+        <i class="ph ph-magnifying-glass"></i>
+        <input type="search" id="popSearch" placeholder="What are you looking for?" aria-label="Search the store">
+      </label>
+      <button class="icon-btn" data-close aria-label="Close search"><i class="ph ph-x"></i></button>
+      <div class="search-results" id="popResults"></div>
+    </div>
+  </div>
+
+  <!-- Quick view modal -->
+  <div class="modal" id="quickView" role="dialog" aria-modal="true" aria-labelledby="qvName" aria-hidden="true">
+    <div class="modal-card">
+      <button class="icon-btn modal-close" data-close aria-label="Close"><i class="ph ph-x"></i></button>
+      <div class="qv-media"><img id="qvImg" src="" alt=""></div>
+      <div class="qv-info">
+        <p class="eyebrow" id="qvCat"></p>
+        <h3 id="qvName"></h3>
+        <p class="qv-price"><strong id="qvPrice"></strong><s id="qvOld"></s></p>
+        <p class="muted" id="qvDesc"></p>
+        <div class="opt" id="qvColorsWrap"><p class="opt-label">Colour: <span id="qvColorName"></span></p><div class="swatches" id="qvColors"></div></div>
+        <div class="opt" id="qvSizesWrap"><p class="opt-label">Size <span class="muted">(EU)</span></p><div class="sizes" id="qvSizes"></div><p class="form-error" id="qvSizeErr" hidden>Choose a size to continue.</p></div>
+        <div class="qv-actions">
+          <div class="qty" aria-label="Quantity">
+            <button type="button" id="qvMinus" aria-label="Decrease quantity"><i class="ph ph-minus"></i></button>
+            <span id="qvQty">1</span>
+            <button type="button" id="qvPlus" aria-label="Increase quantity"><i class="ph ph-plus"></i></button>
+          </div>
+          <button class="btn btn-primary btn-lg grow" id="qvAdd"><i class="ph ph-handbag"></i> Add to bag</button>
+        </div>
+        <a class="btn btn-wa block" id="qvBuy" href="#" target="_blank" rel="noopener"><i class="ph-fill ph-whatsapp-logo"></i> Order this now on WhatsApp</a>
+        <ul class="qv-perks">
+          <li><i class="ph ph-seal-check"></i> Checked before dispatch</li>
+          <li><i class="ph ph-camera"></i> Ask for a live photo anytime</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="products.js"></script>
+  <script src="store.js"></script>
+</body>
+</html>
