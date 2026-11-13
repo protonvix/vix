@@ -1,6 +1,10 @@
 /* Vix Assist: strategy call booking */
 (function () {
   "use strict";
+  if (/[?&]embed=1/.test(location.search)) {
+    document.body.classList.add("bk-embed");
+    document.addEventListener("keydown", function (e) { if (e.key === "Escape" && window.parent !== window) window.parent.postMessage("vxb-close", "*"); });
+  }
   var $ = function (s) { return document.querySelector(s); };
   var esc = function (t) { return String(t).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
   var here = (Intl.DateTimeFormat().resolvedOptions().timeZone) || "UTC";

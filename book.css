@@ -124,3 +124,6 @@
   .acts .btn{flex:1}
 }
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}.slot{opacity:1}}
+.bk-embed .bk-top{display:none}
+.bk-embed .bk{padding-top:56px}
+.bk-embed{background:radial-gradient(1000px 500px at 85% -10%,rgba(111,91,255,.22),transparent 60%),#000}
