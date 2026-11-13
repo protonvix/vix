@@ -2,6 +2,10 @@ User-agent: *
 Allow: /
 Disallow: /work/
 Disallow: /social/
+Disallow: /portal/
+Disallow: /pay/
+Disallow: /api/
 Disallow: /.claude/
+Disallow: /tools/
 
 Sitemap: https://vixassist.com/sitemap.xml

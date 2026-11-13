@@ -25,7 +25,7 @@ def head(title, desc, path, extra_css=""):
 <meta name="description" content="{html.escape(desc)}">
 <meta name="theme-color" content="#F6F5F1">
 <meta name="color-scheme" content="light">
-<link rel="canonical" href="{SITE}/{path}">
+<link rel="canonical" href="{SITE}/{path[:-5] if path.endswith('.html') else path}">
 <meta property="og:type" content="website">
 <meta property="og:title" content="{html.escape(title)}">
 <meta property="og:description" content="{html.escape(desc)}">
