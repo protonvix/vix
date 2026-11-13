@@ -11,7 +11,7 @@ import os, re, html
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CONTENT = os.path.join(ROOT, "tools", "content")
 SITE = "https://vixassist.com"
-V = "6"  # bump to bust caches for assist.css / site.js
+V = "7"  # bump to bust caches for assist.css / site.js
 LINKEDIN = "https://www.linkedin.com/in/promise-felix-a491a7233/"
 WA = "447723149573"
 
@@ -50,6 +50,7 @@ def nav(cur=""):
     def c(name): return ' aria-current="page"' if cur == name else ""
     return f'''<header class="nav" id="nav">
   <a class="logo" href="/" aria-label="Vix Assist home"><img id="logo-anim" src="brand/vix-icon-animated.svg" alt="" width="30" height="30"><span>Vix <b>Assist</b></span></a>
+  <a class="nav-acct" href="book.html?account=1"><i class="ph ph-user-plus" aria-hidden="true"></i>Create an account</a>
   <nav class="nav-links" aria-label="Main">
     <a href="/#work">See the work</a>
     <a href="/#ecosystem">GoHighLevel</a>
@@ -77,6 +78,8 @@ def nav(cur=""):
   <a class="sub" href="va-services.html">Virtual assistance</a>
   <a class="sub" href="tiktok.html">TikTok marketing</a>
   <a class="sub" href="web-design.html">Website design</a>
+  <a class="sub" href="book.html?account=1">Create an account</a>
+  <a class="sub" href="portal/">Client login</a>
   <a class="btn btn-p" href="book.html">Book a strategy call</a>
 </div>
 '''
@@ -89,7 +92,7 @@ def footer(cta_h="Let's make your GoHighLevel account <em>earn its keep.</em>", 
       <div><a class="logo" href="/"><img src="brand/vix-icon.svg" alt="" width="30" height="30"><span>Vix <b>Assist</b></span></a><p style="margin-top:14px;max-width:320px">A dedicated GoHighLevel virtual assistant for business owners and agencies. Run by Promise Felix.</p></div>
       <div><h4>GoHighLevel</h4><a href="/#ecosystem">What I manage</a><a href="/#how">How it works</a><a href="pricing.html">Pricing</a><a href="/#audit">Free audit</a></div>
       <div><h4>More services</h4><a href="va-services.html">Virtual assistance</a><a href="tiktok.html">TikTok marketing</a><a href="web-design.html">Website design</a><a href="portal/">Client login</a></div>
-      <div><h4>Support</h4><a href="mailto:support@vixassist.com">Contact support</a><a href="book.html">Book a call</a><a href="{LINKEDIN}" target="_blank" rel="noopener">LinkedIn</a><a href="https://wa.me/{WA}" target="_blank" rel="noopener">WhatsApp +44 7723 149573</a></div>
+      <div><h4>Support</h4><a href="book.html?account=1"><b style="color:#fff">Create an account</b></a><a href="portal/">Client login</a><a href="mailto:support@vixassist.com">Contact support</a><a href="book.html">Book a call</a><a href="{LINKEDIN}" target="_blank" rel="noopener">LinkedIn</a><a href="https://wa.me/{WA}" target="_blank" rel="noopener">WhatsApp +44 7723 149573</a></div>
     </div>
     <div class="fbot"><span>© 2026 Vix Assist. GoHighLevel is a trademark of HighLevel Inc. Vix Assist is an independent service and is not affiliated with HighLevel.</span><span><a href="about.html">About</a> · <a href="privacy.html">Privacy</a> · <a href="payment.html">Payments</a> · <a href="delivery.html">Delivery</a> · <a href="refund.html">Refunds</a></span></div>
   </div>
@@ -99,7 +102,7 @@ def footer(cta_h="Let's make your GoHighLevel account <em>earn its keep.</em>", 
 def scripts(extra=""):
     return f'''<script src="site.js?v={V}"></script>{extra}
 <script src="chatbot.js?v=7" defer></script>
-<script src="/book-widget.js?v=2" defer></script>
+<script src="/book-widget.js?v=3" defer></script>
 </body>
 </html>
 '''

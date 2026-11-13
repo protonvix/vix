@@ -1,6 +1,12 @@
 /* Vix Assist: strategy call booking */
 (function () {
   "use strict";
+  if (/[?&]account=1/.test(location.search)) {
+    var h = document.querySelector(".bk-side h1"), l = document.querySelector(".bk-lead");
+    if (h) h.innerHTML = 'Create your <em style="color:var(--brand)">client account</em>';
+    if (l) l.textContent = "Three quick steps: choose your service, book a free call on Zoom or Google Meet, and after we talk your account link arrives by email. It takes you straight into your own dashboard.";
+    document.title = "Create your account · Vix Assist";
+  }
   if (/[?&]embed=1/.test(location.search)) {
     document.body.classList.add("bk-embed");
     document.addEventListener("keydown", function (e) { if (e.key === "Escape" && window.parent !== window) window.parent.postMessage("vxb-close", "*"); });
