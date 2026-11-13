@@ -33,13 +33,13 @@
   document.head.appendChild(css);
 
   var ov = null, lastFocus = null;
-  function open(e) {
+  function open(e, extra) {
     if (e) { if (e.metaKey || e.ctrlKey || e.shiftKey || e.button === 1) return; e.preventDefault(); }
     if (ov) return;
     lastFocus = document.activeElement;
     ov = document.createElement("div");
     ov.className = "vxb-ov"; ov.setAttribute("role", "dialog"); ov.setAttribute("aria-modal", "true"); ov.setAttribute("aria-label", "Book a strategy call");
-    ov.innerHTML = '<div class="vxb-box"><div class="vxb-load">Loading calendar…</div><button class="vxb-x" type="button" aria-label="Close">&times;</button><iframe title="Book a strategy call" src="' + BOOK + '?embed=1&from=' + encodeURIComponent(location.hostname) + '" allow="clipboard-write"></iframe></div>';
+    ov.innerHTML = '<div class="vxb-box"><div class="vxb-load">Loading calendar…</div><button class="vxb-x" type="button" aria-label="Close">&times;</button><iframe title="Book a strategy call" src="' + BOOK + '?embed=1' + (extra || '') + '&from=' + encodeURIComponent(location.hostname) + '" allow="clipboard-write"></iframe></div>';
     document.body.appendChild(ov);
     document.documentElement.style.overflow = "hidden";
     ov.querySelector("iframe").addEventListener("load", function () { var l = ov && ov.querySelector(".vxb-load"); if (l) l.remove(); });
@@ -62,14 +62,14 @@
     var a = e.target.closest && e.target.closest("a[href]");
     if (!a || a.target === "_blank") return;
     var u; try { u = new URL(a.getAttribute("href"), location.href); } catch (x) { return; }
-    if (/\/book\.html$/.test(u.pathname) && (u.origin === location.origin || u.origin === ORIGIN)) open(e);
+    if (/\/book\.html$/.test(u.pathname) && (u.origin === location.origin || u.origin === ORIGIN)) open(e, u.search.replace(/^\?/, "&"));
   });
 
   // floating button
   var pill = document.createElement("a");
-  pill.className = "vxb-pill"; pill.href = BOOK;
-  pill.innerHTML = '<span class="vxb-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="13" height="12" rx="3"/><path d="m16 10 5-3v10l-5-3"/></svg></span><span>Book a call<small>Free · Zoom or Google Meet</small></span>';
-  pill.addEventListener("click", open);
+  pill.className = "vxb-pill"; pill.href = BOOK + "?account=1";
+  pill.innerHTML = '<span class="vxb-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="8" r="4"/><path d="M3 20c.8-3.5 3.6-5.5 7-5.5s6.2 2 7 5.5M19 8v6M16 11h6"/></svg></span><span>Create an account<small>Starts with a free call</small></span>';
+  pill.addEventListener("click", function (e) { open(e, "&account=1"); });
   document.body.appendChild(pill);
   // a page with its own bottom call-to-action bar on phones keeps that bar instead
   var bar = document.querySelector(".mobile-cta");

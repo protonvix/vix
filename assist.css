@@ -581,3 +581,11 @@ a.ex{transition:border-color .3s var(--ease)}a.ex:hover{border-color:var(--ink)}
 .claimed{max-width:620px;margin:0 auto;text-align:center}
 .claimed .btn{display:inline-flex}
 @media (max-width:900px){.picker{grid-template-columns:repeat(2,1fr)}.claim{padding:24px}.count div{min-width:0;flex:1}.count b{font-size:34px;line-height:36px}}
+
+/* "Create an account" next to the logo */
+.nav-acct{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:999px;border:1px solid var(--line2);font-size:13px;line-height:18px;font-weight:600;color:var(--ink);white-space:nowrap;transition:background-color .3s var(--ease),border-color .3s var(--ease)}
+.nav-acct i{font-size:16px;color:var(--brand)}
+.nav-acct:hover{background:var(--s1);border-color:var(--ink)}
+@media (max-width:1180px){.nav-links a[href="about.html"]{display:none}}
+@media (max-width:900px){.nav-acct{padding:6px 12px;font-size:12px;margin-right:auto}.nav-acct i{display:none}.nav .menu-btn{margin-left:0}}
+@media (max-width:380px){.nav-acct{display:none}}
