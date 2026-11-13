@@ -4,40 +4,6 @@
   var $ = function (s, r) { return (r || document).querySelector(s); };
   var reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  /* ---------- mobile menu ---------- */
-  var mb = $(".menu-btn"), panel = $("#mpanel");
-  function setMenu(open) {
-    document.body.classList.toggle("menu-open", open);
-    mb.setAttribute("aria-expanded", open); mb.setAttribute("aria-label", open ? "Close menu" : "Open menu");
-    panel.setAttribute("aria-hidden", !open);
-    document.body.style.overflow = open ? "hidden" : "";
-    panel.querySelectorAll("a").forEach(function (a, i) { a.style.transitionDelay = open ? Math.min(i * 60, 400) + "ms" : "0ms"; });
-  }
-  mb.addEventListener("click", function () { setMenu(!document.body.classList.contains("menu-open")); });
-  panel.addEventListener("click", function (e) { if (e.target.closest("a")) setMenu(false); });
-  document.addEventListener("keydown", function (e) { if (e.key === "Escape") { setMenu(false); $("#dd").classList.remove("open"); } });
-
-  /* ---------- dropdown (click for touch) ---------- */
-  var dd = $("#dd"), ddb = dd.querySelector("button");
-  ddb.addEventListener("click", function () { var o = !dd.classList.contains("open"); dd.classList.toggle("open", o); ddb.setAttribute("aria-expanded", o); });
-  document.addEventListener("click", function (e) { if (!dd.contains(e.target)) { dd.classList.remove("open"); ddb.setAttribute("aria-expanded", "false"); } });
-
-  /* ---------- current section in nav ---------- */
-  var links = Array.prototype.slice.call(document.querySelectorAll('.nav-links a[href^="#"]'));
-  if ("IntersectionObserver" in window) {
-    var secIO = new IntersectionObserver(function (es) {
-      es.forEach(function (e) { if (e.isIntersecting) links.forEach(function (a) { a.setAttribute("aria-current", a.getAttribute("href") === "#" + e.target.id); }); });
-    }, { rootMargin: "-45% 0px -50% 0px" });
-    links.forEach(function (a) { var s = $(a.getAttribute("href")); if (s) secIO.observe(s); });
-  }
-
-  /* ---------- scroll reveal (once) ---------- */
-  var rv = document.querySelectorAll(".rv");
-  if ("IntersectionObserver" in window && !reduce) {
-    var io = new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } }); }, { threshold: 0.12 });
-    rv.forEach(function (el) { io.observe(el); });
-  } else rv.forEach(function (el) { el.classList.add("in"); });
-
   /* ---------- tagline: words light up one by one ---------- */
   var tag = $("#tagline");
   if (tag) {
@@ -152,36 +118,8 @@
   });
 })();
 
-/* ===== 3D interactions ===== */
+/* replay the logo animation on hover */
 (function () {
-  "use strict";
-  var reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
-  var fine = window.matchMedia && matchMedia("(pointer: fine)").matches;
-  // replay the logo animation on hover
   var logo = document.getElementById("logo-anim");
   if (logo) logo.parentElement.addEventListener("mouseenter", function () { logo.src = "brand/vix-icon-animated.svg?r=" + Date.now(); });
-  if (reduce || !fine) return;
-  // console follows the cursor in 3D
-  var con = document.getElementById("console");
-  if (con && innerWidth > 1080) {
-    var base = { y: -14, x: 7 };
-    addEventListener("pointermove", function (e) {
-      var dx = e.clientX / innerWidth - 0.5, dy = e.clientY / innerHeight - 0.5;
-      con.style.transform = "rotateY(" + (base.y + dx * 10).toFixed(2) + "deg) rotateX(" + (base.x - dy * 8).toFixed(2) + "deg) rotateZ(1deg)";
-    }, { passive: true });
-  }
-  // cards tilt with a light glare
-  document.querySelectorAll("[data-tilt]").forEach(function (el) {
-    var raf = 0;
-    el.addEventListener("pointermove", function (e) {
-      var r = el.getBoundingClientRect(), px = (e.clientX - r.left) / r.width, py = (e.clientY - r.top) / r.height;
-      cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(function () {
-        el.style.transition = "transform .15s cubic-bezier(.22,1,.36,1)";
-        el.style.transform = "perspective(900px) rotateX(" + ((0.5 - py) * 9).toFixed(2) + "deg) rotateY(" + ((px - 0.5) * 11).toFixed(2) + "deg) translateZ(6px)";
-        el.style.setProperty("--gx", (px * 100).toFixed(1) + "%"); el.style.setProperty("--gy", (py * 100).toFixed(1) + "%");
-      });
-    });
-    el.addEventListener("pointerleave", function () { el.style.transition = "transform .7s cubic-bezier(.22,1,.36,1)"; el.style.transform = ""; });
-  });
 })();
