@@ -106,7 +106,7 @@
 
     // messages
     html += '<section class="card c6"><h2><i class="ph ph-chats-circle" aria-hidden="true"></i>Messages</h2><div class="chat" id="chat">' +
-      ((p.messages || []).length ? p.messages.map(function (m) { return '<div class="msg ' + (m.from === "client" ? "mine" : "them") + '">' + esc(m.text) + "<time>" + (m.from === "client" ? "You" : "Vix Automations") + " · " + VX.date(m.at, true) + "</time></div>"; }).join("") : '<div class="empty"><i class="ph ph-chat-teardrop-text" aria-hidden="true"></i>Ask a question or request a change. We usually reply within one business day.</div>') +
+      ((p.messages || []).length ? p.messages.map(function (m) { return '<div class="msg ' + (m.from === "client" ? "mine" : "them") + '">' + esc(m.text) + "<time>" + (m.from === "client" ? "You" : "Vix Assist") + " · " + VX.date(m.at, true) + "</time></div>"; }).join("") : '<div class="empty"><i class="ph ph-chat-teardrop-text" aria-hidden="true"></i>Ask a question or request a change. We usually reply within one business day.</div>') +
       '</div><form class="send" id="send"><label class="sr" style="flex:1"><span hidden>Message</span><textarea name="text" rows="2" placeholder="Request a change or ask a question…" required></textarea></label><button class="btn btn-p" type="submit"><i class="ph ph-paper-plane-tilt" aria-hidden="true"></i>Send</button></form><p class="err" id="send-err"></p></section>';
 
     html += '<section class="card c12 help"><div><h2>Need anything?</h2><p class="muted">Message us here, on WhatsApp or by email. A real person replies.</p></div><div class="acts"><a class="btn btn-wa" href="https://wa.me/447723149573" target="_blank" rel="noopener"><i class="ph-fill ph-whatsapp-logo" aria-hidden="true"></i>WhatsApp UK</a><a class="btn btn-g" href="https://wa.me/message/WV3WLO4FC656K" target="_blank" rel="noopener">WhatsApp Nigeria</a><a class="btn btn-g" href="mailto:vixautomations@gmail.com">Email us</a></div></section>';
@@ -138,7 +138,7 @@
 
   /* live chat: check for new messages from Vix every 15 seconds */
   function chatHtml(p) {
-    return (p.messages || []).map(function (m) { return '<div class="msg ' + (m.from === "client" ? "mine" : "them") + '">' + esc(m.text) + "<time>" + (m.from === "client" ? "You" : "Vix Automations") + " · " + VX.date(m.at, true) + "</time></div>"; }).join("");
+    return (p.messages || []).map(function (m) { return '<div class="msg ' + (m.from === "client" ? "mine" : "them") + '">' + esc(m.text) + "<time>" + (m.from === "client" ? "You" : "Vix Assist") + " · " + VX.date(m.at, true) + "</time></div>"; }).join("");
   }
   setInterval(function () {
     if (!data || $("#dash-view").hidden || document.visibilityState !== "visible") return;
@@ -153,7 +153,7 @@
         if (chat) { chat.innerHTML = chatHtml(newP); chat.scrollTop = chat.scrollHeight; }
         var last = newP.messages[after - 1];
         if (last && last.from === "vix") {
-          $("#toast-t").textContent = "💬 New message from Vix Automations";
+          $("#toast-t").textContent = "💬 New message from Vix Assist";
           $("#toast-s").textContent = last.text.length > 90 ? last.text.slice(0, 90) + "…" : last.text;
           $("#toast").classList.add("show"); setTimeout(function () { $("#toast").classList.remove("show"); }, 8000);
           api("seen", { projectId: newP.id }).catch(function () {});

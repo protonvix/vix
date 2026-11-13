@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <meta name="referrer" content="no-referrer">
-<title>Create your dashboard · Vix Automations</title>
+<title>Create your dashboard · Vix Assist</title>
 <meta name="theme-color" content="#05060c">
 <link rel="icon" href="/brand/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -16,7 +16,7 @@
 <body>
 <main class="auth">
   <form class="auth-card" id="join" novalidate>
-    <a class="logo" href="/"><img src="/brand/vix-icon.svg" alt="" width="32" height="32">Vix Automations</a>
+    <a class="logo" href="/"><img src="/brand/vix-icon.svg" alt="" width="32" height="32">Vix Assist</a>
     <h1 id="join-h">Create your <em>dashboard</em></h1>
     <p id="join-p">Your project has started. Set a password to see your progress, updates and deliveries any time.</p>
     <div id="fields" hidden>
@@ -43,7 +43,7 @@
     if (d.business) document.getElementById("join-p").textContent = "Your " + d.business + " project has started. Set a password to see your progress, updates and deliveries any time.";
   }).catch(function (e) {
     document.getElementById("join-h").innerHTML = "This link has <em>expired</em>";
-    document.getElementById("join-p").innerHTML = 'Links work once and last 14 days. If you already created your dashboard, <a href="/portal/" style="color:#c9d4ff">log in here</a>. Otherwise <a href="https://wa.me/447723149573?text=Hello%20Vix%20Automations%2C%20I%20need%20a%20new%20dashboard%20link." style="color:#c9d4ff" target="_blank" rel="noopener">message us on WhatsApp</a> for a new link.';
+    document.getElementById("join-p").innerHTML = 'Links work once and last 14 days. If you already created your dashboard, <a href="/portal/" style="color:#c9d4ff">log in here</a>. Otherwise <a href="https://wa.me/447723149573?text=Hello%20Vix%20Assist%2C%20I%20need%20a%20new%20dashboard%20link." style="color:#c9d4ff" target="_blank" rel="noopener">message us on WhatsApp</a> for a new link.';
   });
   form.addEventListener("submit", function (e) {
     e.preventDefault(); err.textContent = "";

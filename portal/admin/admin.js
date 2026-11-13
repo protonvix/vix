@@ -173,7 +173,7 @@
   function poll() {
     return api("admin/feed").then(function (d) {
       $("#bell-n").hidden = !d.unread; $("#bell-n").textContent = d.unread;
-      document.title = (d.unread ? "(" + d.unread + ") " : "") + "Admin · Vix Automations";
+      document.title = (d.unread ? "(" + d.unread + ") " : "") + "Admin · Vix Assist";
       var fresh = d.items.filter(function (i) { return i.unread && !known[i.kind + i.id]; });
       if (lastUnread !== null && fresh.length) {
         chime();
@@ -268,9 +268,9 @@
       api("admin/payreqs", { name: f.name.value, email: f.email.value, business: f.business.value, whatsapp: f.whatsapp.value, currency: f.currency.value, note: f.note.value, services: services })
         .then(function (d) {
           var q = d.request, first = q.name.split(" ")[0], amount = VX.money(q.total, q.currency);
-          var msg = "Hi " + first + ", thank you for choosing Vix Automations! 🙏\n\nHere is your secure payment link for " + amount + ":\n" + d.link + "\n\nYou can pay by card, bank transfer or USSD through Paystack. As soon as payment is confirmed, your project starts and you'll get access to your client dashboard.\n\n– Promise, Vix Automations";
+          var msg = "Hi " + first + ", thank you for choosing Vix Assist! 🙏\n\nHere is your secure payment link for " + amount + ":\n" + d.link + "\n\nYou can pay by card, bank transfer or USSD through Paystack. As soon as payment is confirmed, your project starts and you'll get access to your client dashboard.\n\n– Promise, Vix Assist";
           var wa = (q.whatsapp || "").replace(/[^\d]/g, "").replace(/^0/, "234");
-          var gmail = "https://mail.google.com/mail/?view=cm&fs=1&to=" + encodeURIComponent(q.email) + "&su=" + encodeURIComponent("Your payment link: " + (q.business || "your project") + " | Vix Automations") + "&body=" + encodeURIComponent(msg);
+          var gmail = "https://mail.google.com/mail/?view=cm&fs=1&to=" + encodeURIComponent(q.email) + "&su=" + encodeURIComponent("Your payment link: " + (q.business || "your project") + " | Vix Assist") + "&body=" + encodeURIComponent(msg);
           var box = document.createElement("div"); box.className = "card result"; box.style.marginTop = "16px";
           box.innerHTML = '<h2 class="ok"><i class="ph-fill ph-check-circle" aria-hidden="true"></i>Payment link ready: ' + esc(amount) + '</h2><label>Link<input readonly value="' + esc(d.link) + '"></label><label>Message<textarea readonly style="min-height:150px">' + esc(msg) + "</textarea></label>" +
             '<div class="acts">' + (wa ? '<a class="btn btn-wa" target="_blank" rel="noopener" href="https://wa.me/' + wa + "?text=" + encodeURIComponent(msg) + '"><i class="ph-fill ph-whatsapp-logo" aria-hidden="true"></i>Send on WhatsApp</a>' : "") +
@@ -325,7 +325,7 @@
           btn.disabled = true; out.textContent = "Sending…";
           api("admin/briefs/reply", { id: f.dataset.rf, text: f.text.value }).then(function (r) {
             if (r.emailed) { out.innerHTML = '<span class="ok">Sent to ' + esc(brief.email) + " ✓" + (r.chat ? " Also added to their dashboard chat." : "") + "</span>"; setTimeout(inbox, 1800); return; }
-            var gm = "https://mail.google.com/mail/?view=cm&fs=1&to=" + encodeURIComponent(brief.email) + "&su=" + encodeURIComponent("Re: " + brief.subject) + "&body=" + encodeURIComponent(f.text.value + "\n\nBest regards,\nPromise Felix\nVix Automations");
+            var gm = "https://mail.google.com/mail/?view=cm&fs=1&to=" + encodeURIComponent(brief.email) + "&su=" + encodeURIComponent("Re: " + brief.subject) + "&body=" + encodeURIComponent(f.text.value + "\n\nBest regards,\nPromise Felix\nVix Assist");
             out.innerHTML = (r.chat ? '<span class="ok">Added to their dashboard chat ✓</span> ' : "") + '<span style="color:var(--warn)">Automatic email isn\'t set up yet (' + esc(r.emailError || "client emails off") + ').</span> <a class="btn btn-p btn-sm" target="_blank" rel="noopener" href="' + esc(gm) + '">Send it from Gmail (1 tap)</a>';
             btn.disabled = false;
           }).catch(function (x) { out.innerHTML = '<span class="err">' + esc(x.message) + "</span>"; btn.disabled = false; });
@@ -421,16 +421,16 @@
     var first = c.name.split(" ")[0];
     var names = services.map(function (s) { return s.title || LABEL[s.type]; });
     var list = names.length > 1 ? names.slice(0, -1).join(", ") + " and " + names[names.length - 1] : names[0];
-    var subject = "Your " + list + " project has started 🚀 | Vix Automations";
+    var subject = "Your " + list + " project has started 🚀 | Vix Assist";
     var body = "Hi " + first + ",\n\n" +
       (total ? "Thank you for your payment of " + VX.money(total, c.currency) + ". Your " + list + " project has officially started!" : "Your free " + list + " project has officially started! We'll share your first design preview on your dashboard for you to review.") + "\n\n" +
       (invite ? "Create your private client dashboard here:\n" + invite + "\n\n(This link works once and lasts 14 days.)\n\n" : "Log in to your client dashboard here:\n" + loginUrl + "\n\n") +
       "On your dashboard you can:\n• See exactly where your project is, step by step\n• Read every update from our team\n• Download your website and files the moment they're ready\n• Track your growth numbers\n• Send us questions or change requests\n\n" +
       "We'll be in touch shortly with your next steps. If you need anything, just reply to this email or message us on WhatsApp: +44 7723 149573.\n\n" +
-      "Welcome aboard,\nPromise Felix\nVix Automations\nhttps://vixautomations.pages.dev";
+      "Welcome aboard,\nPromise Felix\nVix Assist\nhttps://vixautomations.pages.dev";
     var gmail = "https://mail.google.com/mail/?view=cm&fs=1&to=" + encodeURIComponent(c.email) + "&su=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(body);
     var waNum = (c.whatsapp || "").replace(/[^\d]/g, "").replace(/^0/, "234");
-    var waText = "Hi " + first + ", " + (total ? "thank you for your payment! " : "great news! ") + "Your " + list + " project has officially started 🚀\n\n" + (invite ? "Create your client dashboard here to track progress and receive your deliveries:\n" + invite : "Track your progress here:\n" + loginUrl) + "\n\nWe've also sent this to your email.\n– Promise, Vix Automations";
+    var waText = "Hi " + first + ", " + (total ? "thank you for your payment! " : "great news! ") + "Your " + list + " project has officially started 🚀\n\n" + (invite ? "Create your client dashboard here to track progress and receive your deliveries:\n" + invite : "Track your progress here:\n" + loginUrl) + "\n\nWe've also sent this to your email.\n– Promise, Vix Assist";
     $("#main").innerHTML = '<div class="card result"><h2 class="ok"><i class="ph-fill ph-check-circle" aria-hidden="true"></i>' + esc(c.name) + "'s project has started</h2>" +
       (res.clientEmailed ? '<p class="ok" style="margin:0"><i class="ph-fill ph-envelope-simple-open" aria-hidden="true"></i> Payment confirmation and dashboard link emailed to ' + esc(c.email) + ' automatically. You can also send it on WhatsApp below.</p>'
         : '<p class="muted" style="margin:0">Send the kickoff message: the email opens in Gmail, ready to send from your own inbox.' + (res.clientEmailError ? ' <span style="color:var(--warn)">(Automatic email not sent: ' + esc(res.clientEmailError) + ")</span>" : "") + "</p>") +

@@ -1,10 +1,10 @@
-/* Vix Automations admin: shows phone notifications for new quotes, payments and messages. */
+/* Vix Assist admin: shows phone notifications for new quotes, payments and messages. */
 self.addEventListener("install", function () { self.skipWaiting(); });
 self.addEventListener("activate", function (e) { e.waitUntil(self.clients.claim()); });
 self.addEventListener("push", function (e) {
   var d = {};
   try { d = e.data ? e.data.json() : {}; } catch (x) { d = { title: e.data ? e.data.text() : "" }; }
-  e.waitUntil(self.registration.showNotification(d.title || "New activity · Vix Automations", {
+  e.waitUntil(self.registration.showNotification(d.title || "New activity · Vix Assist", {
     body: d.body || "Tap to open your admin page.",
     icon: "/portal/admin/icon-192.png",
     badge: "/portal/admin/icon-192.png",

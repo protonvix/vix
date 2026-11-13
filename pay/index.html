@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <meta name="referrer" content="no-referrer">
-<title>Secure checkout · Vix Automations</title>
+<title>Secure checkout · Vix Assist</title>
 <meta name="theme-color" content="#05060c">
 <link rel="icon" href="/brand/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -19,7 +19,7 @@
 <body>
 <main class="auth">
   <div class="auth-card pay-card" id="card">
-    <a class="logo" href="/"><img src="/brand/vix-icon.svg" alt="" width="32" height="32">Vix Automations</a>
+    <a class="logo" href="/"><img src="/brand/vix-icon.svg" alt="" width="32" height="32">Vix Assist</a>
     <div id="loading" class="note">Loading…</div>
 
     <!-- Invoice (payment link from Vix) -->
@@ -31,7 +31,7 @@
       <p class="note" id="note" hidden></p>
       <div class="due-box" id="due-box" hidden></div>
       <div class="plan" id="plan-inv"></div>
-      <label class="consent" id="consent-inv"><input type="checkbox"><span>I authorise <b>Vix Automations</b> to charge <b class="c-amt">this amount</b> to my card or account <b>today</b>. This is a <b>one-time payment</b>. No future payment will be taken without my approval.</span></label>
+      <label class="consent" id="consent-inv"><input type="checkbox"><span>I authorise <b>Vix Assist</b> to charge <b class="c-amt">this amount</b> to my card or account <b>today</b>. This is a <b>one-time payment</b>. No future payment will be taken without my approval.</span></label>
       <button class="btn btn-p" type="button" id="pay"><i class="ph-fill ph-lock-simple" aria-hidden="true"></i><span>Pay now</span></button>
       <button class="btn btn-g xfer-open" type="button" id="xfer-btn" hidden><i class="ph ph-bank" aria-hidden="true"></i>Pay by bank transfer instead · USD, GBP, EUR or NGN</button>
       <p class="err" id="err" role="alert"></p>
@@ -68,14 +68,14 @@
         <label>WhatsApp number<input name="whatsapp" type="tel" autocomplete="tel" placeholder="+234…"></label>
         <input class="hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px">
       </div>
-      <label class="consent" id="consent-pkg"><input type="checkbox"><span>I authorise <b>Vix Automations</b> to charge <b class="c-amt">this amount</b> to my card or account <b>today</b>. This is a <b>one-time payment</b>. No future payment will be taken without my approval.</span></label>
+      <label class="consent" id="consent-pkg"><input type="checkbox"><span>I authorise <b>Vix Assist</b> to charge <b class="c-amt">this amount</b> to my card or account <b>today</b>. This is a <b>one-time payment</b>. No future payment will be taken without my approval.</span></label>
       <button class="btn btn-p" type="submit" id="pkg-pay"><i class="ph-fill ph-lock-simple" aria-hidden="true"></i><span>Pay now</span></button>
       <button class="btn btn-g xfer-open" type="button" id="pkg-xfer" hidden><i class="ph ph-bank" aria-hidden="true"></i>Pay by bank transfer · USD, GBP, EUR or NGN</button>
       <p class="err" id="pkg-err" role="alert"></p>
     </form>
 
     <div class="merchant" id="merchant" hidden>
-      <p><i class="ph-fill ph-shield-check" aria-hidden="true"></i><span>You're paying <b>Vix Automations</b>. Paystack, our secure payment partner, processes the payment. Your bank notification and statement will show <b>Vix Automations</b> (via Paystack).</span></p>
+      <p><i class="ph-fill ph-shield-check" aria-hidden="true"></i><span>You're paying <b>Vix Assist</b>. Paystack, our secure payment partner, processes the payment. Your bank notification and statement will show <b>Vix Assist</b> (via Paystack).</span></p>
       <p><i class="ph-fill ph-hand-palm" aria-hidden="true"></i><span><b>Nothing is charged automatically.</b> We never save your card. Every payment needs your approval here and your bank's confirmation (OTP).</span></p>
       <p id="intl-line" hidden><i class="ph-fill ph-globe-hemisphere-west" aria-hidden="true"></i><span><b>Cards from any country accepted</b> (Visa, Mastercard, Verve). You're charged in naira, and your bank converts it to your currency.</span></p>
     </div>

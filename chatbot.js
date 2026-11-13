@@ -4,7 +4,7 @@
   // ===== Settings you can change =====
   var WHATSAPP_NUMBER = "447723149573"; // UK line, international format, digits only
   var WHATSAPP_NG_LINK = "https://wa.me/message/WV3WLO4FC656K"; // Nigeria line (message link, no prefilled text)
-  var WHATSAPP_GREETING = "Hi Vix Automations! I found you on your website and I'd like to ask about ";
+  var WHATSAPP_GREETING = "Hi Vix Assist! I found you on your website and I'd like to ask about ";
   var EMAIL = "vixautomations@gmail.com";
 
   // Keep these in sync with pricing.html / pricing.js.
@@ -234,7 +234,7 @@
     if (open) {
       if (!started) {
         started = true;
-        addMessage("bot", "Hi! 👋 Welcome to Vix Automations. Ask us anything about our services, pricing, payment or timelines, or tap a topic below." + (offerLive ? "<br>🎁 We're designing websites <b>free</b> until 4 Dec." : "") + "", true);
+        addMessage("bot", "Hi! 👋 Welcome to Vix Assist. Ask us anything about our services, pricing, payment or timelines, or tap a topic below." + (offerLive ? "<br>🎁 We're designing websites <b>free</b> until 4 Dec." : "") + "", true);
       }
       setTimeout(function () { input.focus(); }, 50);
     }

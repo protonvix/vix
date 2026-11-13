@@ -43,7 +43,7 @@
     var data = new FormData(form);
     var features = data.getAll("features");
     var lines = [
-      "Hi Vix Automations! I'd like a custom website quote.",
+      "Hi Vix Assist! I'd like a custom website quote.",
       "",
       "Package: " + data.get("package"),
       "Brand: " + data.get("brand"),

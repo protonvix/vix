@@ -1,4 +1,4 @@
-# Vix Automations: GoHighLevel Expert Website
+# Vix Assist: GoHighLevel Expert Website
 
 A fast, responsive one-page marketing site for a GoHighLevel (HighLevel) consultant or agency. It's plain HTML, CSS and JavaScript with no build step.
 
@@ -22,7 +22,7 @@ python3 -m http.server 8000
 ```
 
 ## Customize before launch
-1. **Brand**: replace "Vix Automations" throughout. The contact email is set to `vixautomations@gmail.com`.
+1. **Brand**: replace "Vix Assist" throughout. The contact email is set to `vixautomations@gmail.com`.
 2. **About**: in the `#about` section, replace the "V" monogram with your photo (`<img>` inside `.about-photo`) and add your name and any certifications you genuinely hold.
 3. **Founding-client offer**: make sure the reduced rates and the fix-it-free promise match what you'll honour.
 4. **Reviews**: once real clients leave reviews, add them (and real results) in place of the founding-client section. Never publish invented reviews.
@@ -54,5 +54,5 @@ Upload the three files to any static host (Netlify, Vercel, GitHub Pages, Cloudf
 
 Sent automatically after a Paystack payment, a confirmed bank transfer, or "Mark as paid": receipt plus a "Create my client dashboard" button.
 - **Without a domain (EmailJS + Gmail):** Cloudflare secrets `EMAILJS_SERVICE_ID`, `EMAILJS_TEMPLATE_ID`, `EMAILJS_PUBLIC_KEY`, `EMAILJS_PRIVATE_KEY`. Template: To Email `{{to_email}}`, Subject `{{subject}}`, Content `{{{message_html}}}`. Enable "API access from non-browser environments" in EmailJS → Account → Security.
-- **With your own domain (Resend):** verify the domain in Resend and set `EMAIL_FROM` (e.g. `Vix Automations <hello@yourdomain.com>`). This takes priority over EmailJS.
+- **With your own domain (Resend):** verify the domain in Resend and set `EMAIL_FROM` (e.g. `Vix Assist <hello@yourdomain.com>`). This takes priority over EmailJS.
 - Admin → Settings shows the status and can send a test email.
