@@ -1,269 +1,121 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Pricing | Vix Assist GoHighLevel Packages</title>
-  <meta name="description" content="Fixed-price GoHighLevel packages from Vix Assist: Quick Start, Growth System and Agency / SaaS. Prices shown in your local currency, with a founding-client discount.">
-  <meta property="og:title" content="Pricing | Vix Assist">
-  <meta property="og:description" content="Fixed-price GoHighLevel packages with a founding-client discount.">
-  <meta property="og:type" content="website">
-  <meta property="og:url" content="https://vixautomations.pages.dev/pricing">
-  <meta property="og:image" content="https://vixautomations.pages.dev/brand/og-image.jpg">
-  <meta name="twitter:card" content="summary_large_image">
-  <link rel="canonical" href="https://vixautomations.pages.dev/pricing">
-  <meta name="theme-color" content="#0b1020">
-  <link rel="icon" href="brand/favicon.svg" type="image/svg+xml">
-  <link rel="icon" href="brand/favicon-32.png" sizes="32x32" type="image/png">
-  <link rel="apple-touch-icon" href="brand/apple-touch-icon.png">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pricing · Vix Assist</title>
+<meta name="description" content="Clear prices for GoHighLevel support: monthly virtual assistant plans, one off builds with a fixed price, and quotes for websites and TikTok.">
+<meta name="theme-color" content="#F6F5F1">
+<meta name="color-scheme" content="light">
+<link rel="canonical" href="https://vixautomations.pages.dev/pricing.html">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Pricing · Vix Assist">
+<meta property="og:description" content="Clear prices for GoHighLevel support: monthly virtual assistant plans, one off builds with a fixed price, and quotes for websites and TikTok.">
+<meta property="og:image" content="https://vixautomations.pages.dev/brand/og-image.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="brand/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="brand/favicon-32.png" sizes="32x32">
+<link rel="apple-touch-icon" href="brand/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
+<link rel="stylesheet" href="assist.css?v=6">
+<link rel="stylesheet" href="chat.css?v=6">
 </head>
 <body>
-  <a class="skip-link" href="#main">Skip to content</a>
-
-  <!-- ===== Header ===== -->
-  <header class="site-header" id="top">
-    <div class="container nav">
-      <a href="index.html" class="brand" aria-label="Vix Assist home">
-        <img class="brand-mark" src="brand/vix-icon.svg" alt="" width="34" height="34">
-        <span class="brand-name">Vix<span>Assist</span></span>
-      </a>
-      <button class="nav-toggle" aria-expanded="false" aria-controls="nav-menu" aria-label="Open menu">
-        <span></span><span></span><span></span>
-      </button>
-      <nav id="nav-menu" class="nav-menu" aria-label="Primary">
-        <a href="index.html#services">Services</a>
-        <a href="index.html#gohighlevel">GoHighLevel</a>
-        <a href="tiktok.html">TikTok Marketing</a>
-        <a href="web-design.html">Web Design</a>
-        <a href="pricing.html" aria-current="page">Pricing</a>
-        <a href="index.html#faq">FAQ</a>
-        <a href="book.html" class="btn btn-primary btn-sm">Book a Strategy Call</a>
-      </nav>
-    </div>
-  </header>
-
-  <main id="main">
-    <!-- ===== Page hero ===== -->
-    <section class="page-hero">
-      <div class="hero-glow" aria-hidden="true"></div>
-      <div class="container">
-        <p class="kicker">Pricing</p>
-        <h1>Simple, fixed-price packages</h1>
-        <p class="lead">Every package is scoped in writing before work starts. No hourly billing, no surprise invoices.</p>
-
-        <div class="pricing-controls">
-          <div class="discount-banner" data-discount-banner hidden>
-            <span class="discount-pill" data-discount-percent></span>
-            <span data-discount-label></span>
-          </div>
-          <label class="currency-picker">
-            <span>Currency</span>
-            <select id="currency-select" aria-describedby="currency-note"></select>
-          </label>
-        </div>
-      </div>
-    </section>
-
-    <!-- ===== Packages ===== -->
-    <!-- Prices are set in USD via data-usd. Edit the amounts here; pricing.js handles discount and currency. -->
-    <section class="section pricing-page">
-      <div class="container">
-        <div class="pricing-grid">
-          <article class="price-card">
-            <h3>Quick Start</h3>
-            <p class="price-desc">For businesses getting started with HighLevel.</p>
-            <div class="price-block" data-usd="499">
-              <span class="price-old" data-old></span>
-              <p class="price"><span class="price-now" data-now>$499</span></p>
-              <span class="price-save" data-save></span>
-            </div>
-            <ul>
-              <li>Sub-account setup &amp; branding</li>
-              <li>1 pipeline + custom fields</li>
-              <li>1 funnel or landing page</li>
-              <li>5 core automations</li>
-              <li>Calendar &amp; phone setup</li>
-              <li>Recorded training</li>
-            </ul>
-            <a href="pay/?p=quickstart" class="btn btn-ghost btn-block">Pay &amp; start now</a>
-            <a href="book.html" class="pay-alt">or book a free call first</a>
-          </article>
-          <article class="price-card featured">
-            <span class="badge">Most Popular</span>
-            <h3>Growth System</h3>
-            <p class="price-desc">A complete lead-to-client machine.</p>
-            <div class="price-block" data-usd="689">
-              <span class="price-old" data-old></span>
-              <p class="price"><span class="price-now" data-now>$689</span></p>
-              <span class="price-save" data-save></span>
-            </div>
-            <ul>
-              <li>Everything in Quick Start</li>
-              <li>Full customer journey mapping</li>
-              <li>Up to 3 funnels / website</li>
-              <li>20+ automations &amp; nurture</li>
-              <li>Conversation AI bot</li>
-              <li>Reputation management</li>
-              <li>Reporting dashboard</li>
-              <li>30 days post-launch support</li>
-            </ul>
-            <a href="pay/?p=growth" class="btn btn-primary btn-block">Pay &amp; start now</a>
-            <a href="book.html" class="pay-alt">or book a free call first</a>
-          </article>
-          <article class="price-card">
-            <h3>Agency / SaaS</h3>
-            <p class="price-desc">For agencies scaling with white label.</p>
-            <div class="price-block" data-usd="876">
-              <span class="price-old" data-old></span>
-              <p class="price"><span class="price-now" data-now>$876</span></p>
-              <span class="price-save" data-save></span>
-            </div>
-            <ul>
-              <li>Agency account architecture</li>
-              <li>SaaS mode &amp; Stripe rebilling</li>
-              <li>Custom niche snapshot</li>
-              <li>Client onboarding automation</li>
-              <li>Custom domain &amp; mobile app branding</li>
-              <li>API &amp; integration work</li>
-              <li>60 days priority support</li>
-            </ul>
-            <a href="pay/?p=agency" class="btn btn-ghost btn-block">Pay &amp; start now</a>
-            <a href="book.html" class="pay-alt">or book a free call first</a>
-          </article>
-        </div>
-        <p class="pricing-note">🔒 Pay securely by card, bank transfer or USSD (Paystack). Your project and client dashboard start the moment payment is confirmed.</p>
-
-        <p class="pricing-note">Need ongoing help? <a href="index.html#contact">Monthly support retainers</a> start at <span class="inline-price" data-usd="299" data-no-discount data-suffix="/mo">$299/mo</span>.</p>
-        <p class="currency-note" id="currency-note" data-currency-note>Prices are set in US dollars (USD).</p>
-        <p class="pricing-note">Looking for TikTok growth or a new website? See our <a href="tiktok.html">TikTok Marketing</a> and <a href="web-design.html">Web Design</a> packages.</p>
-
-        <!-- Payment methods -->
-        <div class="payment-methods" id="payment">
-          <h3>Easy ways to pay</h3>
-          <ul class="pay-list">
-            <li><span class="pay-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg></span><b>Payoneer</b></li>
-            <li><span class="pay-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M3 10h18M7 15h3"/></svg></span><b>Cleva</b></li>
-            <li><span class="pay-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 8h13l-3-3M20 16H7l3 3"/></svg></span><b>Wise</b></li>
-            <li><span class="pay-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 10l9-5 9 5M5 10v8M9.5 10v8M14.5 10v8M19 10v8M3 20h18"/></svg></span><b>Bank transfer</b><small>Nigeria &middot; UK &middot; USA</small></li>
-          </ul>
-          <p class="pay-note">Choose whichever suits you. Payment details are included on your invoice.</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- ===== Every package includes ===== -->
-    <section class="stats-band">
-      <div class="container stats-grid">
-        <div class="stat"><strong>Fixed</strong><span>Price agreed before work starts</span></div>
-        <div class="stat"><strong>100%</strong><span>Yours: account, data &amp; snapshot</span></div>
-        <div class="stat"><strong>Recorded</strong><span>Training for every system</span></div>
-        <div class="stat"><strong>Free fixes</strong><span>For anything in scope that doesn&rsquo;t work</span></div>
-      </div>
-    </section>
-
-    <!-- ===== Pricing FAQ ===== -->
-    <section class="section">
-      <div class="container narrow">
-        <div class="section-head">
-          <p class="kicker">Pricing FAQ</p>
-          <h2>Good to know</h2>
-        </div>
-        <div class="faq">
-          <details>
-            <summary>Which currency will I pay in?</summary>
-            <p>Packages are priced in US dollars. Other currencies are shown as an estimate using a recent exchange rate, so you can see roughly what you&rsquo;ll pay. Your invoice shows the exact amount before you pay anything.</p>
-          </details>
-          <details>
-            <summary>How can I pay?</summary>
-            <p>We accept Payoneer, Cleva, Wise, and bank transfer to accounts in Nigeria, the UK and the USA. The payment details are included on your invoice.</p>
-          </details>
-          <details>
-            <summary>How does the founding-client discount work?</summary>
-            <p>We&rsquo;re building our client base, so early clients get a discount on any package. In return we ask for an honest review and permission to share your results once your system is live.</p>
-          </details>
-          <details>
-            <summary>What does &ldquo;fixed price&rdquo; mean?</summary>
-            <p>We agree the scope in writing before any work starts, and that&rsquo;s the price you pay. If you want extra work later, we quote it separately first. Nothing is added without your approval.</p>
-          </details>
-          <details>
-            <summary>Is the HighLevel subscription included?</summary>
-            <p>No. You pay HighLevel directly for your own account, so you always own it. Our packages cover the setup, build and training.</p>
-          </details>
-        </div>
-      </div>
-    </section>
-
-    <!-- ===== CTA ===== -->
-    <section class="section section-dark cta-band">
-      <div class="container narrow">
-        <img class="cta-logo" src="brand/vix-icon.svg" alt="" width="64" height="64">
-        <h2>Not sure which package fits?</h2>
-        <p class="lead">Book a free 30-minute strategy call and we&rsquo;ll recommend the right one for your business.</p>
-        <div class="cta-actions">
-          <a href="book.html" class="btn btn-primary btn-lg">Book a Free Strategy Call</a>
-          <a href="https://www.linkedin.com/in/promise-felix-a491a7233/" class="btn btn-outline-light btn-lg" target="_blank" rel="noopener">
-            <svg class="li-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.41v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28zM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13zM7.12 20.45H3.56V9h3.56v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.73C24 .77 23.2 0 22.22 0z"/></svg>
-            Connect on LinkedIn
-          </a>
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <!-- ===== Footer ===== -->
-  <footer class="site-footer">
-    <div class="container footer-grid">
-      <div>
-        <a href="index.html" class="brand">
-          <img class="brand-mark" src="brand/vix-icon.svg" alt="" width="34" height="34">
-          <span class="brand-name">Vix<span>Assist</span></span>
-        </a>
-        <p class="footer-tag">GoHighLevel builds, automations and SaaS launches for growing businesses.</p>
-        <a href="https://www.linkedin.com/in/promise-felix-a491a7233/" class="social-link" target="_blank" rel="noopener" aria-label="Vix Assist on LinkedIn">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.41v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28zM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13zM7.12 20.45H3.56V9h3.56v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.73C24 .77 23.2 0 22.22 0z"/></svg>
-        </a>
-      </div>
-      <nav aria-label="Footer">
-        <h4>Explore</h4>
-        <a href="index.html#services">Services</a>
-        <a href="index.html#steps">Process</a>
-        <a href="index.html#gohighlevel">GoHighLevel</a>
-        <a href="tiktok.html">TikTok Marketing</a>
-        <a href="web-design.html">Web Design</a>
-        <a href="pricing.html">Pricing</a>
-      </nav>
-      <nav aria-label="Company">
-        <h4>Company</h4>
-        <a href="about.html">About us</a>
-        <a href="privacy.html">Privacy policy</a>
-        <a href="payment.html">Payment policy</a>
-        <a href="delivery.html">Delivery policy</a>
-        <a href="refund.html">Refund policy</a>
-      </nav>
-      <div>
-        <h4>Contact</h4>
-        <a href="mailto:vixautomations@gmail.com">vixautomations@gmail.com</a>
-        <a href="https://wa.me/447723149573" target="_blank" rel="noopener">WhatsApp UK: +44 7723 149573</a>
-        <a href="https://wa.me/message/WV3WLO4FC656K" target="_blank" rel="noopener">WhatsApp Nigeria</a>
-        <a href="https://www.linkedin.com/in/promise-felix-a491a7233/" target="_blank" rel="noopener">LinkedIn</a>
-        <a href="book.html">Book a call</a>
+<a class="skip" href="#main">Skip to content</a>
+<header class="nav" id="nav">
+  <a class="logo" href="/" aria-label="Vix Assist home"><img id="logo-anim" src="brand/vix-icon-animated.svg" alt="" width="30" height="30"><span>Vix <b>Assist</b></span></a>
+  <nav class="nav-links" aria-label="Main">
+    <a href="/#work">See the work</a>
+    <a href="/#ecosystem">GoHighLevel</a>
+    <a href="pricing.html" aria-current="page">Pricing</a>
+    <div class="dd" id="dd">
+      <button type="button" aria-expanded="false" aria-controls="dd-menu">More services <i class="ph ph-caret-down" aria-hidden="true"></i></button>
+      <div class="dd-menu" id="dd-menu">
+        <a href="va-services.html"><i class="ph ph-user-gear" aria-hidden="true"></i><span>Virtual assistance<small>Inbox, calendar, admin, support</small></span></a>
+        <a href="tiktok.html"><i class="ph ph-tiktok-logo" aria-hidden="true"></i><span>TikTok marketing<small>Content, posting, growth</small></span></a>
+        <a href="web-design.html"><i class="ph ph-browser" aria-hidden="true"></i><span>Website design<small>Fast sites outside GoHighLevel</small></span></a>
+        <a href="free-design.html"><i class="ph ph-gift" aria-hidden="true"></i><span>Free website design<small>Offer ends 4 December</small></span></a>
       </div>
     </div>
-    <div class="container footer-bottom">
-      <p>&copy; <span id="year"></span> Vix Assist. All rights reserved.</p>
-      <p class="disclaimer">GoHighLevel and HighLevel are trademarks of HighLevel, Inc. This site is independent and not affiliated with or endorsed by HighLevel, Inc.</p>
+    <a href="about.html">About</a>
+  </nav>
+  <a class="btn btn-p btn-sm nav-cta" href="book.html">Book a strategy call</a>
+  <button class="menu-btn" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="mpanel"><span></span><span></span><span></span></button>
+</header>
+<div class="mpanel" id="mpanel" aria-hidden="true">
+  <a href="/">Home</a>
+  <a href="/#work">See the work</a>
+  <a href="/#ecosystem">GoHighLevel</a>
+  <a href="pricing.html">Pricing</a>
+  <a href="about.html">About</a>
+  <a class="sub" href="va-services.html">Virtual assistance</a>
+  <a class="sub" href="tiktok.html">TikTok marketing</a>
+  <a class="sub" href="web-design.html">Website design</a>
+  <a class="btn btn-p" href="book.html">Book a strategy call</a>
+</div>
+
+<main id="main">
+<section class="page-hero">
+  <div class="wrap">
+    <span class="eyebrow">Pricing</span>
+    <h1 class="page-h1">Clear prices. <em>No surprises.</em></h1>
+    <p class="lead">Monthly GoHighLevel support, fixed price builds, and quotes for everything else. Every price is agreed before any work starts.</p>
+    <div class="cta"><a class="btn btn-p" href="#monthly">Monthly plans</a><a class="btn btn-g" href="#builds">One off builds</a></div>
+    
+  </div>
+</section>
+<section id="monthly" style="padding-top:0;border-top:0">
+  <div class="wrap">
+<div class="head"><span class="eyebrow">Monthly</span><h2 class="h2">A dedicated GoHighLevel assistant, <em>every month.</em></h2><p class=lead>Every plan starts with a free audit. Prices in USD. Cancel any month.</p></div><div class="plans">
+<div class="plan rv"><span class="tg">Starter VA</span><h3>For one location getting set up properly</h3><div class="price">$300<small> / month</small></div><p class="hrs">10 hours of GoHighLevel work each month</p><ul><li><i class="ph-fill ph-check-circle"></i>Workflow fixes and small builds</li><li><i class="ph-fill ph-check-circle"></i>Pipeline and calendar upkeep</li><li><i class="ph-fill ph-check-circle"></i>Weekly report</li><li><i class="ph-fill ph-check-circle"></i>Replies within one working day</li></ul><a class="btn btn-g" href="/#audit">Start with a free audit</a></div>
+<div class="plan hot rv"><span class="tg">Most chosen</span><h3>Growth VA for busy businesses</h3><div class="price">$550<small> / month</small></div><p class="hrs">20 hours of GoHighLevel work each month</p><ul><li><i class="ph-fill ph-check-circle"></i>Everything in Starter</li><li><i class="ph-fill ph-check-circle"></i>New automations and funnels each month</li><li><i class="ph-fill ph-check-circle"></i>Conversation AI set up and tuning</li><li><i class="ph-fill ph-check-circle"></i>Replies within two working hours</li></ul><a class="btn btn-p" href="/#audit">Start with a free audit</a></div>
+<div class="plan rv"><span class="tg">Dedicated VA</span><h3>For agencies and multi location teams</h3><div class="price">$950<small> / month</small></div><p class="hrs">35 hours of GoHighLevel work each month</p><ul><li><i class="ph-fill ph-check-circle"></i>Everything in Growth</li><li><i class="ph-fill ph-check-circle"></i>White label sub account support</li><li><i class="ph-fill ph-check-circle"></i>Snapshots and client onboarding</li><li><i class="ph-fill ph-check-circle"></i>Priority same day replies</li></ul><a class="btn btn-g" href="/#audit">Start with a free audit</a></div>
+</div><p class="guarantee rv"><i class="ph-fill ph-shield-check" aria-hidden="true"></i>No long contract. Unused hours roll over one month.</p>
+  </div>
+</section>
+<section id="builds">
+  <div class="wrap">
+<div class="head"><span class="eyebrow">One off builds</span><h2 class="h2">A full GoHighLevel build <em>at a fixed price.</em></h2><p class=lead>Pay online and your project and client dashboard start straight away.</p></div><div class="pctl rv"><div class="discount-banner" data-discount-banner hidden><span class="discount-pill" data-discount-percent></span><span data-discount-label></span></div><label class="currency-picker">Show prices in<select id="currency-select" aria-describedby="currency-note"></select></label></div><div class="plans"><div class="plan rv"><span class="tg">Quick start</span><h3>For businesses new to GoHighLevel</h3>
+<div class="price-block" data-usd="499"><span class="price-old" data-old></span><div class="price"><span class="price-now" data-now>$499</span></div><span class="price-save" data-save></span></div>
+<ul><li><i class="ph-fill ph-check-circle"></i>Sub account set up and branding</li><li><i class="ph-fill ph-check-circle"></i>1 pipeline and custom fields</li><li><i class="ph-fill ph-check-circle"></i>1 funnel or landing page</li><li><i class="ph-fill ph-check-circle"></i>5 core automations</li><li><i class="ph-fill ph-check-circle"></i>Calendar and phone set up</li><li><i class="ph-fill ph-check-circle"></i>Recorded training</li></ul><a class="btn btn-g" href="pay/?p=quickstart">Pay and start</a><a class="tlink" style="align-self:center;font-size:14px" href="book.html">or book a free call first</a></div><div class="plan hot rv"><span class="tg">Growth system</span><h3>A complete lead to client system</h3>
+<div class="price-block" data-usd="689"><span class="price-old" data-old></span><div class="price"><span class="price-now" data-now>$689</span></div><span class="price-save" data-save></span></div>
+<ul><li><i class="ph-fill ph-check-circle"></i>Everything in Quick start</li><li><i class="ph-fill ph-check-circle"></i>Customer journey mapping</li><li><i class="ph-fill ph-check-circle"></i>Up to 3 funnels or a website</li><li><i class="ph-fill ph-check-circle"></i>20+ automations and nurture</li><li><i class="ph-fill ph-check-circle"></i>Conversation AI</li><li><i class="ph-fill ph-check-circle"></i>Reputation and reporting</li><li><i class="ph-fill ph-check-circle"></i>30 days of support</li></ul><a class="btn btn-p" href="pay/?p=growth">Pay and start</a><a class="tlink" style="align-self:center;font-size:14px" href="book.html">or book a free call first</a></div><div class="plan rv"><span class="tg">Agency and SaaS</span><h3>For agencies scaling with white label</h3>
+<div class="price-block" data-usd="876"><span class="price-old" data-old></span><div class="price"><span class="price-now" data-now>$876</span></div><span class="price-save" data-save></span></div>
+<ul><li><i class="ph-fill ph-check-circle"></i>Agency account architecture</li><li><i class="ph-fill ph-check-circle"></i>SaaS mode and Stripe rebilling</li><li><i class="ph-fill ph-check-circle"></i>Custom niche snapshot</li><li><i class="ph-fill ph-check-circle"></i>Client onboarding automation</li><li><i class="ph-fill ph-check-circle"></i>Custom domain and app branding</li><li><i class="ph-fill ph-check-circle"></i>60 days of priority support</li></ul><a class="btn btn-g" href="pay/?p=agency">Pay and start</a><a class="tlink" style="align-self:center;font-size:14px" href="book.html">or book a free call first</a></div></div><p class="guarantee rv" id="currency-note" data-currency-note>Prices are set in US dollars (USD).</p><p class="guarantee rv"><i class="ph-fill ph-lock-key" aria-hidden="true"></i>Pay securely by card, bank transfer or USSD through Paystack, or by bank transfer in USD, GBP, EUR or NGN.</p>
+  </div>
+</section>
+<section>
+  <div class="wrap">
+<div class="head"><span class="eyebrow">Other services</span><h2 class="h2">Websites and TikTok, <em>quoted to you.</em></h2></div><div class="extras"><a class="ex rv" href="web-design.html"><span><b>Website design</b><span>New sites, redesigns, fixes and funnels</span></span><span class="p">Quote <i class="ph ph-arrow-right" style="font-size:18px"></i></span></a><a class="ex rv" href="tiktok.html"><span><b>TikTok marketing</b><span>Content, posting, management and ads</span></span><span class="p">Quote <i class="ph ph-arrow-right" style="font-size:18px"></i></span></a></div>
+  </div>
+</section>
+<section>
+  <div class="wrap">
+<div class="head c"><span class="eyebrow">Questions</span><h2 class="h2">Good to <em>know.</em></h2></div><div class="faq"><details class="rv"><summary>Is the GoHighLevel subscription included?<i class="ph ph-plus" aria-hidden="true"></i></summary><p>No. You pay HighLevel directly for your own account, so you always own it. My prices cover the setup, the work and the support.</p></details><details class="rv"><summary>Which currency will I pay in?<i class="ph ph-plus" aria-hidden="true"></i></summary><p>Prices are set in US dollars. Other currencies are shown as an estimate, and your invoice shows the exact amount before you pay.</p></details><details class="rv"><summary>How can I pay?<i class="ph ph-plus" aria-hidden="true"></i></summary><p>By card, bank transfer or USSD through Paystack, or by bank transfer to accounts in the US, UK, Europe and Nigeria.</p></details><details class="rv"><summary>What does fixed price mean?<i class="ph ph-plus" aria-hidden="true"></i></summary><p>The scope is agreed in writing before work starts, and that is the price. Anything extra is quoted first and only added with your approval.</p></details><details class="rv"><summary>Monthly plan or one off build?<i class="ph ph-plus" aria-hidden="true"></i></summary><p>If your account needs building, start with a one off build. If it is set up but needs ongoing work, a monthly plan fits better. The free audit tells you which.</p></details></div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="fcta"><h2>Let's make your GoHighLevel account <em>earn its keep.</em></h2><div class="talk-row"><a class="btn btn-p" href="book.html">Book a strategy call <i class="ph ph-arrow-right" aria-hidden="true"></i></a><a class="btn btn-g" href="/#audit">Get a free audit</a></div></div>
+    <div class="fgrid">
+      <div><a class="logo" href="/"><img src="brand/vix-icon.svg" alt="" width="30" height="30"><span>Vix <b>Assist</b></span></a><p style="margin-top:14px;max-width:320px">A dedicated GoHighLevel virtual assistant for business owners and agencies. Run by Promise Felix.</p></div>
+      <div><h4>GoHighLevel</h4><a href="/#ecosystem">What I manage</a><a href="/#how">How it works</a><a href="pricing.html">Pricing</a><a href="/#audit">Free audit</a></div>
+      <div><h4>More services</h4><a href="va-services.html">Virtual assistance</a><a href="tiktok.html">TikTok marketing</a><a href="web-design.html">Website design</a><a href="portal/">Client login</a></div>
+      <div><h4>Contact</h4><a href="book.html">Book a call</a><a href="https://www.linkedin.com/in/promise-felix-a491a7233/" target="_blank" rel="noopener">LinkedIn</a><a href="mailto:vixautomations@gmail.com">vixautomations@gmail.com</a><a href="https://wa.me/447723149573" target="_blank" rel="noopener">WhatsApp +44 7723 149573</a></div>
     </div>
-  </footer>
+    <div class="fbot"><span>© 2026 Vix Assist. GoHighLevel is a trademark of HighLevel Inc. Vix Assist is an independent service and is not affiliated with HighLevel.</span><span><a href="about.html">About</a> · <a href="privacy.html">Privacy</a> · <a href="payment.html">Payments</a> · <a href="delivery.html">Delivery</a> · <a href="refund.html">Refunds</a></span></div>
+  </div>
+</footer>
 
-  <a href="book.html" class="mobile-cta btn btn-primary">Book a Free Strategy Call</a>
-
-  <script src="script.js"></script>
-  <script src="chatbot.js?v=20261104c"></script>
-  <script src="pricing.js"></script>
-<script src="/book-widget.js?v=1" defer></script>
+<script src="site.js?v=6"></script>
+<script src="pricing.js?v=2"></script>
+<script src="chatbot.js?v=20261104c" defer></script>
+<script src="/book-widget.js?v=2" defer></script>
 </body>
 </html>
