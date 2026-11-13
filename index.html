@@ -21,7 +21,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
 <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
-<link rel="stylesheet" href="assist.css?v=2">
+<link rel="stylesheet" href="assist.css?v=3">
 <script type="importmap">{"imports":{"three":"https://unpkg.com/three@0.160.0/build/three.module.js","three/addons/":"https://unpkg.com/three@0.160.0/examples/jsm/"}}</script>
 <link rel="stylesheet" href="chat.css?v=20261104c">
 <script type="application/ld+json">
@@ -34,6 +34,7 @@
 <header class="nav" id="nav">
   <a class="logo" href="/" aria-label="Vix Assist home"><img id="logo-anim" src="brand/vix-icon-animated.svg" alt="" width="32" height="32"><span>Vix <b>Assist</b></span></a>
   <nav class="nav-links" aria-label="Main">
+    <a href="#work">See the work</a>
     <a href="#ecosystem">GoHighLevel</a>
     <a href="#how">How it works</a>
     <a href="#pricing">Pricing</a>
@@ -52,6 +53,7 @@
   <button class="menu-btn" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="mpanel"><span></span><span></span><span></span></button>
 </header>
 <div class="mpanel" id="mpanel" aria-hidden="true">
+  <a href="#work">See the work</a>
   <a href="#ecosystem">GoHighLevel</a>
   <a href="#how">How it works</a>
   <a href="#pricing">Pricing</a>
@@ -138,6 +140,25 @@
   </div>
 </section>
 
+<!-- WATCH THE WORK -->
+<section id="work" aria-labelledby="h-work">
+  <div class="wrap">
+    <div class="head c rv"><span class="eyebrow"><i class="ph ph-play-circle" aria-hidden="true"></i>Watch the work</span><h2 class="h2" id="h-work">Don't take my word for it. Watch how I build.</h2><p class="lead">Real GoHighLevel tasks, played out step by step. Pick one, or let them run.</p></div>
+    <div class="wtabs rv" role="tablist" aria-label="Work demos">
+      <button role="tab" aria-selected="true" data-scene="workflow"><i class="ph ph-tree-structure"></i>Workflow build</button>
+      <button role="tab" aria-selected="false" data-scene="lead"><i class="ph ph-lightning"></i>Speed to lead</button>
+      <button role="tab" aria-selected="false" data-scene="clean"><i class="ph ph-broom"></i>Pipeline clean up</button>
+      <button role="tab" aria-selected="false" data-scene="reviews"><i class="ph ph-star"></i>Review engine</button>
+      <button role="tab" aria-selected="false" data-scene="a2p"><i class="ph ph-shield-check"></i>A2P approval</button>
+    </div>
+    <div class="wstage-wrap rv">
+      <div class="wstage" id="wstage" role="tabpanel" aria-live="off" aria-label="Animated demo"></div>
+      <div class="wcap"><span class="wdot"></span><span id="wcap">Building a speed to lead workflow</span><span class="wprog"><i id="wprog"></i></span></div>
+    </div>
+    <p class="wnote rv">Demo account with sample contacts. Your build follows the same process inside your own GoHighLevel.</p>
+  </div>
+</section>
+
 <!-- ECOSYSTEM -->
 <section id="ecosystem" aria-labelledby="h-eco">
   <div class="wrap">
@@ -187,7 +208,7 @@
         <div data-tilt class="ti rv"><i class="ph-fill ph-squares-four" aria-hidden="true"></i><span><b>Your own client dashboard</b>See every task, every update and every file in one place, and message me directly from it.</span></div>
         <div data-tilt class="ti rv"><i class="ph-fill ph-seal-check" aria-hidden="true"></i><span><b>No surprise invoices</b>Fixed monthly hours, agreed up front. Unused hours roll over one month.</span></div>
       </div>
-      <div class="report rv" aria-label="Example weekly report">
+      <div class="report rv" id="report" aria-label="Example weekly report">
         <header><span><b>Weekly report</b><small>Example of what you receive every Friday</small></span><span class="pill">On track</span></header>
         <div class="rrow"><i class="ph ph-tree-structure" aria-hidden="true"></i><span>Built "No show recovery" workflow and tested 4 paths</span><b>2.5h</b></div>
         <div class="rrow"><i class="ph ph-address-book" aria-hidden="true"></i><span>Imported and tagged 312 contacts from the old CRM</span><b>1.5h</b></div>
@@ -304,7 +325,8 @@
   </div>
 </footer>
 
-<script src="assist.js?v=2"></script>
+<script src="assist.js?v=3"></script>
+<script src="work.js?v=1" defer></script>
 <script type="module" src="hero3d.assist.js?v=1"></script>
 <script src="chatbot.js?v=20261104c" defer></script>
 </body>
