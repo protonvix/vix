@@ -2,7 +2,7 @@
 export async function onRequest(ctx) {
   const url = new URL(ctx.request.url);
   if (url.hostname === "vixautomations.pages.dev" && !url.pathname.startsWith("/api/")) {
-    url.hostname = "www.vixassist.com";
+    url.hostname = "vixassist.com";
     return Response.redirect(url.toString(), 301);
   }
   return ctx.next();
