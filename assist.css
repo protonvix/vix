@@ -484,3 +484,7 @@ footer{border-top:1px solid var(--line);padding:48px 0 32px;color:var(--soft);fo
   .wtabs{flex-wrap:nowrap;overflow-x:auto;justify-content:flex-start;padding-bottom:4px;scrollbar-width:none}
   .wtabs button{flex:none}
 }
+.talk{margin-top:24px;padding-top:20px;border-top:1px solid var(--line)}
+.talk p{color:var(--mute);font-size:14px;margin-bottom:10px}
+.talk-row{display:flex;flex-wrap:wrap;gap:8px}
+.talk .ph-linkedin-logo{color:#4c9cf0}

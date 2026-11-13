@@ -841,6 +841,12 @@ async function adminFeed(env) {
         title: "Payment overdue: " + fmtMoney(x.amount, q.currency) + " from " + (q.business || q.name), sub: "Payment " + (x.i + 1) + " of " + pl.items.length + " was due " + x.due + " · their files stay locked until paid" });
     });
   }
+  const btz = (await bookSettings(env)).tz;
+  for (const id of ((await get(env, "bookings:index")) || []).slice(-60)) {
+    const k = await get(env, "booking:" + id); if (!k || k.cancelled) continue;
+    items.push({ kind: "call", id: k.id, at: k.at, unread: !k.read, title: "Strategy call booked: " + (k.business || k.name) + " · " + fmtWhen(k.start, btz),
+      sub: (k.platform === "zoom" ? "Zoom" : "Google Meet") + " · " + k.email + (k.whatsapp ? " · " + k.whatsapp : "") + (k.link ? "" : " · no call link yet") });
+  }
   const cidx = (await get(env, "clients:index")) || [];
   for (const cid of cidx) {
     const c = await get(env, "client:" + cid); if (!c) continue;
@@ -860,7 +866,9 @@ async function adminFeedSeen(env, req) {
   if (b.kind === "transfer") seen["tr:" + clean(b.id, 40)] = 1;
   if (b.kind === "overdue") seen["od:" + clean(b.id, 50)] = 1;
   if (b.kind === "brief" || b.kind === "offer" || b.kind === "founding") { const it = await get(env, "brief:" + clean(b.id, 40)); if (it) { it.read = true; await put(env, "brief:" + it.id, it); } }
+  if (b.kind === "call") { const k = await get(env, "booking:" + clean(b.id, 40)); if (k) { k.read = true; await put(env, "booking:" + k.id, k); } }
   if (b.all) {
+    for (const id of ((await get(env, "bookings:index")) || [])) { const k = await get(env, "booking:" + id); if (k && !k.read) { k.read = true; await put(env, "booking:" + id, k); } }
     for (const id of ((await get(env, "payreqs:index")) || [])) { seen["pay:" + id] = 1; for (let k = 1; k < 4; k++) seen["pay:" + id + ":" + k] = 1; }
     for (const id of ((await get(env, "briefs:index")) || [])) { const it = await get(env, "brief:" + id); if (it && !it.read) { it.read = true; await put(env, "brief:" + id, it); } }
   }
@@ -1058,6 +1066,222 @@ async function adminTestClientEmail(env, req, origin) {
 }
 
 /* ---------------- router ---------------- */
+
+/* ---------------- Strategy call booking (Google Meet or Zoom) ---------------- */
+// Availability and fallback meeting links are edited in Admin → Settings (KV "settings:book").
+// Optional automation, all set in Cloudflare (never in code):
+//   GOOGLE_CLIENT_ID + GOOGLE_CLIENT_SECRET → "Connect Google Calendar" in admin: unique Meet links, calendar invites, busy times blocked.
+//   ZOOM_ACCOUNT_ID + ZOOM_CLIENT_ID + ZOOM_CLIENT_SECRET (Zoom Server-to-Server OAuth app) → a unique Zoom meeting per booking.
+//   CALLMEBOT_APIKEY (+ optional WHATSAPP_NOTIFY) → WhatsApp message to the owner for every booking.
+const BOOK_DEFAULT = { tz: "Europe/London", days: [1, 2, 3, 4, 5, 6], start: "09:00", end: "19:00", length: 30, notice: 6, ahead: 21, meetLink: "", zoomLink: "" };
+const OWNER_WA = "+447723149573";
+const LINKEDIN = "https://www.linkedin.com/in/promise-felix-a491a7233/";
+async function bookSettings(env) { return Object.assign({}, BOOK_DEFAULT, (await get(env, "settings:book")) || {}); }
+function tzParts(ts, tz) {
+  const o = {};
+  new Intl.DateTimeFormat("en-US", { timeZone: tz, hourCycle: "h23", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit" })
+    .formatToParts(new Date(ts)).forEach((x) => { o[x.type] = /^\d+$/.test(x.value) ? +x.value : x.value; });
+  return o;
+}
+const tzOffsetMs = (ts, tz) => { const p = tzParts(ts, tz); return Date.UTC(p.year, p.month - 1, p.day, p.hour % 24, p.minute, p.second) - Math.floor(ts / 1000) * 1000; };
+function zonedTime(y, mo, d, h, mi, tz) {
+  const wall = Date.UTC(y, mo, d, h, mi);
+  const first = wall - tzOffsetMs(wall, tz);
+  return wall - tzOffsetMs(first, tz);
+}
+const okTz = (tz) => { try { new Intl.DateTimeFormat("en-GB", { timeZone: tz }); return true; } catch { return false; } };
+const fmtWhen = (iso, tz) => { try { return new Intl.DateTimeFormat("en-GB", { timeZone: tz, weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit", hour12: false }).format(new Date(iso)); } catch { return iso; } };
+
+async function googleToken(env) {
+  if (!env.GOOGLE_CLIENT_ID || !env.GOOGLE_CLIENT_SECRET) return null;
+  const g = await get(env, "google:oauth"); if (!g || !g.refresh) return null;
+  if (g.access && g.exp > Date.now() + 60000) return g.access;
+  const r = await fetch("https://oauth2.googleapis.com/token", { method: "POST", headers: { "content-type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({ client_id: env.GOOGLE_CLIENT_ID, client_secret: env.GOOGLE_CLIENT_SECRET, refresh_token: g.refresh, grant_type: "refresh_token" }) });
+  if (!r.ok) { g.error = "Google refused the saved connection (" + r.status + "). Connect Google again in Admin → Settings."; await put(env, "google:oauth", g); return null; }
+  const j = await r.json(); g.access = j.access_token; g.exp = Date.now() + (j.expires_in || 3000) * 1000; delete g.error;
+  await put(env, "google:oauth", g);
+  return g.access;
+}
+async function googleBusy(env, from, to) {
+  const t = await googleToken(env); if (!t) return [];
+  const cached = await get(env, "google:busy"); if (cached && cached.until > Date.now()) return cached.busy;
+  try {
+    const r = await fetch("https://www.googleapis.com/calendar/v3/freeBusy", { method: "POST", headers: { authorization: "Bearer " + t, "content-type": "application/json" },
+      body: JSON.stringify({ timeMin: new Date(from).toISOString(), timeMax: new Date(to).toISOString(), items: [{ id: "primary" }] }) });
+    if (!r.ok) return [];
+    const busy = (((await r.json()).calendars || {}).primary || {}).busy || [];
+    await env.PORTAL.put("google:busy", JSON.stringify({ busy, until: Date.now() + 120000 }), { expirationTtl: 300 });
+    return busy;
+  } catch { return []; }
+}
+async function googleEvent(env, { summary, description, start, end, attendee, meet, location }) {
+  const t = await googleToken(env); if (!t) return null;
+  const body = { summary, description, location, start: { dateTime: start }, end: { dateTime: end }, attendees: attendee ? [{ email: attendee }] : [], reminders: { useDefault: true } };
+  if (meet) body.conferenceData = { createRequest: { requestId: rid(10), conferenceSolutionKey: { type: "hangoutsMeet" } } };
+  const r = await fetch("https://www.googleapis.com/calendar/v3/calendars/primary/events?conferenceDataVersion=1&sendUpdates=all", { method: "POST", headers: { authorization: "Bearer " + t, "content-type": "application/json" }, body: JSON.stringify(body) });
+  if (!r.ok) return null;
+  const j = await r.json();
+  const video = ((j.conferenceData || {}).entryPoints || []).find((e) => e.entryPointType === "video");
+  return { id: j.id, htmlLink: j.htmlLink, meet: j.hangoutLink || (video && video.uri) || "" };
+}
+const zoomReady = (env) => !!(env.ZOOM_ACCOUNT_ID && env.ZOOM_CLIENT_ID && env.ZOOM_CLIENT_SECRET);
+async function zoomMeeting(env, { topic, start, length, agenda }) {
+  if (!zoomReady(env)) return null;
+  const tr = await fetch("https://zoom.us/oauth/token?grant_type=account_credentials&account_id=" + encodeURIComponent(env.ZOOM_ACCOUNT_ID), { method: "POST", headers: { authorization: "Basic " + btoa(env.ZOOM_CLIENT_ID + ":" + env.ZOOM_CLIENT_SECRET) } });
+  if (!tr.ok) return null;
+  const token = (await tr.json()).access_token;
+  const r = await fetch("https://api.zoom.us/v2/users/me/meetings", { method: "POST", headers: { authorization: "Bearer " + token, "content-type": "application/json" },
+    body: JSON.stringify({ topic, type: 2, start_time: start.replace(/\.\d{3}Z$/, "Z"), duration: length, timezone: "UTC", agenda: agenda.slice(0, 1900), settings: { join_before_host: true, waiting_room: false } }) });
+  if (!r.ok) return null;
+  return (await r.json()).join_url || null;
+}
+async function whatsappOwner(env, text) {
+  if (!env.CALLMEBOT_APIKEY) return { sent: false, why: "CALLMEBOT_APIKEY not set" };
+  try {
+    const phone = env.WHATSAPP_NOTIFY || OWNER_WA;
+    const r = await fetch("https://api.callmebot.com/whatsapp.php?phone=" + encodeURIComponent(phone) + "&text=" + encodeURIComponent(text.slice(0, 1500)) + "&apikey=" + encodeURIComponent(env.CALLMEBOT_APIKEY));
+    const t = await r.text();
+    return r.ok && !/error|invalid/i.test(t.slice(0, 400)) ? { sent: true } : { sent: false, why: "CallMeBot " + r.status + ": " + t.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim().slice(0, 160) };
+  } catch { return { sent: false, why: "WhatsApp service unreachable" }; }
+}
+
+async function bookOpenSlots(env, s) {
+  const nowT = Date.now(), [sh, sm] = s.start.split(":").map(Number), [eh, em] = s.end.split(":").map(Number);
+  const taken = new Set(((await get(env, "book:taken")) || []).map((x) => x.start));
+  const out = [], days = new Set();
+  for (let k = 0; k <= s.ahead + 1; k++) {
+    const p = tzParts(nowT + k * 864e5, s.tz), key = p.year + "-" + p.month + "-" + p.day;
+    if (days.has(key)) continue; days.add(key);
+    if (days.size > s.ahead + 1) break;
+    if (!s.days.includes(new Date(Date.UTC(p.year, p.month - 1, p.day)).getUTCDay())) continue;
+    for (let m = sh * 60 + sm; m + s.length <= eh * 60 + em; m += s.length) {
+      const t = zonedTime(p.year, p.month - 1, p.day, Math.floor(m / 60), m % 60, s.tz);
+      if (t < nowT + s.notice * 36e5) continue;
+      const iso = new Date(t).toISOString();
+      if (!taken.has(iso)) out.push(iso);
+    }
+  }
+  if (!out.length) return out;
+  const busy = (await googleBusy(env, out[0], Date.parse(out[out.length - 1]) + s.length * 6e4)).map((b) => [Date.parse(b.start), Date.parse(b.end)]);
+  return busy.length ? out.filter((iso) => { const a = Date.parse(iso), b = a + s.length * 6e4; return !busy.some(([x, y]) => a < y && b > x); }) : out;
+}
+async function bookSlots(env) {
+  const s = await bookSettings(env);
+  return json({ tz: s.tz, length: s.length, slots: await bookOpenSlots(env, s), platforms: ["meet", "zoom"], linkedin: LINKEDIN, whatsapp: OWNER_WA.replace(/\D/g, "") });
+}
+async function bookCreate(env, req, origin) {
+  const b = await req.json().catch(() => null);
+  if (!b) return fail(400, "Please try again.");
+  if (b.website) return json({ ok: true, booking: {} }); // honeypot
+  const ip = req.headers.get("cf-connecting-ip") || "unknown", rk = "bkrate:" + ip, n = +(await env.PORTAL.get(rk)) || 0;
+  if (n >= 5) return fail(429, "Too many bookings from this connection. Please message me on WhatsApp instead.");
+  const name = clean(b.name, 100), email = clean(b.email, 200), start = clean(b.start, 40), platform = b.platform === "zoom" ? "zoom" : "meet";
+  if (!name) return fail(400, "Please add your name.");
+  if (!emailOk(email)) return fail(400, "Please enter a valid email so I can send your call link.");
+  const s = await bookSettings(env);
+  if (!(await bookOpenSlots(env, s)).includes(start)) return fail(409, "Sorry, that time was just taken. Please pick another time.");
+  await env.PORTAL.put(rk, String(n + 1), { expirationTtl: 3600 });
+  const taken = ((await get(env, "book:taken")) || []).filter((x) => Date.parse(x.start) > Date.now() - 864e5);
+  const bk = { id: rid(9), at: now(), start, end: new Date(Date.parse(start) + s.length * 6e4).toISOString(), length: s.length, platform, name, email,
+    whatsapp: clean(b.whatsapp, 40), business: clean(b.business, 120), website: clean(b.site, 200), notes: clean(b.notes, 2000), tz: okTz(clean(b.tz, 60)) ? clean(b.tz, 60) : s.tz, read: false };
+  taken.push({ start, id: bk.id }); await put(env, "book:taken", taken);
+
+  const PLAT = platform === "zoom" ? "Zoom" : "Google Meet";
+  const title = "Vix Assist strategy call: " + (bk.business || bk.name);
+  const about = "Free " + s.length + " minute GoHighLevel strategy call with Promise (Vix Assist).\n\nBooked by: " + bk.name + (bk.business ? " (" + bk.business + ")" : "") + "\nEmail: " + bk.email + (bk.whatsapp ? "\nWhatsApp: " + bk.whatsapp : "") + (bk.website ? "\nWebsite: " + bk.website : "") + (bk.notes ? "\n\nWhat they want to cover:\n" + bk.notes : "");
+  let link = "", via = "";
+  if (platform === "zoom") { try { link = (await zoomMeeting(env, { topic: title, start, length: s.length, agenda: about })) || ""; if (link) via = "zoom"; } catch {} if (!link && s.zoomLink) { link = s.zoomLink; via = "zoom-room"; } }
+  try {
+    const ev = await googleEvent(env, { summary: title, description: about + (link ? "\n\nJoin on Zoom: " + link : ""), start, end: bk.end, attendee: bk.email, meet: platform === "meet", location: link || undefined });
+    if (ev) { bk.calendar = ev.htmlLink; bk.eventId = ev.id; if (platform === "meet" && ev.meet) { link = ev.meet; via = "google"; } }
+  } catch {}
+  if (platform === "meet" && !link && s.meetLink) { link = s.meetLink; via = "meet-room"; }
+  bk.link = link; bk.via = via;
+
+  const ownerWhen = fmtWhen(start, s.tz), theirWhen = fmtWhen(start, bk.tz);
+  const ownerText = "📅 New strategy call booked\n\n" + bk.name + (bk.business ? " · " + bk.business : "") +
+    "\nWhen: " + ownerWhen + " (" + s.tz + ")" + (bk.tz !== s.tz ? "\nTheir time: " + theirWhen + " (" + bk.tz + ")" : "") +
+    "\nOn: " + PLAT + "\nCall link: " + (link || "none yet. Add your " + PLAT + " link in Admin → Settings, then send them one.") +
+    "\nEmail: " + bk.email + (bk.whatsapp ? "\nWhatsApp: " + bk.whatsapp : "") + (bk.website ? "\nWebsite: " + bk.website : "") + (bk.notes ? "\n\nThey want to cover:\n" + bk.notes : "") +
+    (bk.calendar ? "\n\nAdded to your Google Calendar: " + bk.calendar : "");
+  const gcal = "https://calendar.google.com/calendar/render?action=TEMPLATE&text=" + encodeURIComponent("Strategy call with Promise (Vix Assist)") + "&dates=" + start.replace(/[-:]|\.\d{3}/g, "") + "/" + bk.end.replace(/[-:]|\.\d{3}/g, "") + "&details=" + encodeURIComponent((link ? "Join on " + PLAT + ": " + link + "\n\n" : "") + "Questions before the call? WhatsApp " + OWNER_WA + " or email " + NOTIFY_EMAIL) + (link ? "&location=" + encodeURIComponent(link) : "");
+  const html = '<div style="font-family:Arial,sans-serif;font-size:15px;line-height:1.6;color:#111;max-width:560px">' +
+    "<p>Hi " + escH(bk.name.split(" ")[0]) + ",</p><p>Your free GoHighLevel strategy call is booked.</p>" +
+    '<p style="background:#f4f2ff;border-radius:10px;padding:14px 16px"><b>' + escH(theirWhen) + "</b> (" + escH(bk.tz) + ")<br>" + s.length + " minutes on " + PLAT + "<br>" +
+    (link ? '<a href="' + escH(link) + '" style="color:#5b45ff;font-weight:bold">Join the call: ' + escH(link) + "</a>" : "I'll send your " + PLAT + " link before the call.") + "</p>" +
+    '<p><a href="' + escH(gcal) + '" style="color:#5b45ff">Add it to Google Calendar</a></p>' +
+    "<p>If you'd like to get ahead, reply with your GoHighLevel plan and the one thing in your account that frustrates you most. I'll look at it before we talk.</p>" +
+    '<p>Need to move the time? Reply to this email or message me on <a href="https://wa.me/' + OWNER_WA.replace(/\D/g, "") + '">WhatsApp</a>. You can also find me on <a href="' + LINKEDIN + '">LinkedIn</a>.</p><p>Talk soon,<br>Promise<br>Vix Assist</p></div>';
+  const [mail, wa, cmail] = await Promise.all([
+    sendEmail(env, { subject: "📅 Strategy call booked: " + (bk.business || bk.name) + " · " + ownerWhen, text: ownerText + "\n\nAll calls are listed in your admin portal: " + origin + "/portal/admin/", replyTo: bk.email }),
+    whatsappOwner(env, ownerText),
+    sendClientEmail(env, { to: bk.email, name: bk.name, subject: "Your strategy call with Promise · " + theirWhen, html, text: html.replace(/<br>/g, "\n").replace(/<\/p>/g, "\n\n").replace(/<[^>]+>/g, "") }),
+  ]);
+  bk.notified = { email: mail.sent, whatsapp: wa.sent, client: cmail.sent, why: [mail.why, wa.why, cmail.why].filter(Boolean).join(" · ") };
+  await put(env, "booking:" + bk.id, bk);
+  const idx = (await get(env, "bookings:index")) || []; idx.push(bk.id); await put(env, "bookings:index", idx.slice(-500));
+  return json({ ok: true, booking: { start, end: bk.end, length: s.length, platform, link, gcal, invited: !!bk.calendar, emailed: cmail.sent } });
+}
+
+async function adminBook(env, url) {
+  const s = await bookSettings(env), g = (await get(env, "google:oauth")) || {};
+  const idx = ((await get(env, "bookings:index")) || []).slice(-80).reverse();
+  const list = (await Promise.all(idx.map((id) => get(env, "booking:" + id)))).filter(Boolean);
+  return json({ settings: s, redirect: url.origin + "/api/google/callback",
+    google: { clientSet: !!(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET), connected: !!g.refresh, email: g.email || "", error: g.error || "" },
+    zoom: zoomReady(env), whatsapp: !!env.CALLMEBOT_APIKEY, bookings: list });
+}
+async function adminBookSave(env, req) {
+  const b = await req.json().catch(() => ({}));
+  const s = await bookSettings(env), hm = (v, d) => (/^([01]\d|2[0-3]):[0-5]\d$/.test(String(v)) ? String(v) : d);
+  if (b.tz !== undefined) { if (!okTz(clean(b.tz, 60))) return fail(400, "Unknown time zone. Use a name like Europe/London or Africa/Lagos."); s.tz = clean(b.tz, 60); }
+  if (Array.isArray(b.days)) s.days = b.days.map(Number).filter((d) => d >= 0 && d <= 6);
+  s.start = hm(b.start, s.start); s.end = hm(b.end, s.end);
+  if (s.end <= s.start) return fail(400, "Your end time must be after your start time.");
+  if ([15, 20, 30, 45, 60].includes(+b.length)) s.length = +b.length;
+  if (b.notice !== undefined) s.notice = Math.max(0, Math.min(72, +b.notice || 0));
+  if (b.ahead !== undefined) s.ahead = Math.max(3, Math.min(60, +b.ahead || 21));
+  for (const k of ["meetLink", "zoomLink"]) if (b[k] !== undefined) { const v = clean(b[k], 300); if (v && !httpUrl(v)) return fail(400, "Meeting links must start with https://"); s[k] = v; }
+  await put(env, "settings:book", s);
+  return json({ ok: true, settings: s });
+}
+async function adminBookCancel(env, req) {
+  const b = await req.json().catch(() => ({}));
+  const bk = await get(env, "booking:" + clean(b.id, 40)); if (!bk) return fail(404, "Booking not found.");
+  bk.cancelled = now(); bk.read = true; await put(env, "booking:" + bk.id, bk);
+  await put(env, "book:taken", ((await get(env, "book:taken")) || []).filter((x) => x.id !== bk.id));
+  return json({ ok: true });
+}
+async function adminWhatsTest(env) {
+  const r = await whatsappOwner(env, "✅ Vix Assist: WhatsApp booking alerts are working. You'll get a message here for every strategy call booked on your website.");
+  return r.sent ? json({ ok: true }) : fail(400, r.why);
+}
+const GOOGLE_SCOPES = "openid email https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.freebusy";
+async function adminGoogleConnect(env, url) {
+  if (!env.GOOGLE_CLIENT_ID || !env.GOOGLE_CLIENT_SECRET) return fail(400, "Add GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in Cloudflare first.");
+  const state = rid(16); await env.PORTAL.put("gstate:" + state, "1", { expirationTtl: 600 });
+  const q = new URLSearchParams({ client_id: env.GOOGLE_CLIENT_ID, redirect_uri: url.origin + "/api/google/callback", response_type: "code", scope: GOOGLE_SCOPES, access_type: "offline", prompt: "consent", include_granted_scopes: "true", state });
+  return Response.redirect("https://accounts.google.com/o/oauth2/v2/auth?" + q, 302);
+}
+async function googleCallback(env, req, url) {
+  const back = (m) => Response.redirect(url.origin + "/portal/admin/?google=" + encodeURIComponent(m), 302);
+  if (!(await isAdmin(env, req))) return back("Log in to admin first, then press Connect Google again.");
+  const state = url.searchParams.get("state") || "";
+  if (!state || !(await env.PORTAL.get("gstate:" + state))) return back("That link expired. Press Connect Google again.");
+  await env.PORTAL.delete("gstate:" + state);
+  if (url.searchParams.get("error")) return back("Google connection was cancelled.");
+  const r = await fetch("https://oauth2.googleapis.com/token", { method: "POST", headers: { "content-type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({ code: url.searchParams.get("code") || "", client_id: env.GOOGLE_CLIENT_ID, client_secret: env.GOOGLE_CLIENT_SECRET, redirect_uri: url.origin + "/api/google/callback", grant_type: "authorization_code" }) });
+  if (!r.ok) return back("Google said no (" + r.status + "). Check the redirect URL in Google Cloud matches exactly.");
+  const j = await r.json();
+  if (!j.refresh_token) return back("Google didn't return a long-term key. Remove Vix Assist at myaccount.google.com/permissions and connect again.");
+  let email = ""; try { email = JSON.parse(new TextDecoder().decode(unb64u(j.id_token.split(".")[1]))).email || ""; } catch {}
+  await put(env, "google:oauth", { refresh: j.refresh_token, access: j.access_token, exp: Date.now() + (j.expires_in || 3000) * 1000, email, at: now() });
+  return back("connected");
+}
+async function adminGoogleDisconnect(env) { await env.PORTAL.delete("google:oauth"); await env.PORTAL.delete("google:busy"); return json({ ok: true }); }
+
 export async function onRequest(ctx) {
   const { request: req } = ctx;
   // Accept the KV binding whatever its capitalisation (PORTAL, Portal, portal).
@@ -1103,6 +1327,9 @@ export async function onRequest(ctx) {
     if (path === "pay/package" && m === "POST") return payPackageStart(env, req, url.origin);
     if (path === "pay/banks" && m === "GET") return payBanks(env);
     if (path === "pay/transfer" && m === "POST") return payTransferClaim(env, req);
+    if (path === "book/slots" && m === "GET") return bookSlots(env);
+    if (path === "book" && m === "POST") return bookCreate(env, req, url.origin);
+    if (path === "google/callback" && m === "GET") return googleCallback(env, req, url);
 
     if (path === "admin/login" && m === "POST") return adminLogin(env, req);
     if (path.startsWith("admin/")) {
@@ -1135,6 +1362,12 @@ export async function onRequest(ctx) {
       if (a === "client-email" && m === "GET") return json({ ready: clientEmailReady(env) });
       if (a === "client-email/test" && m === "POST") return adminTestClientEmail(env, req, url.origin);
       if (a === "payreqs/confirm" && m === "POST") return adminPayConfirm(env, req, url.origin);
+      if (a === "book" && m === "GET") return adminBook(env, url);
+      if (a === "book" && m === "POST") return adminBookSave(env, req);
+      if (a === "book/cancel" && m === "POST") return adminBookCancel(env, req);
+      if (a === "book/whatsapp-test" && m === "POST") return adminWhatsTest(env);
+      if (a === "google/connect" && m === "GET") return adminGoogleConnect(env, url);
+      if (a === "google/disconnect" && m === "POST") return adminGoogleDisconnect(env);
     }
     return fail(404, "Not found.");
   } catch (e) {

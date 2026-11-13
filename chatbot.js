@@ -90,7 +90,7 @@
     { id: "location", keys: ["where", "location", "country", "based", "worldwide", "international", "nigeria", "uk", "usa", "remote"],
       reply: "We're based in Lagos and London and work remotely with clients worldwide. You can pay online by card or by bank transfer in USD, GBP, EUR or NGN." },
     { id: "book", keys: ["book", "call", "meeting", "consult", "consultation", "strategy", "appointment", "schedule", "audit", "start", "get started", "hire"],
-      reply: "Great! <a href=\"" + HOME + "#contact\">Send us a quick message</a> to book a free 30-minute strategy call, or <a href=\"" + waLink(WHATSAPP_GREETING + "booking a strategy call.", true) + "\" target=\"_blank\" rel=\"noopener\">message us on WhatsApp</a> and we'll set a time that suits you." },
+      reply: "Great! <a href=\"/book.html\">Pick a time here</a> to book a free 30 minute strategy call on Zoom or Google Meet. You get the call link straight away. Or <a href=\"" + waLink(WHATSAPP_GREETING + "booking a strategy call.", true) + "\" target=\"_blank\" rel=\"noopener\">message us on WhatsApp</a> and we'll set a time that suits you." },
     { id: "human", keys: ["human", "person", "real", "agent", "talk", "speak", "whatsapp", "contact", "email", "phone", "number", "reach"],
       reply: "Of course! Message us on <a href=\"" + waLink() + "\" target=\"_blank\" rel=\"noopener\">WhatsApp</a> or email <a href=\"mailto:" + EMAIL + "\">" + EMAIL + "</a>. We usually reply within 1 business day." },
     { id: "thanks", keys: ["thanks", "thank you", "thx", "cheers", "great", "awesome", "ok", "okay", "cool"],

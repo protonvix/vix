@@ -20,6 +20,64 @@
   $("#pay-btn").addEventListener("click", function () { sel = null; drawList(); payments(); });
   $("#bell-btn").addEventListener("click", function () { sel = null; drawList(); bell(); });
   $("#set-btn").addEventListener("click", function () { onBell = false; sel = null; drawList(); settings(); });
+  $("#call-btn").addEventListener("click", function () { onBell = false; onChats = false; sel = null; drawList(); callsView(); });
+
+
+  /* ---------- strategy calls: availability, Google / Zoom, WhatsApp, booked calls ---------- */
+  var DOW = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  function callsView(into) {
+    var box = into || $("#main");
+    box.innerHTML = '<div class="card"><p class="note">Loading strategy calls…</p></div>';
+    api("admin/book").then(function (d) {
+      var s = d.settings, g = d.google, P = function (p) { return p === "zoom" ? "Zoom" : "Google Meet"; };
+      var up = d.bookings.filter(function (b) { return !b.cancelled && Date.parse(b.end) > Date.now(); }).sort(function (a, b) { return a.start.localeCompare(b.start); });
+      var when = function (iso) { try { return new Intl.DateTimeFormat("en-GB", { timeZone: s.tz, weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }).format(new Date(iso)); } catch (e) { return iso; } };
+      var stateRow = function (on, txt) { return '<li><i class="ph-fill ' + (on ? "ph-check-circle ok" : "ph-circle-dashed") + '" aria-hidden="true"' + (on ? "" : ' style="color:var(--soft)"') + "></i> " + txt + "</li>"; };
+      box.innerHTML =
+        '<div class="card"><div class="help"><div><h2 style="margin:0"><i class="ph ph-video-camera" aria-hidden="true"></i> Strategy calls</h2><p class="muted">People book at <a href="/book.html" target="_blank" rel="noopener" style="text-decoration:underline">/book.html</a>. Every booking goes to your Gmail, your phone notifications and WhatsApp (once set up).</p></div></div>' +
+        '<h3 style="margin:16px 0 8px">Coming up (' + up.length + ")</h3>" +
+        (up.length ? up.map(function (b) {
+          return '<div class="card" style="margin-top:8px;padding:14px 16px"><b>' + esc(when(b.start)) + " · " + esc(b.name) + (b.business ? " (" + esc(b.business) + ")" : "") + '</b><p class="muted" style="margin:4px 0">' + P(b.platform) + " · " + esc(b.email) + (b.whatsapp ? " · " + esc(b.whatsapp) : "") + "</p>" +
+            (b.notes ? '<p style="margin:4px 0;white-space:pre-wrap">' + esc(b.notes) + "</p>" : "") +
+            '<div class="acts" style="margin-top:8px">' + (b.link ? '<a class="btn btn-p btn-sm" href="' + esc(b.link) + '" target="_blank" rel="noopener">Open call link</a>' : '<span class="note" style="color:var(--warn)">No call link was created. Send them one.</span>') +
+            '<a class="btn btn-g btn-sm" href="mailto:' + esc(b.email) + '?subject=' + encodeURIComponent("Our strategy call") + '">Email</a>' + (b.whatsapp ? '<a class="btn btn-g btn-sm" target="_blank" rel="noopener" href="https://wa.me/' + esc(b.whatsapp.replace(/\D/g, "")) + '">WhatsApp</a>' : "") +
+            '<button class="btn btn-g btn-sm" type="button" data-cancel="' + esc(b.id) + '">Free up this slot</button></div></div>';
+        }).join("") : '<p class="muted">No calls booked yet.</p>') + "</div>" +
+
+        '<div class="card" style="margin-top:16px"><h2><i class="ph ph-plugs-connected" aria-hidden="true"></i>Connections</h2><ul style="list-style:none;padding:0;margin:8px 0;display:grid;gap:6px">' +
+          stateRow(g.connected, g.connected ? "Google Calendar connected" + (g.email ? " (" + esc(g.email) + ")" : "") + ": unique Meet links, invites to the client, your busy times blocked" : "Google Calendar not connected" + (g.clientSet ? "" : " (add GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in Cloudflare first)")) +
+          stateRow(d.zoom, d.zoom ? "Zoom connected: a unique Zoom meeting for every booking" : "Zoom API not connected (optional: add ZOOM_ACCOUNT_ID, ZOOM_CLIENT_ID, ZOOM_CLIENT_SECRET). Your Zoom room link below is used instead") +
+          stateRow(d.whatsapp, d.whatsapp ? "WhatsApp alerts on" : "WhatsApp alerts off (add CALLMEBOT_APIKEY in Cloudflare)") +
+        "</ul>" + (g.error ? '<p class="err">' + esc(g.error) + "</p>" : "") +
+        '<div class="acts">' + (g.clientSet ? (g.connected ? '<button class="btn btn-g btn-sm" type="button" id="g-off">Disconnect Google</button><a class="btn btn-g btn-sm" href="/api/admin/google/connect">Reconnect Google</a>' : '<a class="btn btn-p btn-sm" href="/api/admin/google/connect"><i class="ph ph-google-logo" aria-hidden="true"></i>Connect Google Calendar</a>') : "") +
+        (d.whatsapp ? '<button class="btn btn-g btn-sm" type="button" id="wa-test"><i class="ph ph-whatsapp-logo" aria-hidden="true"></i>Send a test WhatsApp</button>' : "") + '<span class="note" id="cx-msg"></span></div>' +
+        (g.clientSet ? "" : '<p class="note">Google redirect URL to paste in Google Cloud: <code>' + esc(d.redirect) + "</code></p>") + "</div>" +
+
+        '<div class="card" style="margin-top:16px" id="bk-set"><h2><i class="ph ph-clock" aria-hidden="true"></i>When people can book</h2>' +
+        '<div class="row3"><label>Your time zone<input name="tz" value="' + esc(s.tz) + '" placeholder="Europe/London"></label><label>From<input name="start" type="time" value="' + esc(s.start) + '"></label><label>Until<input name="end" type="time" value="' + esc(s.end) + '"></label></div>' +
+        '<div class="row3" style="margin-top:12px"><label>Call length<select name="length">' + [15, 20, 30, 45, 60].map(function (n) { return "<option" + (n === s.length ? " selected" : "") + ' value="' + n + '">' + n + " minutes</option>"; }).join("") + '</select></label><label>Minimum notice (hours)<input name="notice" type="number" min="0" max="72" value="' + s.notice + '"></label><label>Days ahead people can book<input name="ahead" type="number" min="3" max="60" value="' + s.ahead + '"></label></div>' +
+        '<p style="margin:12px 0 6px;font-weight:500">Days</p><div class="acts">' + [1, 2, 3, 4, 5, 6, 0].map(function (n) { return '<label class="agree-row" style="display:flex;gap:6px;align-items:center"><input type="checkbox" name="day" value="' + n + '"' + (s.days.indexOf(n) > -1 ? " checked" : "") + "> " + DOW[n] + "</label>"; }).join("") + "</div>" +
+        '<div class="row" style="margin-top:12px"><label>Your Google Meet link (used when Google isn\'t connected)<input name="meetLink" value="' + esc(s.meetLink) + '" placeholder="https://meet.google.com/abc-defg-hij"></label><label>Your Zoom room link (used when the Zoom API isn\'t connected)<input name="zoomLink" value="' + esc(s.zoomLink) + '" placeholder="https://us05web.zoom.us/j/1234567890?pwd=..."></label></div>' +
+        '<div class="acts" style="margin-top:12px"><button class="btn btn-p" type="button" id="bk-save"><i class="ph ph-floppy-disk" aria-hidden="true"></i>Save booking settings</button><span class="note" id="bk-msg"></span></div></div>';
+
+      box.querySelectorAll("[data-cancel]").forEach(function (b) { b.onclick = function () { if (!confirm("Free up this time so someone else can book it? Tell the client yourself.")) return; api("admin/book/cancel", { id: b.dataset.cancel }).then(function () { callsView(into); }); }; });
+      var off = $("#g-off"); if (off) off.onclick = function () { api("admin/google/disconnect", {}).then(function () { callsView(into); }); };
+      var wt = $("#wa-test"); if (wt) wt.onclick = function () { $("#cx-msg").textContent = "Sending…"; api("admin/book/whatsapp-test", {}).then(function () { $("#cx-msg").innerHTML = '<span class="ok">Sent ✓ Check WhatsApp.</span>'; }).catch(function (x) { $("#cx-msg").innerHTML = '<span class="err">' + esc(x.message) + "</span>"; }); };
+      $("#bk-save").onclick = function () {
+        var c = $("#bk-set"), v = function (n) { return c.querySelector("[name=" + n + "]").value; };
+        var days = Array.prototype.map.call(c.querySelectorAll("[name=day]:checked"), function (x) { return +x.value; });
+        $("#bk-msg").textContent = "Saving…";
+        api("admin/book", { tz: v("tz"), start: v("start"), end: v("end"), length: +v("length"), notice: +v("notice"), ahead: +v("ahead"), days: days, meetLink: v("meetLink"), zoomLink: v("zoomLink") })
+          .then(function () { $("#bk-msg").innerHTML = '<span class="ok">Saved ✓ Your booking page uses these times now.</span>'; })
+          .catch(function (x) { $("#bk-msg").innerHTML = '<span class="err">' + esc(x.message) + "</span>"; });
+      };
+    }).catch(function (x) { box.innerHTML = '<div class="card"><p class="err">' + esc(x.message) + "</p></div>"; });
+  }
+  (function googleReturn() {
+    var m = new URLSearchParams(location.search).get("google"); if (!m) return;
+    history.replaceState(null, "", location.pathname);
+    setTimeout(function () { alert(m === "connected" ? "Google Calendar connected ✓ New bookings now get their own Google Meet link and a calendar invite." : m); }, 400);
+  })();
 
   /* ---------- settings: bank accounts shown for transfer payments ---------- */
   function settings() {
@@ -67,8 +125,8 @@
   }
 
   /* ---------- notifications: everything new, in bold, live ---------- */
-  var ICON = { payment: "ph-currency-circle-dollar", transfer: "ph-bank", brief: "ph-file-text", offer: "ph-gift", founding: "ph-star", overdue: "ph-warning-circle", message: "ph-chat-circle-dots" };
-  var NLABEL = { payment: "Payment", transfer: "Bank transfer to confirm", brief: "Brief / enquiry", offer: "Free design request", founding: "Founding client application", overdue: "Payment overdue", message: "Client message" };
+  var ICON = { payment: "ph-currency-circle-dollar", transfer: "ph-bank", brief: "ph-file-text", offer: "ph-gift", founding: "ph-star", overdue: "ph-warning-circle", message: "ph-chat-circle-dots", call: "ph-video-camera" };
+  var NLABEL = { payment: "Payment", transfer: "Bank transfer to confirm", brief: "Brief / enquiry", offer: "Free design request", founding: "Founding client application", overdue: "Payment overdue", message: "Client message", call: "Strategy call" };
   var lastUnread = null, onBell = false, known = {};
   function chime() {
     try {
@@ -150,7 +208,7 @@
     $("#main").querySelectorAll(".nf").forEach(function (b) {
       b.onclick = function () {
         var k = b.dataset.kind, id = b.dataset.id, cid = b.dataset.client;
-        var go = function () { onBell = false; if (k === "transfer" || k === "overdue") { payments(); } else if (k === "brief" || k === "offer" || k === "founding") { inbox(); } else if (k === "message" && cid) { sel = null; refresh().then(function () { drawList(); chats(cid); }); } else if (cid) { sel = cid; refresh(true).then(function () { drawList(); showClient(cid); }); } };
+        var go = function () { onBell = false; if (k === "transfer" || k === "overdue") { payments(); } else if (k === "brief" || k === "offer" || k === "founding") { inbox(); } else if (k === "call") { callsView(); } else if (k === "message" && cid) { sel = null; refresh().then(function () { drawList(); chats(cid); }); } else if (cid) { sel = cid; refresh(true).then(function () { drawList(); showClient(cid); }); } };
         if (k === "message") go(); else api("admin/feed/seen", { kind: k, id: id }).then(go, go);
       };
     });
