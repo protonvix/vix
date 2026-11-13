@@ -7,7 +7,7 @@ Built from Promise's own messages (no past LinkedIn posts yet). Update it once r
 - **Name:** Promise Felix
 - **What I do, in one sentence:** I build GoHighLevel systems, client portals and websites that help small businesses reply faster, follow up properly and get paid.
 - **Who I am writing for:** owners of small and growing service businesses in the UK and Nigeria (clinics, real estate, car dealers, agencies, home services) who are busy and losing leads to slow follow-up.
-- **What I sell:** GoHighLevel setup and automation, AI booking assistants, websites and funnels, client dashboards and payment flows (Vix Automations).
+- **What I sell:** GoHighLevel setup and automation, AI booking assistants, websites and funnels, client dashboards and payment flows (Vix Assist).
 
 ## What I sound like
 
@@ -18,7 +18,7 @@ Built from Promise's own messages (no past LinkedIn posts yet). Update it once r
 - **Do I swear:** no.
 - **Emoji:** one, rarely.
 - **Contractions:** yes.
-- **Point of view:** "I" for my journey and opinions, "we" for what Vix Automations does.
+- **Point of view:** "I" for my journey and opinions, "we" for what Vix Assist does.
 
 ## My positions
 

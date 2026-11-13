@@ -1,4 +1,4 @@
-/* Vix Automations · homepage interactions */
+/* Vix Assist · homepage interactions */
 (function () {
   "use strict";
   var EMAIL = "vixautomations@gmail.com";
@@ -177,7 +177,7 @@
     return '<article class="design reveal' + (feat ? " feat" : "") + '" data-tags="' + d[2].join(" ") + '">' +
       '<button class="shot" type="button" data-preview="' + d[0] + '" aria-label="Preview the ' + d[1] + ' design"><img src="assets/designs/d' + d[0] + (feat ? "" : "-sm") + '.jpg" alt="' + d[1] + ' website design" loading="lazy" width="600" height="400"></button>' +
       '<div class="meta"><h3>' + d[1] + '<small>#' + String(d[0]).padStart(2, "0") + '</small></h3><p>' + d[3] + '</p>' +
-      '<a class="btn btn-glass pick" target="_blank" rel="noopener" href="' + wa("Hello Vix Automations, I'd like a website in the " + d[1] + " design (#" + d[0] + "). Can we talk?") + '">Choose this design</a></div></article>';
+      '<a class="btn btn-glass pick" target="_blank" rel="noopener" href="' + wa("Hello Vix Assist, I'd like a website in the " + d[1] + " design (#" + d[0] + "). Can we talk?") + '">Choose this design</a></div></article>';
   }).join("");
   $$(".design", gallery).forEach(function (el) { io.observe(el); });
   $$("[data-filter]").forEach(function (b) {
@@ -194,7 +194,7 @@
     $("#preview-img").src = "assets/designs/d" + d[0] + ".jpg"; $("#preview-img").alt = d[1] + " website design";
     $("#preview-name").textContent = d[1] + " · #" + String(d[0]).padStart(2, "0");
     $("#preview-desc").textContent = d[3]; $("#preview-best").textContent = "Best for: " + d[4];
-    $("#preview-choose").href = wa("Hello Vix Automations, I'd like a website in the " + d[1] + " design (#" + d[0] + "). Can we talk?");
+    $("#preview-choose").href = wa("Hello Vix Assist, I'd like a website in the " + d[1] + " design (#" + d[0] + "). Can we talk?");
     if (dlg.showModal) dlg.showModal(); else dlg.setAttribute("open", "");
   });
   dlg.addEventListener("click", function (e) { if (e.target === dlg || e.target.closest("[data-close]")) dlg.close(); });

@@ -1,4 +1,4 @@
-// Vix Automations client portal API (Cloudflare Pages Function).
+// Vix Assist client portal API (Cloudflare Pages Function).
 // Bindings (set in the Cloudflare dashboard): KV namespace "PORTAL", secret "ADMIN_PASSWORD".
 
 const STAGES = {
@@ -277,7 +277,7 @@ async function adminProject(env, req) {
         p.updates.push({ at: now(), text: `🎉 Your project is delivered! Your remaining balance of ${fmtMoney(q.total - planOf(q).items.filter((x) => x.status === "paid").reduce((n, x) => n + x.amount, 0), q.currency)} is now due. Your files and links unlock as soon as it's paid.` });
         if (nx && nx.due === "delivery") {
           await sendClientEmail(env, { to: q.email, name: q.name, subject: "🎉 Your project is ready: final payment due",
-            html: `<div style="font-family:Arial,sans-serif;max-width:540px;margin:0 auto;padding:24px;color:#3a4152;font-size:15px;line-height:1.6"><div style="font-weight:700;color:#5b4bff">Vix Automations</div><h2 style="color:#0b1020">Your project is ready 🎉</h2><p>Hi ${escH(String(q.name).split(" ")[0])}, great news: your project is complete. Please pay your remaining balance of <b>${escH(fmtMoney(nx.amount, q.currency))}</b> to unlock your files and links.</p><p><a href="https://vixautomations.pages.dev/pay/?r=${escH(q.id)}" style="display:inline-block;background:#5b4bff;color:#fff;text-decoration:none;font-weight:700;padding:12px 20px;border-radius:999px">Pay my balance →</a></p></div>`,
+            html: `<div style="font-family:Arial,sans-serif;max-width:540px;margin:0 auto;padding:24px;color:#3a4152;font-size:15px;line-height:1.6"><div style="font-weight:700;color:#5b4bff">Vix Assist</div><h2 style="color:#0b1020">Your project is ready 🎉</h2><p>Hi ${escH(String(q.name).split(" ")[0])}, great news: your project is complete. Please pay your remaining balance of <b>${escH(fmtMoney(nx.amount, q.currency))}</b> to unlock your files and links.</p><p><a href="https://vixautomations.pages.dev/pay/?r=${escH(q.id)}" style="display:inline-block;background:#5b4bff;color:#fff;text-decoration:none;font-weight:700;padding:12px 20px;border-radius:999px">Pay my balance →</a></p></div>`,
             text: `Your project is ready. Please pay your remaining balance of ${fmtMoney(nx.amount, q.currency)} to unlock your files: https://vixautomations.pages.dev/pay/?r=${q.id}` });
         }
       }
@@ -459,7 +459,7 @@ async function sendEmail(env, { subject, text, replyTo }) {
     const r = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: { authorization: "Bearer " + env.RESEND_API_KEY, "content-type": "application/json" },
-      body: JSON.stringify({ from: env.EMAIL_FROM || "Vix Automations Website <onboarding@resend.dev>", to: [env.NOTIFY_EMAIL || NOTIFY_EMAIL], reply_to: replyTo || undefined, subject, text }),
+      body: JSON.stringify({ from: env.EMAIL_FROM || "Vix Assist Website <onboarding@resend.dev>", to: [env.NOTIFY_EMAIL || NOTIFY_EMAIL], reply_to: replyTo || undefined, subject, text }),
     });
     await pushing;
     return r.ok ? { sent: true } : { sent: false, why: "Resend " + r.status + ": " + (await r.text()).slice(0, 200) };
@@ -512,7 +512,7 @@ async function adminBriefUpdate(env, req) {
   return json({ ok: true });
 }
 async function adminTestEmail(env) {
-  const r = await sendEmail(env, { subject: "✅ Test email from your Vix Automations website", text: "Your website can now send briefs and enquiries to this inbox." });
+  const r = await sendEmail(env, { subject: "✅ Test email from your Vix Assist website", text: "Your website can now send briefs and enquiries to this inbox." });
   return r.sent ? json({ ok: true }) : fail(400, r.why);
 }
 
@@ -602,7 +602,7 @@ async function afterInstalment(env, q, it, origin) {
     await put(env, "project:" + pj.id, pj);
   }
   const subject = done ? "✅ Paid in full: your project is unlocked" : `Payment received: ${money(it.amount)} (payment ${it.i + 1} of ${pl.items.length})`;
-  const html = `<div style="font-family:Arial,sans-serif;max-width:540px;margin:0 auto;padding:24px;color:#3a4152;font-size:15px;line-height:1.6"><div style="font-weight:700;color:#5b4bff">Vix Automations</div><h2 style="color:#0b1020;margin:12px 0">${escH(subject)}</h2><p>Hi ${escH(String(q.name).split(" ")[0])},</p><p>${escH(text)}</p><p><a href="${escH(origin)}/portal/" style="display:inline-block;background:#5b4bff;color:#fff;text-decoration:none;font-weight:700;padding:12px 20px;border-radius:999px">Open my client dashboard →</a></p><p style="font-size:13px;color:#7c849c">Questions? Reply to this email or WhatsApp +44 7723 149573.</p></div>`;
+  const html = `<div style="font-family:Arial,sans-serif;max-width:540px;margin:0 auto;padding:24px;color:#3a4152;font-size:15px;line-height:1.6"><div style="font-weight:700;color:#5b4bff">Vix Assist</div><h2 style="color:#0b1020;margin:12px 0">${escH(subject)}</h2><p>Hi ${escH(String(q.name).split(" ")[0])},</p><p>${escH(text)}</p><p><a href="${escH(origin)}/portal/" style="display:inline-block;background:#5b4bff;color:#fff;text-decoration:none;font-weight:700;padding:12px 20px;border-radius:999px">Open my client dashboard →</a></p><p style="font-size:13px;color:#7c849c">Questions? Reply to this email or WhatsApp +44 7723 149573.</p></div>`;
   await sendClientEmail(env, { to: q.email, name: q.name, subject, html, text });
   await sendEmail(env, { subject: `💰 ${done ? "Paid in full" : "Instalment received"}: ${money(it.amount)} from ${q.business || q.name}`, replyTo: q.email, text: text + `\n\nPlan: ${planLabel(pl)}\nOpen your admin page: ${origin}/portal/admin/` });
 }
@@ -662,7 +662,7 @@ async function payStart(env, req, origin) {
   if (b.consent !== true) return fail(400, "Please tick the box to authorise this payment before continuing.");
   q.consents = (q.consents || []).concat({ i: it.i, amount: it.amount, currency: q.currency, at: now(),
     ip: req.headers.get("cf-connecting-ip") || "", country: req.headers.get("cf-ipcountry") || "",
-    text: `I authorise Vix Automations to charge ${fmtMoney(it.amount, q.currency)} to my card or account today. This is a one-time payment; no future payment will be taken without my approval.` }).slice(-20);
+    text: `I authorise Vix Assist to charge ${fmtMoney(it.amount, q.currency)} to my card or account today. This is a one-time payment; no future payment will be taken without my approval.` }).slice(-20);
   await put(env, "payreq:" + q.id, q);
   const pl0 = planOf(q), what = q.services.map((x) => x.title || defaultTitle(x.type)).join(", ") + (pl0.items.length > 1 ? ` (payment ${it.i + 1} of ${pl0.items.length})` : "");
   const reference = "vix_" + q.id + "_" + it.i + "_" + rid(6).replace(/[^A-Za-z0-9]/g, "");
@@ -672,7 +672,7 @@ async function payStart(env, req, origin) {
       callback_url: `${origin}/pay/done/`,
       metadata: { payreq: q.id, instalment: it.i + 1, business: q.business, cancel_action: `${origin}/pay/?r=${q.id}`,
         custom_fields: [
-          { display_name: "Merchant", variable_name: "merchant", value: "Vix Automations" },
+          { display_name: "Merchant", variable_name: "merchant", value: "Vix Assist" },
           { display_name: "Payment for", variable_name: "payment_for", value: what.slice(0, 120) },
           { display_name: "Customer", variable_name: "customer", value: (q.business || q.name).slice(0, 80) },
           { display_name: "Authorised by customer", variable_name: "authorised", value: "Yes, one-time payment" },
@@ -948,7 +948,7 @@ async function adminPayConfirm(env, req, origin) {
 
 /* ---------------- Emails to clients (payment confirmation + dashboard link) ---------------- */
 // Two ways to send, used in this order:
-//   1) Resend with your own verified domain: set EMAIL_FROM (e.g. "Vix Automations <hello@vixautomations.com>") + RESEND_API_KEY.
+//   1) Resend with your own verified domain: set EMAIL_FROM (e.g. "Vix Assist <hello@vixautomations.com>") + RESEND_API_KEY.
 //   2) EmailJS connected to your Gmail (no domain needed): set EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, EMAILJS_PUBLIC_KEY, EMAILJS_PRIVATE_KEY.
 // The EmailJS template must use {{to_email}} as "To Email", {{subject}} as subject and {{{message_html}}} as the content.
 const escH = (t) => String(t == null ? "" : t).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -996,19 +996,19 @@ async function adminBriefReply(env, req, origin) {
 }
 function messageEmail({ name, text, link, project, subject }) {
   const first = String(name || "").split(" ")[0] || "there";
-  subject = subject || "New message from Vix Automations" + (project ? " about " + project : "");
+  subject = subject || "New message from Vix Assist" + (project ? " about " + project : "");
   const paras = escH(text).split(/\n{2,}/).map((x) => `<p style="margin:0 0 14px">${x.replace(/\n/g, "<br>")}</p>`).join("");
   const html = `<!doctype html><html><body style="margin:0;background:#f3f5fb;font-family:Arial,Helvetica,sans-serif">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f3f5fb;padding:28px 12px"><tr><td align="center">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:18px;overflow:hidden;border:1px solid #e3e7f2">
-<tr><td style="background:#5b4bff;background:linear-gradient(135deg,#3b2cff,#8b5cff);padding:20px 28px;color:#ffffff;font-size:15px;font-weight:700">Vix Automations</td></tr>
+<tr><td style="background:#5b4bff;background:linear-gradient(135deg,#3b2cff,#8b5cff);padding:20px 28px;color:#ffffff;font-size:15px;font-weight:700">Vix Assist</td></tr>
 <tr><td style="padding:26px 28px;color:#3a4152;font-size:15px;line-height:1.65">
 <p style="margin:0 0 14px">Hi ${escH(first)},</p>${paras}
 ${link ? `<p style="margin:22px 0 6px"><a href="${escH(link)}" style="display:inline-block;background:#5b4bff;color:#ffffff;text-decoration:none;font-weight:700;padding:13px 22px;border-radius:999px">${project ? "Reply in your dashboard" : "Open your client dashboard"}</a></p>` : ""}
-<p style="margin:22px 0 0">Best regards,<br><b>Promise Felix</b><br>Vix Automations</p></td></tr>
+<p style="margin:22px 0 0">Best regards,<br><b>Promise Felix</b><br>Vix Assist</p></td></tr>
 <tr><td style="padding:16px 28px;background:#f8f9fc;color:#7c849c;font-size:12px">You can reply to this email directly${link ? " or message us from your dashboard" : ""}. WhatsApp: +44 7723 149573</td></tr>
 </table></td></tr></table></body></html>`;
-  const plain = `Hi ${first},\n\n${text}\n\n${link ? (project ? "Reply in your dashboard: " : "Your client dashboard: ") + link + "\n\n" : ""}Best regards,\nPromise Felix\nVix Automations\nWhatsApp: +44 7723 149573`;
+  const plain = `Hi ${first},\n\n${text}\n\n${link ? (project ? "Reply in your dashboard: " : "Your client dashboard: ") + link + "\n\n" : ""}Best regards,\nPromise Felix\nVix Assist\nWhatsApp: +44 7723 149573`;
   return { subject, html, text: plain };
 }
 function fmtMoney(n, c) { return ({ NGN: "₦", USD: "$", GBP: "£", EUR: "€" }[c] || c + " ") + Number(n).toLocaleString("en-GB", { maximumFractionDigits: 2 }); }
@@ -1023,7 +1023,7 @@ function paymentEmail({ name, business, services, total, currency, method, refer
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f3f5fb;padding:28px 12px"><tr><td align="center">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:18px;overflow:hidden;border:1px solid #e3e7f2">
 <tr><td style="background:linear-gradient(135deg,#3b2cff,#8b5cff);background-color:#5b4bff;padding:26px 28px;color:#ffffff">
-<div style="font-size:15px;font-weight:700;letter-spacing:.02em">Vix Automations</div>
+<div style="font-size:15px;font-weight:700;letter-spacing:.02em">Vix Assist</div>
 <div style="font-size:26px;font-weight:800;line-height:1.2;margin-top:14px">Payment confirmed ✅</div>
 <div style="font-size:15px;opacity:.9;margin-top:6px">Your project has officially started 🚀</div></td></tr>
 <tr><td style="padding:26px 28px;color:#3a4152;font-size:15px;line-height:1.6">
@@ -1041,10 +1041,10 @@ ${invite ? '<div style="font-size:12px;color:#7c849c;margin-top:12px">This perso
 <p style="margin:0 0 6px;font-weight:700;color:#0b1020">What happens next</p>
 <ol style="margin:0 0 18px;padding-left:20px"><li>We'll contact you within one business day with your next steps.</li><li>You'll see each stage of your project on your dashboard.</li><li>Your deliveries will appear there as soon as they're ready.</li></ol>
 <p style="margin:0">Questions? Just reply to this email or message us on WhatsApp: <a href="https://wa.me/447723149573" style="color:#5b4bff">+44 7723 149573</a>.</p>
-<p style="margin:18px 0 0">Welcome aboard,<br><b>Promise Felix</b><br>Vix Automations</p></td></tr>
-<tr><td style="padding:16px 28px;background:#f8f9fd;color:#9aa1b5;font-size:12px;line-height:1.5">Vix Automations · <a href="${escH(origin)}" style="color:#9aa1b5">${escH(origin.replace("https://", ""))}</a> · <a href="${escH(origin)}/refund.html" style="color:#9aa1b5">Refund policy</a></td></tr>
+<p style="margin:18px 0 0">Welcome aboard,<br><b>Promise Felix</b><br>Vix Assist</p></td></tr>
+<tr><td style="padding:16px 28px;background:#f8f9fd;color:#9aa1b5;font-size:12px;line-height:1.5">Vix Assist · <a href="${escH(origin)}" style="color:#9aa1b5">${escH(origin.replace("https://", ""))}</a> · <a href="${escH(origin)}/refund.html" style="color:#9aa1b5">Refund policy</a></td></tr>
 </table></td></tr></table></body></html>`;
-  const text = `Hi ${first},\n\nPayment confirmed. Thank you! Your project has officially started.\n\n${services.map((s) => "• " + (s.title || defaultTitle(s.type)) + ": " + fmtMoney(s.amount, currency)).join("\n")}\nTotal paid: ${fmtMoney(total, currency)}\nPaid by ${method} · ${date}${reference ? " · Ref " + reference : ""}\n\n${cta}:\n${link}\n${invite ? "(This personal link works once and lasts 14 days. After that, log in at " + loginUrl + ")\n" : ""}\nWe'll contact you within one business day with your next steps.\n\nWelcome aboard,\nPromise Felix\nVix Automations\nWhatsApp: +44 7723 149573`;
+  const text = `Hi ${first},\n\nPayment confirmed. Thank you! Your project has officially started.\n\n${services.map((s) => "• " + (s.title || defaultTitle(s.type)) + ": " + fmtMoney(s.amount, currency)).join("\n")}\nTotal paid: ${fmtMoney(total, currency)}\nPaid by ${method} · ${date}${reference ? " · Ref " + reference : ""}\n\n${cta}:\n${link}\n${invite ? "(This personal link works once and lasts 14 days. After that, log in at " + loginUrl + ")\n" : ""}\nWe'll contact you within one business day with your next steps.\n\nWelcome aboard,\nPromise Felix\nVix Assist\nWhatsApp: +44 7723 149573`;
   return { subject, html, text };
 }
 async function emailPaidClient(env, q, r, origin, method, reference) {
