@@ -277,8 +277,8 @@ async function adminProject(env, req) {
         p.updates.push({ at: now(), text: `🎉 Your project is delivered! Your remaining balance of ${fmtMoney(q.total - planOf(q).items.filter((x) => x.status === "paid").reduce((n, x) => n + x.amount, 0), q.currency)} is now due. Your files and links unlock as soon as it's paid.` });
         if (nx && nx.due === "delivery") {
           await sendClientEmail(env, { to: q.email, name: q.name, subject: "🎉 Your project is ready: final payment due",
-            html: `<div style="font-family:Arial,sans-serif;max-width:540px;margin:0 auto;padding:24px;color:#3a4152;font-size:15px;line-height:1.6"><div style="font-weight:700;color:#5b4bff">Vix Assist</div><h2 style="color:#0b1020">Your project is ready 🎉</h2><p>Hi ${escH(String(q.name).split(" ")[0])}, great news: your project is complete. Please pay your remaining balance of <b>${escH(fmtMoney(nx.amount, q.currency))}</b> to unlock your files and links.</p><p><a href="https://vixautomations.pages.dev/pay/?r=${escH(q.id)}" style="display:inline-block;background:#5b4bff;color:#fff;text-decoration:none;font-weight:700;padding:12px 20px;border-radius:999px">Pay my balance →</a></p></div>`,
-            text: `Your project is ready. Please pay your remaining balance of ${fmtMoney(nx.amount, q.currency)} to unlock your files: https://vixautomations.pages.dev/pay/?r=${q.id}` });
+            html: `<div style="font-family:Arial,sans-serif;max-width:540px;margin:0 auto;padding:24px;color:#3a4152;font-size:15px;line-height:1.6"><div style="font-weight:700;color:#5b4bff">Vix Assist</div><h2 style="color:#0b1020">Your project is ready 🎉</h2><p>Hi ${escH(String(q.name).split(" ")[0])}, great news: your project is complete. Please pay your remaining balance of <b>${escH(fmtMoney(nx.amount, q.currency))}</b> to unlock your files and links.</p><p><a href="https://vixassist.com/pay/?r=${escH(q.id)}" style="display:inline-block;background:#5b4bff;color:#fff;text-decoration:none;font-weight:700;padding:12px 20px;border-radius:999px">Pay my balance →</a></p></div>`,
+            text: `Your project is ready. Please pay your remaining balance of ${fmtMoney(nx.amount, q.currency)} to unlock your files: https://vixassist.com/pay/?r=${q.id}` });
         }
       }
     }
@@ -372,8 +372,9 @@ async function adminMarkRead(env, req) {
 
 
 /* ---------------- website briefs & enquiries ---------------- */
-const BRIEF_ORIGINS = ["https://vixautomationsportfolio.pages.dev", "https://vixautomations.pages.dev", "https://vix.vixautomation.workers.dev"];
-const NOTIFY_EMAIL = "vixautomations@gmail.com";
+const BRIEF_ORIGINS = ["https://vixassist.com", "https://www.vixassist.com", "https://design.vixassist.com", "https://vixautomationsportfolio.pages.dev", "https://vixautomations.pages.dev", "https://vix.vixautomation.workers.dev"];
+const NOTIFY_EMAIL = "vixautomations@gmail.com"; // owner inbox for alerts
+const SUPPORT_EMAIL = "support@vixassist.com"; // shown to clients
 const OFFER_END = "2026-12-04T23:59:59+01:00"; // free design offer deadline (keep in sync with offer.js)
 function cors(req) {
   const o = req.headers.get("origin");
@@ -473,7 +474,7 @@ async function brief(env, req, h) {
   if (/free design offer/i.test(String(b.source || "")) && Date.now() > Date.parse(OFFER_END)) return reply({ error: "Sorry, the free design offer ended on 4 December 2026." }, 410);
   const ip = req.headers.get("cf-connecting-ip") || "unknown";
   const rk = "brate:" + ip, n = +(await env.PORTAL.get(rk)) || 0;
-  if (n >= 8) return reply({ error: "Too many messages in a short time. Please email vixautomations@gmail.com directly." }, 429);
+  if (n >= 8) return reply({ error: "Too many messages in a short time. Please email support@vixassist.com directly." }, 429);
   await env.PORTAL.put(rk, String(n + 1), { expirationTtl: 3600 });
   const email = clean(b.email, 200);
   const item = {
@@ -486,7 +487,7 @@ async function brief(env, req, h) {
   const mail = await sendEmail(env, {
     subject: "🔔 " + item.subject,
     replyTo: item.email,
-    text: item.text + "\n\n— — —\nFrom: " + item.name + (item.business ? " (" + item.business + ")" : "") + "\nEmail: " + (item.email || "not given") + "\nWhatsApp/phone: " + (item.whatsapp || "not given") + "\nSent via: " + item.source + "\nReply to this email to answer them directly. All briefs are also saved in your admin portal: https://vixautomations.pages.dev/portal/admin/",
+    text: item.text + "\n\n— — —\nFrom: " + item.name + (item.business ? " (" + item.business + ")" : "") + "\nEmail: " + (item.email || "not given") + "\nWhatsApp/phone: " + (item.whatsapp || "not given") + "\nSent via: " + item.source + "\nReply to this email to answer them directly. All briefs are also saved in your admin portal: https://vixassist.com/portal/admin/",
   });
   item.emailed = mail.sent; if (!mail.sent) item.emailError = mail.why;
   await put(env, "brief:" + item.id, item);
@@ -913,7 +914,7 @@ async function payTransferClaim(env, req) {
   await sendEmail(env, {
     subject: `🏦 Bank transfer to check: ${amountTxt} from ${q.business || q.name}`,
     replyTo: q.email,
-    text: `${q.name}${q.business ? " (" + q.business + ")" : ""} says they've sent a bank transfer.\n\nAmount: ${amountTxt}${it.usd ? " (USD " + it.usd + ")" : ""}\nPaid into: ${q.transfer.currency || "not specified"} account\nSender name on the transfer: ${q.transfer.payer || "not given"}\nReference: VIX-${q.id.slice(0, 6).toUpperCase()}\nNote: ${q.transfer.note || "none"}\n\nWhen the money is in your account, open Admin → Payments and click "Confirm received". Their project and dashboard will start straight away.\n${"https://vixautomations.pages.dev/portal/admin/"}`,
+    text: `${q.name}${q.business ? " (" + q.business + ")" : ""} says they've sent a bank transfer.\n\nAmount: ${amountTxt}${it.usd ? " (USD " + it.usd + ")" : ""}\nPaid into: ${q.transfer.currency || "not specified"} account\nSender name on the transfer: ${q.transfer.payer || "not given"}\nReference: VIX-${q.id.slice(0, 6).toUpperCase()}\nNote: ${q.transfer.note || "none"}\n\nWhen the money is in your account, open Admin → Payments and click "Confirm received". Their project and dashboard will start straight away.\n${"https://vixassist.com/portal/admin/"}`,
   });
   return json({ ok: true });
 }
@@ -963,12 +964,12 @@ async function sendClientEmail(env, { to, name, subject, html, text }) {
   try {
     if (how === "resend") {
       const r = await fetch("https://api.resend.com/emails", { method: "POST", headers: { authorization: "Bearer " + env.RESEND_API_KEY, "content-type": "application/json" },
-        body: JSON.stringify({ from: env.EMAIL_FROM, to: [to], reply_to: NOTIFY_EMAIL, subject, html, text }) });
+        body: JSON.stringify({ from: env.EMAIL_FROM, to: [to], reply_to: SUPPORT_EMAIL, subject, html, text }) });
       return r.ok ? { sent: true, via: "resend" } : { sent: false, why: "Resend " + r.status + ": " + (await r.text()).slice(0, 200) };
     }
     const r = await fetch("https://api.emailjs.com/api/v1.0/email/send", { method: "POST", headers: { "content-type": "application/json" },
       body: JSON.stringify({ service_id: env.EMAILJS_SERVICE_ID, template_id: env.EMAILJS_TEMPLATE_ID, user_id: env.EMAILJS_PUBLIC_KEY, accessToken: env.EMAILJS_PRIVATE_KEY,
-        template_params: { to_email: to, to_name: name, subject, message_html: html, message_text: text, reply_to: NOTIFY_EMAIL } }) });
+        template_params: { to_email: to, to_name: name, subject, message_html: html, message_text: text, reply_to: SUPPORT_EMAIL } }) });
     return r.ok ? { sent: true, via: "emailjs" } : { sent: false, why: "EmailJS " + r.status + ": " + (await r.text()).slice(0, 200) };
   } catch (e) { return { sent: false, why: "Email service unreachable" }; }
 }
@@ -1205,7 +1206,7 @@ async function bookCreate(env, req, origin) {
     "\nOn: " + PLAT + "\nCall link: " + (link || "none yet. Add your " + PLAT + " link in Admin → Settings, then send them one.") +
     "\nEmail: " + bk.email + (bk.whatsapp ? "\nWhatsApp: " + bk.whatsapp : "") + (bk.website ? "\nWebsite: " + bk.website : "") + (bk.notes ? "\n\nThey want to cover:\n" + bk.notes : "") +
     (bk.calendar ? "\n\nAdded to your Google Calendar: " + bk.calendar : "");
-  const gcal = "https://calendar.google.com/calendar/render?action=TEMPLATE&text=" + encodeURIComponent("Strategy call with Promise (Vix Assist)") + "&dates=" + start.replace(/[-:]|\.\d{3}/g, "") + "/" + bk.end.replace(/[-:]|\.\d{3}/g, "") + "&details=" + encodeURIComponent((link ? "Join on " + PLAT + ": " + link + "\n\n" : "") + "Questions before the call? WhatsApp " + OWNER_WA + " or email " + NOTIFY_EMAIL) + (link ? "&location=" + encodeURIComponent(link) : "");
+  const gcal = "https://calendar.google.com/calendar/render?action=TEMPLATE&text=" + encodeURIComponent("Strategy call with Promise (Vix Assist)") + "&dates=" + start.replace(/[-:]|\.\d{3}/g, "") + "/" + bk.end.replace(/[-:]|\.\d{3}/g, "") + "&details=" + encodeURIComponent((link ? "Join on " + PLAT + ": " + link + "\n\n" : "") + "Questions before the call? WhatsApp " + OWNER_WA + " or email " + SUPPORT_EMAIL) + (link ? "&location=" + encodeURIComponent(link) : "");
   const html = '<div style="font-family:Arial,sans-serif;font-size:15px;line-height:1.6;color:#111;max-width:560px">' +
     "<p>Hi " + escH(bk.name.split(" ")[0]) + ",</p><p>Your free GoHighLevel strategy call is booked.</p>" +
     '<p style="background:#f4f2ff;border-radius:10px;padding:14px 16px"><b>' + escH(theirWhen) + "</b> (" + escH(bk.tz) + ")<br>" + s.length + " minutes on " + PLAT + "<br>" +

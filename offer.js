@@ -102,7 +102,7 @@ window.VIX_OFFER_END = window.VIX_OFFER_END || "2026-12-04T23:59:59+01:00"; // 4
         confetti(); $("#claimed").scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "center" });
       })
       .catch(function (x) {
-        say((x && x.message && x.message !== "failed" ? x.message + " " : "Sorry, that didn't send. ") + "You can also email your request to vixautomations@gmail.com.", "err");
+        say((x && x.message && x.message !== "failed" ? x.message + " " : "Sorry, that didn't send. ") + "You can also email your request to support@vixassist.com.", "err");
         btn.disabled = false; btn.innerHTML = label;
       });
   });

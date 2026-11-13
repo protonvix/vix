@@ -4,4 +4,4 @@ Disallow: /work/
 Disallow: /social/
 Disallow: /.claude/
 
-Sitemap: https://vixautomations.pages.dev/sitemap.xml
+Sitemap: https://vixassist.com/sitemap.xml

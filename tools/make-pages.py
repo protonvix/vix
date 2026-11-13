@@ -7,7 +7,7 @@ import pathlib
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 UPDATED = "4 November 2026"
-EMAIL = "vixautomations@gmail.com"
+EMAIL = "support@vixassist.com"
 
 PAGES = {}
 
@@ -210,10 +210,10 @@ SHELL = """<!doctype html>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{title} · Vix Assist</title>
 <meta name="description" content="{desc}">
-<link rel="canonical" href="https://vixautomations.pages.dev/{slug}.html">
+<link rel="canonical" href="https://vixassist.com/{slug}.html">
 <meta property="og:title" content="{title} · Vix Assist">
 <meta property="og:description" content="{desc}">
-<meta property="og:image" content="https://vixautomations.pages.dev/brand/og-image.jpg">
+<meta property="og:image" content="https://vixassist.com/brand/og-image.jpg">
 <meta name="color-scheme" content="dark">
 <meta name="theme-color" content="#03040a">
 <link rel="icon" href="brand/favicon.svg" type="image/svg+xml">

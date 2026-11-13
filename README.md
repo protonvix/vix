@@ -22,7 +22,7 @@ python3 -m http.server 8000
 ```
 
 ## Customize before launch
-1. **Brand**: replace "Vix Assist" throughout. The contact email is set to `vixautomations@gmail.com`.
+1. **Brand**: replace "Vix Assist" throughout. The contact email is set to `support@vixassist.com`.
 2. **About**: in the `#about` section, replace the "V" monogram with your photo (`<img>` inside `.about-photo`) and add your name and any certifications you genuinely hold.
 3. **Founding-client offer**: make sure the reduced rates and the fix-it-free promise match what you'll honour.
 4. **Reviews**: once real clients leave reviews, add them (and real results) in place of the founding-client section. Never publish invented reviews.
@@ -47,7 +47,7 @@ Upload the three files to any static host (Netlify, Vercel, GitHub Pages, Cloudf
 
 - Admin → **Payments** creates a payment link (`/pay/?r=…`) for a client's quote.
 - The client pays on Paystack and returns to `/pay/done/`; the payment is verified with Paystack, their dashboard and projects are created, and you're emailed.
-- Webhook (set in Paystack → Settings → API Keys & Webhooks): `https://vixautomations.pages.dev/api/paystack/webhook`
+- Webhook (set in Paystack → Settings → API Keys & Webhooks): `https://vixassist.com/api/paystack/webhook`
 - Needs the secret `PAYSTACK_SECRET_KEY` in the Cloudflare Pages project (never in the code).
 
 ## Payment confirmation emails to clients

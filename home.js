@@ -1,7 +1,7 @@
 /* Vix Assist · homepage interactions */
 (function () {
   "use strict";
-  var EMAIL = "vixautomations@gmail.com";
+  var EMAIL = "support@vixassist.com";
   var WA_UK = "447723149573";
   var reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
   var $ = function (s, r) { return (r || document).querySelector(s); };

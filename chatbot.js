@@ -5,7 +5,7 @@
   var WHATSAPP_NUMBER = "447723149573"; // UK line, international format, digits only
   var WHATSAPP_NG_LINK = "https://wa.me/message/WV3WLO4FC656K"; // Nigeria line (message link, no prefilled text)
   var WHATSAPP_GREETING = "Hi Vix Assist! I found you on your website and I'd like to ask about ";
-  var EMAIL = "vixautomations@gmail.com";
+  var EMAIL = "support@vixassist.com";
 
   // Keep these in sync with pricing.html / pricing.js.
   var PRICES = { quick: 499, growth: 689, agency: 876, retainer: 299, discount: 20 };
@@ -162,7 +162,7 @@
     '<div class="vx-panel" id="vx-panel" role="dialog" aria-modal="false" aria-labelledby="vx-title" hidden>' +
       '<div class="vx-head">' +
         '<img src="/brand/vix-icon.svg" alt="" width="36" height="36">' +
-        '<div><b id="vx-title">Vix Assistant</b><span>Automated assistant · replies instantly</span></div>' +
+        '<div><b id="vx-title">Vix Assist Support</b><span>Instant answers · a real person follows up</span></div>' +
         '<button type="button" class="vx-close" aria-label="Close chat">&times;</button>' +
       '</div>' +
       '<div class="vx-log" aria-live="polite"></div>' +

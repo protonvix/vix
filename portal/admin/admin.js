@@ -427,7 +427,7 @@
       (invite ? "Create your private client dashboard here:\n" + invite + "\n\n(This link works once and lasts 14 days.)\n\n" : "Log in to your client dashboard here:\n" + loginUrl + "\n\n") +
       "On your dashboard you can:\n• See exactly where your project is, step by step\n• Read every update from our team\n• Download your website and files the moment they're ready\n• Track your growth numbers\n• Send us questions or change requests\n\n" +
       "We'll be in touch shortly with your next steps. If you need anything, just reply to this email or message us on WhatsApp: +44 7723 149573.\n\n" +
-      "Welcome aboard,\nPromise Felix\nVix Assist\nhttps://vixautomations.pages.dev";
+      "Welcome aboard,\nPromise Felix\nVix Assist\nhttps://vixassist.com";
     var gmail = "https://mail.google.com/mail/?view=cm&fs=1&to=" + encodeURIComponent(c.email) + "&su=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(body);
     var waNum = (c.whatsapp || "").replace(/[^\d]/g, "").replace(/^0/, "234");
     var waText = "Hi " + first + ", " + (total ? "thank you for your payment! " : "great news! ") + "Your " + list + " project has officially started 🚀\n\n" + (invite ? "Create your client dashboard here to track progress and receive your deliveries:\n" + invite : "Track your progress here:\n" + loginUrl) + "\n\nWe've also sent this to your email.\n– Promise, Vix Assist";

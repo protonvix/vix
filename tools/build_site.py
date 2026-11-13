@@ -10,7 +10,7 @@ import os, re, html
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CONTENT = os.path.join(ROOT, "tools", "content")
-SITE = "https://vixautomations.pages.dev"
+SITE = "https://vixassist.com"
 V = "6"  # bump to bust caches for assist.css / site.js
 LINKEDIN = "https://www.linkedin.com/in/promise-felix-a491a7233/"
 WA = "447723149573"
@@ -89,7 +89,7 @@ def footer(cta_h="Let's make your GoHighLevel account <em>earn its keep.</em>", 
       <div><a class="logo" href="/"><img src="brand/vix-icon.svg" alt="" width="30" height="30"><span>Vix <b>Assist</b></span></a><p style="margin-top:14px;max-width:320px">A dedicated GoHighLevel virtual assistant for business owners and agencies. Run by Promise Felix.</p></div>
       <div><h4>GoHighLevel</h4><a href="/#ecosystem">What I manage</a><a href="/#how">How it works</a><a href="pricing.html">Pricing</a><a href="/#audit">Free audit</a></div>
       <div><h4>More services</h4><a href="va-services.html">Virtual assistance</a><a href="tiktok.html">TikTok marketing</a><a href="web-design.html">Website design</a><a href="portal/">Client login</a></div>
-      <div><h4>Contact</h4><a href="book.html">Book a call</a><a href="{LINKEDIN}" target="_blank" rel="noopener">LinkedIn</a><a href="mailto:vixautomations@gmail.com">vixautomations@gmail.com</a><a href="https://wa.me/{WA}" target="_blank" rel="noopener">WhatsApp +44 7723 149573</a></div>
+      <div><h4>Support</h4><a href="mailto:support@vixassist.com">Contact support</a><a href="book.html">Book a call</a><a href="{LINKEDIN}" target="_blank" rel="noopener">LinkedIn</a><a href="https://wa.me/{WA}" target="_blank" rel="noopener">WhatsApp +44 7723 149573</a></div>
     </div>
     <div class="fbot"><span>© 2026 Vix Assist. GoHighLevel is a trademark of HighLevel Inc. Vix Assist is an independent service and is not affiliated with HighLevel.</span><span><a href="about.html">About</a> · <a href="privacy.html">Privacy</a> · <a href="payment.html">Payments</a> · <a href="delivery.html">Delivery</a> · <a href="refund.html">Refunds</a></span></div>
   </div>
@@ -98,7 +98,7 @@ def footer(cta_h="Let's make your GoHighLevel account <em>earn its keep.</em>", 
 
 def scripts(extra=""):
     return f'''<script src="site.js?v={V}"></script>{extra}
-<script src="chatbot.js?v=20261104c" defer></script>
+<script src="chatbot.js?v=7" defer></script>
 <script src="/book-widget.js?v=2" defer></script>
 </body>
 </html>
@@ -308,7 +308,7 @@ page("about.html", "About · Vix Assist",
        BOOK + f'<a class="btn btn-g" href="{LINKEDIN}" target="_blank" rel="noopener"><i class="ph-fill ph-linkedin-logo" aria-hidden="true"></i>LinkedIn</a>'),
   sec('<div class="grid2"><div class="prose rv"><h2>Why this exists</h2><p>Most businesses don\'t have a lead problem. They have a follow up problem. Someone enquires and nobody replies fast enough, the calendar fills with no shows, and the platform that was meant to fix it sits half set up.</p><p>GoHighLevel can solve all of that, but only when someone builds it properly and looks after it every week. That is the job I do.</p></div>'
       '<div class="tlist rv"><div class="ti"><i class="ph-fill ph-seal-check" aria-hidden="true"></i><span><b>Fixed price first</b>You know the full cost before any work starts.</span></div><div class="ti"><i class="ph-fill ph-key" aria-hidden="true"></i><span><b>You own everything</b>Your account, data, website and content stay yours.</span></div><div class="ti"><i class="ph-fill ph-video" aria-hidden="true"></i><span><b>Documented and recorded</b>Every system comes with walkthrough videos and written notes.</span></div><div class="ti"><i class="ph-fill ph-chat-circle-text" aria-hidden="true"></i><span><b>Direct access</b>You talk to the person doing the work, on WhatsApp, email or video call.</span></div></div></div>', style="padding-top:0;border-top:0"),
-  sec('<div class="prose rv"><h2>Honest by design</h2><p>Vix Assist is a young business, so you won\'t find fake reviews or borrowed client logos here. Instead, the work is shown openly on the homepage, every price is fixed up front, and you can see every task in your own client dashboard.</p><p>I work with clients in the UK, the US, Australia and Nigeria. Email <a href="mailto:vixautomations@gmail.com">vixautomations@gmail.com</a>, message me on <a href="https://wa.me/447723149573" target="_blank" rel="noopener">WhatsApp</a>, or <a href="book.html">book a call</a>.</p></div>'),
+  sec('<div class="prose rv"><h2>Honest by design</h2><p>Vix Assist is a young business, so you won\'t find fake reviews or borrowed client logos here. Instead, the work is shown openly on the homepage, every price is fixed up front, and you can see every task in your own client dashboard.</p><p>I work with clients in the UK, the US, Australia and Nigeria. Email <a href="mailto:support@vixassist.com">support@vixassist.com</a>, message me on <a href="https://wa.me/447723149573" target="_blank" rel="noopener">WhatsApp</a>, or <a href="book.html">book a call</a>.</p></div>'),
  ]))
 
 # ---------------------------------------------------------------- Policies
@@ -324,7 +324,7 @@ for key, title, desc in POL:
     page(f"{key}.html", f"{title} · Vix Assist", desc, key, "\n".join([
       hero("Policies", title, desc, meta="Last updated 4 November 2026"),
       sec(tabs(key) + f'<div class="prose rv">{body}</div>', style="padding-top:0;border-top:0"),
-    ]), foot=footer("Questions before <em>you start?</em>", ("Email me", "mailto:vixautomations@gmail.com")))
+    ]), foot=footer("Questions before <em>you start?</em>", ("Email me", "mailto:support@vixassist.com")))
 
 # ---------------------------------------------------------------- Free design offer
 CHIPS = "".join(f'<button type="button" class="chip" aria-pressed="{"true" if n == "Home" else "false"}">{n}</button>' for n in ["Home", "About", "Services", "Products / Listings", "Gallery", "Booking", "Contact", "Blog"])
