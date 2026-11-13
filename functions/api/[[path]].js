@@ -999,13 +999,13 @@ function messageEmail({ name, text, link, project, subject }) {
   const first = String(name || "").split(" ")[0] || "there";
   subject = subject || "New message from Vix Assist" + (project ? " about " + project : "");
   const paras = escH(text).split(/\n{2,}/).map((x) => `<p style="margin:0 0 14px">${x.replace(/\n/g, "<br>")}</p>`).join("");
-  const html = `<!doctype html><html><body style="margin:0;background:#f3f5fb;font-family:Arial,Helvetica,sans-serif">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f3f5fb;padding:28px 12px"><tr><td align="center">
+  const html = `<!doctype html><html><body style="margin:0;background:#f6f5f1;font-family:Arial,Helvetica,sans-serif">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f6f5f1;padding:28px 12px"><tr><td align="center">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:18px;overflow:hidden;border:1px solid #e3e7f2">
-<tr><td style="background:#5b4bff;background:linear-gradient(135deg,#3b2cff,#8b5cff);padding:20px 28px;color:#ffffff;font-size:15px;font-weight:700">Vix Assist</td></tr>
+<tr><td style="background:#111113;padding:20px 28px;color:#ffffff;font-size:15px;font-weight:700">Vix Assist</td></tr>
 <tr><td style="padding:26px 28px;color:#3a4152;font-size:15px;line-height:1.65">
 <p style="margin:0 0 14px">Hi ${escH(first)},</p>${paras}
-${link ? `<p style="margin:22px 0 6px"><a href="${escH(link)}" style="display:inline-block;background:#5b4bff;color:#ffffff;text-decoration:none;font-weight:700;padding:13px 22px;border-radius:999px">${project ? "Reply in your dashboard" : "Open your client dashboard"}</a></p>` : ""}
+${link ? `<p style="margin:22px 0 6px"><a href="${escH(link)}" style="display:inline-block;background:#111113;color:#ffffff;text-decoration:none;font-weight:700;padding:13px 22px;border-radius:999px">${project ? "Reply in your dashboard" : "Open your client dashboard"}</a></p>` : ""}
 <p style="margin:22px 0 0">Best regards,<br><b>Promise Felix</b><br>Vix Assist</p></td></tr>
 <tr><td style="padding:16px 28px;background:#f8f9fc;color:#7c849c;font-size:12px">You can reply to this email directly${link ? " or message us from your dashboard" : ""}. WhatsApp: +44 7723 149573</td></tr>
 </table></td></tr></table></body></html>`;
@@ -1020,8 +1020,8 @@ function paymentEmail({ name, business, services, total, currency, method, refer
   const date = new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
   const rows = services.map((s) => `<tr><td style="padding:10px 0;border-bottom:1px solid #eceef5;color:#3a4152">${escH(s.title || defaultTitle(s.type))}</td><td style="padding:10px 0;border-bottom:1px solid #eceef5;text-align:right;color:#0b1020;font-weight:600">${escH(fmtMoney(s.amount, currency))}</td></tr>`).join("");
   const subject = `Payment confirmed: your ${services.length === 1 ? (services[0].title || defaultTitle(services[0].type)) : "project"} has started 🚀`;
-  const html = `<!doctype html><html><body style="margin:0;background:#f3f5fb;font-family:Arial,Helvetica,sans-serif">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f3f5fb;padding:28px 12px"><tr><td align="center">
+  const html = `<!doctype html><html><body style="margin:0;background:#f6f5f1;font-family:Arial,Helvetica,sans-serif">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f6f5f1;padding:28px 12px"><tr><td align="center">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:18px;overflow:hidden;border:1px solid #e3e7f2">
 <tr><td style="background:linear-gradient(135deg,#3b2cff,#8b5cff);background-color:#5b4bff;padding:26px 28px;color:#ffffff">
 <div style="font-size:15px;font-weight:700;letter-spacing:.02em">Vix Assist</div>
@@ -1076,6 +1076,15 @@ async function adminTestClientEmail(env, req, origin) {
 //   CALLMEBOT_APIKEY (+ optional WHATSAPP_NOTIFY) → WhatsApp message to the owner for every booking.
 const BOOK_DEFAULT = { tz: "Europe/London", days: [1, 2, 3, 4, 5, 6], start: "09:00", end: "19:00", length: 30, notice: 6, ahead: 21, meetLink: "", zoomLink: "" };
 const OWNER_WA = "+447723149573";
+const BOOK_SERVICES = {
+  "ghl-va": { type: "ghl", title: "GoHighLevel virtual assistant" },
+  "ghl-build": { type: "ghl", title: "GoHighLevel setup" },
+  website: { type: "website", title: "Website design" },
+  tiktok: { type: "tiktok", title: "TikTok marketing" },
+  va: { type: "other", title: "Virtual assistance" },
+  unsure: { type: "ghl", title: "GoHighLevel strategy" },
+};
+const INVITE_AFTER_MIN = 30; // dashboard link goes out this long after the call ends
 const LINKEDIN = "https://www.linkedin.com/in/promise-felix-a491a7233/";
 async function bookSettings(env) { return Object.assign({}, BOOK_DEFAULT, (await get(env, "settings:book")) || {}); }
 function tzParts(ts, tz) {
@@ -1185,12 +1194,14 @@ async function bookCreate(env, req, origin) {
   await env.PORTAL.put(rk, String(n + 1), { expirationTtl: 3600 });
   const taken = ((await get(env, "book:taken")) || []).filter((x) => Date.parse(x.start) > Date.now() - 864e5);
   const bk = { id: rid(9), at: now(), start, end: new Date(Date.parse(start) + s.length * 6e4).toISOString(), length: s.length, platform, name, email,
-    whatsapp: clean(b.whatsapp, 40), business: clean(b.business, 120), website: clean(b.site, 200), notes: clean(b.notes, 2000), tz: okTz(clean(b.tz, 60)) ? clean(b.tz, 60) : s.tz, read: false };
+    whatsapp: clean(b.whatsapp, 40), business: clean(b.business, 120), website: clean(b.site, 200), notes: clean(b.notes, 2000), tz: okTz(clean(b.tz, 60)) ? clean(b.tz, 60) : s.tz, read: false,
+    service: BOOK_SERVICES[clean(b.service, 20)] ? clean(b.service, 20) : "unsure" };
   taken.push({ start, id: bk.id }); await put(env, "book:taken", taken);
 
   const PLAT = platform === "zoom" ? "Zoom" : "Google Meet";
-  const title = "Vix Assist strategy call: " + (bk.business || bk.name);
-  const about = "Free " + s.length + " minute GoHighLevel strategy call with Promise (Vix Assist).\n\nBooked by: " + bk.name + (bk.business ? " (" + bk.business + ")" : "") + "\nEmail: " + bk.email + (bk.whatsapp ? "\nWhatsApp: " + bk.whatsapp : "") + (bk.website ? "\nWebsite: " + bk.website : "") + (bk.notes ? "\n\nWhat they want to cover:\n" + bk.notes : "");
+  const SVC = BOOK_SERVICES[bk.service].title;
+  const title = "Vix Assist strategy call: " + (bk.business || bk.name) + " · " + SVC;
+  const about = "Free " + s.length + " minute GoHighLevel strategy call with Promise (Vix Assist).\n\nService: " + SVC + "\nBooked by: " + bk.name + (bk.business ? " (" + bk.business + ")" : "") + "\nEmail: " + bk.email + (bk.whatsapp ? "\nWhatsApp: " + bk.whatsapp : "") + (bk.website ? "\nWebsite: " + bk.website : "") + (bk.notes ? "\n\nWhat they want to cover:\n" + bk.notes : "");
   let link = "", via = "";
   if (platform === "zoom") { try { link = (await zoomMeeting(env, { topic: title, start, length: s.length, agenda: about })) || ""; if (link) via = "zoom"; } catch {} if (!link && s.zoomLink) { link = s.zoomLink; via = "zoom-room"; } }
   try {
@@ -1203,16 +1214,16 @@ async function bookCreate(env, req, origin) {
   const ownerWhen = fmtWhen(start, s.tz), theirWhen = fmtWhen(start, bk.tz);
   const ownerText = "📅 New strategy call booked\n\n" + bk.name + (bk.business ? " · " + bk.business : "") +
     "\nWhen: " + ownerWhen + " (" + s.tz + ")" + (bk.tz !== s.tz ? "\nTheir time: " + theirWhen + " (" + bk.tz + ")" : "") +
-    "\nOn: " + PLAT + "\nCall link: " + (link || "none yet. Add your " + PLAT + " link in Admin → Settings, then send them one.") +
+    "\nService: " + SVC + "\nOn: " + PLAT + "\nCall link: " + (link || "none yet. Add your " + PLAT + " link in Admin → Settings, then send them one.") +
     "\nEmail: " + bk.email + (bk.whatsapp ? "\nWhatsApp: " + bk.whatsapp : "") + (bk.website ? "\nWebsite: " + bk.website : "") + (bk.notes ? "\n\nThey want to cover:\n" + bk.notes : "") +
     (bk.calendar ? "\n\nAdded to your Google Calendar: " + bk.calendar : "");
   const gcal = "https://calendar.google.com/calendar/render?action=TEMPLATE&text=" + encodeURIComponent("Strategy call with Promise (Vix Assist)") + "&dates=" + start.replace(/[-:]|\.\d{3}/g, "") + "/" + bk.end.replace(/[-:]|\.\d{3}/g, "") + "&details=" + encodeURIComponent((link ? "Join on " + PLAT + ": " + link + "\n\n" : "") + "Questions before the call? WhatsApp " + OWNER_WA + " or email " + SUPPORT_EMAIL) + (link ? "&location=" + encodeURIComponent(link) : "");
   const html = '<div style="font-family:Arial,sans-serif;font-size:15px;line-height:1.6;color:#111;max-width:560px">' +
     "<p>Hi " + escH(bk.name.split(" ")[0]) + ",</p><p>Your free GoHighLevel strategy call is booked.</p>" +
-    '<p style="background:#f4f2ff;border-radius:10px;padding:14px 16px"><b>' + escH(theirWhen) + "</b> (" + escH(bk.tz) + ")<br>" + s.length + " minutes on " + PLAT + "<br>" +
-    (link ? '<a href="' + escH(link) + '" style="color:#5b45ff;font-weight:bold">Join the call: ' + escH(link) + "</a>" : "I'll send your " + PLAT + " link before the call.") + "</p>" +
-    '<p><a href="' + escH(gcal) + '" style="color:#5b45ff">Add it to Google Calendar</a></p>' +
-    "<p>If you'd like to get ahead, reply with your GoHighLevel plan and the one thing in your account that frustrates you most. I'll look at it before we talk.</p>" +
+    '<p style="background:#E5EFE9;border-radius:10px;padding:14px 16px"><b>' + escH(theirWhen) + "</b> (" + escH(bk.tz) + ")<br>" + s.length + " minutes on " + PLAT + "<br>" +
+    (link ? '<a href="' + escH(link) + '" style="color:#1F5A45;font-weight:bold">Join the call: ' + escH(link) + "</a>" : "I'll send your " + PLAT + " link before the call.") + "</p>" +
+    '<p><a href="' + escH(gcal) + '" style="color:#1F5A45">Add it to Google Calendar</a></p>' +
+    "<p>After our call I'll send you a link to set up your own client dashboard, where you'll follow every step of the work.</p><p>If you'd like to get ahead, reply with your GoHighLevel plan and the one thing in your account that frustrates you most. I'll look at it before we talk.</p>" +
     '<p>Need to move the time? Reply to this email or message me on <a href="https://wa.me/' + OWNER_WA.replace(/\D/g, "") + '">WhatsApp</a>. You can also find me on <a href="' + LINKEDIN + '">LinkedIn</a>.</p><p>Talk soon,<br>Promise<br>Vix Assist</p></div>';
   const [mail, wa, cmail] = await Promise.all([
     sendEmail(env, { subject: "📅 Strategy call booked: " + (bk.business || bk.name) + " · " + ownerWhen, text: ownerText + "\n\nAll calls are listed in your admin portal: " + origin + "/portal/admin/", replyTo: bk.email }),
@@ -1225,6 +1236,43 @@ async function bookCreate(env, req, origin) {
   return json({ ok: true, booking: { start, end: bk.end, length: s.length, platform, link, gcal, invited: !!bk.calendar, emailed: cmail.sent } });
 }
 
+function welcomeEmail({ name, service, link, existing }) {
+  const text = existing
+    ? "Thanks for the call. I've added " + service + " to your client dashboard, so you can follow every step of the work there and message me any time."
+    : "Thanks for taking the time to talk today. Your private client dashboard for " + service + " is ready.\n\nSet your password with the button below. Inside you'll see your project, every update and file, and you can message me directly.\n\nThis link works once and lasts 14 days.";
+  return messageEmail({ name, text, link, subject: existing ? "Your Vix Assist dashboard is updated" : "Your Vix Assist client dashboard is ready" });
+}
+async function inviteAfterCall(env, bk, origin, manual) {
+  const svc = BOOK_SERVICES[bk.service] || BOOK_SERVICES.unsure;
+  const r = await createClientWithProjects(env, { name: bk.name, email: bk.email, business: bk.business, whatsapp: bk.whatsapp, currency: "USD", services: [{ type: svc.type, title: svc.title, amount: 0 }] }, origin,
+    "Thanks for the strategy call. This is your dashboard for " + svc.title + ". Your plan, updates and files will appear here.");
+  for (const pid of r.projectIds) { const pj = await get(env, "project:" + pid); if (pj) { pj.paidAt = null; pj.progress = 0; pj.status = "Next step: your plan and quote"; await put(env, "project:" + pid, pj); } }
+  const link = r.invite || r.loginUrl;
+  const m = welcomeEmail({ name: bk.name, service: svc.title, link, existing: !r.invite });
+  const mail = await sendClientEmail(env, { to: bk.email, name: bk.name, subject: m.subject, html: m.html, text: m.text });
+  bk.invite = { at: now(), link, emailed: mail.sent, why: mail.sent ? "" : mail.why, clientId: r.client.id, manual: !!manual };
+  await put(env, "booking:" + bk.id, bk);
+  await sendEmail(env, {
+    subject: (mail.sent ? "✅ Dashboard link sent to " : "⚠️ Send this dashboard link to ") + bk.name,
+    text: (mail.sent ? "After your strategy call, " + bk.name + " (" + bk.email + ") was emailed their client dashboard link automatically." : "The dashboard link for " + bk.name + " (" + bk.email + ") is ready, but client emails are not switched on yet, so please send it to them yourself (WhatsApp " + (bk.whatsapp || "not given") + "):") +
+      "\n\n" + link + "\n\nService: " + svc.title + "\nTheir project is in your admin portal: " + origin + "/portal/admin/",
+  });
+  return bk.invite;
+}
+async function runDueInvites(env, origin) {
+  if (await env.PORTAL.get("cron:invites")) return 0; // at most every 3 minutes
+  await env.PORTAL.put("cron:invites", "1", { expirationTtl: 180 });
+  let n = 0;
+  const idx = ((await get(env, "bookings:index")) || []).slice(-150);
+  for (const id of idx) {
+    const bk = await get(env, "booking:" + id);
+    if (!bk || bk.cancelled || bk.noShow || bk.invite) continue;
+    const due = Date.parse(bk.end) + INVITE_AFTER_MIN * 60000;
+    if (Date.now() < due || Date.now() - due > 14 * 864e5) continue;
+    try { await inviteAfterCall(env, bk, origin, false); n++; } catch (e) {}
+  }
+  return n;
+}
 async function adminBook(env, url) {
   const s = await bookSettings(env), g = (await get(env, "google:oauth")) || {};
   const idx = ((await get(env, "bookings:index")) || []).slice(-80).reverse();
@@ -1253,6 +1301,15 @@ async function adminBookCancel(env, req) {
   bk.cancelled = now(); bk.read = true; await put(env, "booking:" + bk.id, bk);
   await put(env, "book:taken", ((await get(env, "book:taken")) || []).filter((x) => x.id !== bk.id));
   return json({ ok: true });
+}
+async function adminBookInvite(env, req, origin) {
+  const b = await req.json().catch(() => ({}));
+  const bk = await get(env, "booking:" + clean(b.id, 40)); if (!bk) return fail(404, "Booking not found.");
+  if (b.action === "noshow") { bk.noShow = now(); await put(env, "booking:" + bk.id, bk); return json({ ok: true }); }
+  if (b.action === "undo") { delete bk.noShow; await put(env, "booking:" + bk.id, bk); return json({ ok: true }); }
+  if (bk.invite && bk.invite.link && b.action !== "resend") return json({ ok: true, invite: bk.invite });
+  const r = await inviteAfterCall(env, bk, origin, true);
+  return json({ ok: true, invite: r });
 }
 async function adminWhatsTest(env) {
   const r = await whatsappOwner(env, "✅ Vix Assist: WhatsApp booking alerts are working. You'll get a message here for every strategy call booked on your website.");
@@ -1296,6 +1353,8 @@ export async function onRequest(ctx) {
   const url = new URL(req.url);
   const path = url.pathname.replace(/^\/api\/?/, "").replace(/\/$/, "");
   const m = req.method;
+  // send dashboard links for calls that have finished (runs in the background on normal site traffic)
+  if (path !== "cron" && ctx.waitUntil) ctx.waitUntil(runDueInvites(env, "https://" + (url.hostname.endsWith("pages.dev") ? "vixassist.com" : url.host)).catch(() => {}));
   if (path === "paystack/webhook" && m === "POST") return payWebhook(env, req, url.origin);
   // Public brief/enquiry endpoint, also used by the portfolio site (cross-origin).
   if (path === "brief") {
@@ -1329,6 +1388,7 @@ export async function onRequest(ctx) {
     if (path === "pay/banks" && m === "GET") return payBanks(env);
     if (path === "pay/transfer" && m === "POST") return payTransferClaim(env, req);
     if (path === "book/slots" && m === "GET") return bookSlots(env);
+    if (path === "cron" && m === "GET") return json({ ok: true, invites: await runDueInvites(env, url.origin) });
     if (path === "book" && m === "POST") return bookCreate(env, req, url.origin);
     if (path === "google/callback" && m === "GET") return googleCallback(env, req, url);
 
@@ -1367,6 +1427,7 @@ export async function onRequest(ctx) {
       if (a === "book" && m === "POST") return adminBookSave(env, req);
       if (a === "book/cancel" && m === "POST") return adminBookCancel(env, req);
       if (a === "book/whatsapp-test" && m === "POST") return adminWhatsTest(env);
+      if (a === "book/invite" && m === "POST") return adminBookInvite(env, req, url.origin);
       if (a === "google/connect" && m === "GET") return adminGoogleConnect(env, url);
       if (a === "google/disconnect" && m === "POST") return adminGoogleDisconnect(env);
     }

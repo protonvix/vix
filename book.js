@@ -60,15 +60,22 @@
   $("#times").addEventListener("click", function (e) { var b = e.target.closest(".slot"); if (b) { chosen = b.dataset.s; step(2); } });
 
   function step(n) {
-    ["#s1", "#s2", "#s3"].forEach(function (s, i) { $(s).hidden = i !== n - 1; });
+    ["#s0", "#s1", "#s2", "#s3"].forEach(function (s, i) { $(s).hidden = i !== n; });
     document.querySelectorAll(".bk-steps li").forEach(function (li) { var s = +li.dataset.s; li.classList.toggle("on", s === n); li.classList.toggle("did", s < n); });
     if (n === 2) {
-      $("#chosen").innerHTML = '<i class="ph-fill ph-calendar-check" aria-hidden="true"></i><div><b>' + esc(longDay(chosen)) + " at " + esc(timeOf(chosen)) + "</b><small>" + LEN + " minutes on " + PNAME() + " · " + esc(tz.replace(/_/g, " ")) + " time</small></div>";
+      $("#chosen").innerHTML = '<i class="ph-fill ph-calendar-check" aria-hidden="true"></i><div><span class="svc-tag">' + esc(serviceLabel()) + '</span><b>' + esc(longDay(chosen)) + " at " + esc(timeOf(chosen)) + "</b><small>" + LEN + " minutes on " + PNAME() + " · " + esc(tz.replace(/_/g, " ")) + " time</small></div>";
       setTimeout(function () { $('#s2 [name="name"]').focus({ preventScroll: innerWidth < 980 }); }, 50);
     }
     $(".bk-card").scrollIntoView({ behavior: "smooth", block: "start" });
   }
   $("#back").onclick = function () { step(1); };
+
+  /* step 0: service */
+  var SERVICE = "";
+  function serviceLabel() { var r = document.querySelector('input[name="service"]:checked'); return r ? r.closest(".svc").querySelector("b").textContent : ""; }
+  document.querySelectorAll('input[name="service"]').forEach(function (r) { r.onchange = function () { SERVICE = r.value; setTimeout(function () { step(1); }, 220); }; });
+  document.querySelectorAll(".bk-steps li").forEach(function (li) { li.style.cursor = "pointer"; li.onclick = function () { var n = +li.dataset.s; if (n === 0 || (n === 1 && SERVICE) || (n === 2 && SERVICE && chosen)) step(n); }; });
+  (function () { var q = new URLSearchParams(location.search).get("service"); var r = q && document.querySelector('input[name="service"][value="' + q.replace(/[^a-z-]/g, "") + '"]'); if (r) { r.checked = true; SERVICE = r.value; step(1); } })();
   document.querySelectorAll('input[name="platform"]').forEach(function (r) { r.onchange = function () { if (!$("#s2").hidden) step(2); }; });
 
   function load() {
@@ -95,7 +102,7 @@
     if (!d.name.trim()) { f.elements.name.classList.add("invalid"); err.textContent = "Please add your name."; f.elements.name.focus(); return; }
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(d.email.trim())) { f.elements.email.classList.add("invalid"); err.textContent = "Please enter a valid email so I can send your call link."; f.elements.email.focus(); return; }
     err.textContent = ""; btn.disabled = true; btn.firstChild.textContent = "Booking ";
-    fetch("/api/book", { method: "POST", headers: { "content-type": "application/json", "x-vix": "1" }, body: JSON.stringify(Object.assign(d, { start: chosen, platform: platform(), tz: tz })) })
+    fetch("/api/book", { method: "POST", headers: { "content-type": "application/json", "x-vix": "1" }, body: JSON.stringify(Object.assign(d, { start: chosen, platform: platform(), tz: tz, service: SERVICE })) })
       .then(function (r) { return r.json().then(function (j) { if (!r.ok) { var x = new Error(j.error || "That didn't go through."); x.status = r.status; throw x; } return j; }); })
       .then(function (j) { done(j.booking, d); })
       .catch(function (x) {
