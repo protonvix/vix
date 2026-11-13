@@ -21,7 +21,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
 <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
-<link rel="stylesheet" href="assist.css?v=1">
+<link rel="stylesheet" href="assist.css?v=2">
+<script type="importmap">{"imports":{"three":"https://unpkg.com/three@0.160.0/build/three.module.js","three/addons/":"https://unpkg.com/three@0.160.0/examples/jsm/"}}</script>
 <link rel="stylesheet" href="chat.css?v=20261104c">
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"ProfessionalService","name":"Vix Assist","description":"Dedicated GoHighLevel virtual assistant for business owners and agencies.","url":"https://vixautomations.pages.dev/","founder":{"@type":"Person","name":"Promise Felix","sameAs":"https://www.linkedin.com/in/promise-felix-a491a7233/"},"areaServed":["GB","US","AU","CA","NG"]}
@@ -31,7 +32,7 @@
 <a class="skip" href="#main">Skip to content</a>
 
 <header class="nav" id="nav">
-  <a class="logo" href="/" aria-label="Vix Assist home"><img src="brand/vix-icon.svg" alt="" width="28" height="28"><span>Vix <b>Assist</b></span></a>
+  <a class="logo" href="/" aria-label="Vix Assist home"><img id="logo-anim" src="brand/vix-icon-animated.svg" alt="" width="32" height="32"><span>Vix <b>Assist</b></span></a>
   <nav class="nav-links" aria-label="Main">
     <a href="#ecosystem">GoHighLevel</a>
     <a href="#how">How it works</a>
@@ -64,11 +65,13 @@
 <main id="main">
 <!-- HERO -->
 <section class="hero" aria-labelledby="h1">
+  <canvas id="hero3d" aria-hidden="true"></canvas>
+  <div class="aura a1" aria-hidden="true"></div><div class="aura a2" aria-hidden="true"></div><div class="aura a3" aria-hidden="true"></div>
   <div class="grid-bg" aria-hidden="true"></div>
   <div class="wrap hero-grid">
     <div>
-      <span class="presence"><span class="av"><img src="brand/vix-icon.svg" alt=""></span><span><b>Promise</b> · your GoHighLevel VA · online</span></span>
-      <h1 id="h1">Your GoHighLevel,<br>built right and run<br>every single week.</h1>
+      <span class="presence"><span class="av"><img src="brand/vix-icon-animated.svg" alt=""></span><span><b>Promise</b> · your GoHighLevel VA · online</span></span>
+      <h1 id="h1">Your GoHighLevel,<br> built right and run<br> every single week.</h1>
       <p class="sub">I set up your pipelines, workflows, calendars and funnels, then manage the account for you. Every lead gets answered. Every booking gets reminded. You get your evenings back.</p>
       <div class="cta">
         <a class="btn btn-p" href="#audit">Book a free account audit <i class="ph ph-arrow-right" aria-hidden="true"></i></a>
@@ -81,7 +84,7 @@
       </div>
     </div>
 
-    <div class="console" aria-label="Example GoHighLevel workspace being managed" role="img">
+    <div class="c3d"><div class="console" id="console" aria-label="Example GoHighLevel workspace being managed" role="img">
       <div class="c-top"><span class="dots"><i></i><i></i><i></i></span><span class="url">app.yourcrm.com / opportunities</span><span class="live">Live demo</span></div>
       <div class="c-body">
         <div class="c-side" aria-hidden="true">
@@ -111,7 +114,7 @@
         </div>
       </div>
       <div class="toast" id="toast" aria-hidden="true"><i class="ph-fill ph-check-circle"></i><span><b id="toast-t">Workflow published</b><small id="toast-s">Missed call text back</small></span></div>
-    </div>
+    </div></div>
   </div>
 </section>
 
@@ -128,9 +131,9 @@
   <div class="wrap">
     <div class="head rv"><span class="eyebrow"><i class="ph ph-warning-circle" aria-hidden="true"></i>The real problem</span><h2 class="h2" id="h-pain">GoHighLevel can do everything. That is exactly why most accounts do very little.</h2><p class="lead">You paid for one platform to replace ten tools. Then the setup took weeks, half the workflows never got finished, and leads still slip through.</p></div>
     <div class="pain">
-      <div class="pc rv"><p class="was"><i class="ph ph-x-circle" aria-hidden="true"></i>Leads wait hours for a reply and book with whoever answered first.</p><p class="now"><i class="ph-fill ph-check-circle" aria-hidden="true"></i>Every lead answered in seconds</p><p>Instant SMS and email, missed call text back, and an AI assistant that books straight into your calendar.</p></div>
-      <div class="pc rv"><p class="was"><i class="ph ph-x-circle" aria-hidden="true"></i>Half built workflows, broken triggers and a pipeline nobody trusts.</p><p class="now"><i class="ph-fill ph-check-circle" aria-hidden="true"></i>A system you can actually rely on</p><p>I rebuild what is broken, test every path, and document how it all works so nothing is a mystery.</p></div>
-      <div class="pc rv"><p class="was"><i class="ph ph-x-circle" aria-hidden="true"></i>You are the one fixing GoHighLevel at 11pm instead of running the business.</p><p class="now"><i class="ph-fill ph-check-circle" aria-hidden="true"></i>One person who owns it for you</p><p>Send me the task. I handle the setup, the fixes and the weekly upkeep, and you get a short report.</p></div>
+      <div data-tilt class="pc rv"><p class="was"><i class="ph ph-x-circle" aria-hidden="true"></i>Leads wait hours for a reply and book with whoever answered first.</p><p class="now"><i class="ph-fill ph-check-circle" aria-hidden="true"></i>Every lead answered in seconds</p><p>Instant SMS and email, missed call text back, and an AI assistant that books straight into your calendar.</p></div>
+      <div data-tilt class="pc rv"><p class="was"><i class="ph ph-x-circle" aria-hidden="true"></i>Half built workflows, broken triggers and a pipeline nobody trusts.</p><p class="now"><i class="ph-fill ph-check-circle" aria-hidden="true"></i>A system you can actually rely on</p><p>I rebuild what is broken, test every path, and document how it all works so nothing is a mystery.</p></div>
+      <div data-tilt class="pc rv"><p class="was"><i class="ph ph-x-circle" aria-hidden="true"></i>You are the one fixing GoHighLevel at 11pm instead of running the business.</p><p class="now"><i class="ph-fill ph-check-circle" aria-hidden="true"></i>One person who owns it for you</p><p>Send me the task. I handle the setup, the fixes and the weekly upkeep, and you get a short report.</p></div>
     </div>
   </div>
 </section>
@@ -140,17 +143,17 @@
   <div class="wrap">
     <div class="head rv"><span class="eyebrow"><i class="ph ph-circles-four" aria-hidden="true"></i>The whole GoHighLevel ecosystem</span><h2 class="h2" id="h-eco">Everything inside your account, handled by one assistant.</h2><p class="lead">From your first sub account to a full agency setup, this is what I build, fix and manage.</p></div>
     <div class="eco">
-      <article class="ec wide rv"><span class="ic"><i class="ph ph-tree-structure" aria-hidden="true"></i></span><h3>Workflows and automations</h3><p>Speed to lead, nurture sequences, missed call text back, appointment reminders, no show recovery and review requests. Built, tested and documented.</p></article>
-      <article class="ec rv"><span class="ic"><i class="ph ph-funnel-simple" aria-hidden="true"></i></span><h3>CRM and pipelines</h3><p>Clean stages, tags and custom fields, plus contact imports and data clean up.</p></article>
-      <article class="ec rv"><span class="ic"><i class="ph ph-calendar-check" aria-hidden="true"></i></span><h3>Calendars</h3><p>Booking pages, team round robin, confirmations and reminders that cut no shows.</p></article>
-      <article class="ec rv"><span class="ic"><i class="ph ph-robot" aria-hidden="true"></i></span><h3>Conversation AI and Voice AI</h3><p>An assistant that replies on SMS, WhatsApp, Instagram and Facebook, then books the call.</p></article>
-      <article class="ec rv"><span class="ic"><i class="ph ph-chat-text" aria-hidden="true"></i></span><h3>SMS, email and A2P 10DLC</h3><p>Campaign registration for US texting, sender setup, and campaigns that land in the inbox.</p></article>
-      <article class="ec rv"><span class="ic"><i class="ph ph-browsers" aria-hidden="true"></i></span><h3>Funnels, websites and forms</h3><p>Landing pages and forms built inside GoHighLevel and wired to your pipeline.</p></article>
-      <article class="ec rv"><span class="ic"><i class="ph ph-star" aria-hidden="true"></i></span><h3>Reputation</h3><p>Automatic review requests after every job, and replies that protect your rating.</p></article>
-      <article class="ec rv"><span class="ic"><i class="ph ph-credit-card" aria-hidden="true"></i></span><h3>Payments and invoices</h3><p>Stripe connection, invoices, payment links, products and text to pay.</p></article>
-      <article class="ec rv"><span class="ic"><i class="ph ph-graduation-cap" aria-hidden="true"></i></span><h3>Memberships and courses</h3><p>Course areas, client portals and community setup for coaches and educators.</p></article>
-      <article class="ec rv"><span class="ic"><i class="ph ph-chart-line-up" aria-hidden="true"></i></span><h3>Reporting</h3><p>Dashboards and attribution so you can see where every booking came from.</p></article>
-      <article class="ec rv"><span class="ic"><i class="ph ph-buildings" aria-hidden="true"></i></span><h3>Agency support, white label</h3><p>Snapshots, sub account onboarding, SaaS mode and ongoing support for your clients, under your brand and covered by an NDA.</p></article>
+      <article data-tilt class="ec wide rv"><span class="ic"><i class="ph ph-tree-structure" aria-hidden="true"></i></span><h3>Workflows and automations</h3><p>Speed to lead, nurture sequences, missed call text back, appointment reminders, no show recovery and review requests. Built, tested and documented.</p></article>
+      <article data-tilt class="ec rv"><span class="ic"><i class="ph ph-funnel-simple" aria-hidden="true"></i></span><h3>CRM and pipelines</h3><p>Clean stages, tags and custom fields, plus contact imports and data clean up.</p></article>
+      <article data-tilt class="ec rv"><span class="ic"><i class="ph ph-calendar-check" aria-hidden="true"></i></span><h3>Calendars</h3><p>Booking pages, team round robin, confirmations and reminders that cut no shows.</p></article>
+      <article data-tilt class="ec rv"><span class="ic"><i class="ph ph-robot" aria-hidden="true"></i></span><h3>Conversation AI and Voice AI</h3><p>An assistant that replies on SMS, WhatsApp, Instagram and Facebook, then books the call.</p></article>
+      <article data-tilt class="ec rv"><span class="ic"><i class="ph ph-chat-text" aria-hidden="true"></i></span><h3>SMS, email and A2P 10DLC</h3><p>Campaign registration for US texting, sender setup, and campaigns that land in the inbox.</p></article>
+      <article data-tilt class="ec rv"><span class="ic"><i class="ph ph-browsers" aria-hidden="true"></i></span><h3>Funnels, websites and forms</h3><p>Landing pages and forms built inside GoHighLevel and wired to your pipeline.</p></article>
+      <article data-tilt class="ec rv"><span class="ic"><i class="ph ph-star" aria-hidden="true"></i></span><h3>Reputation</h3><p>Automatic review requests after every job, and replies that protect your rating.</p></article>
+      <article data-tilt class="ec rv"><span class="ic"><i class="ph ph-credit-card" aria-hidden="true"></i></span><h3>Payments and invoices</h3><p>Stripe connection, invoices, payment links, products and text to pay.</p></article>
+      <article data-tilt class="ec rv"><span class="ic"><i class="ph ph-graduation-cap" aria-hidden="true"></i></span><h3>Memberships and courses</h3><p>Course areas, client portals and community setup for coaches and educators.</p></article>
+      <article data-tilt class="ec rv"><span class="ic"><i class="ph ph-chart-line-up" aria-hidden="true"></i></span><h3>Reporting</h3><p>Dashboards and attribution so you can see where every booking came from.</p></article>
+      <article data-tilt class="ec rv"><span class="ic"><i class="ph ph-buildings" aria-hidden="true"></i></span><h3>Agency support, white label</h3><p>Snapshots, sub account onboarding, SaaS mode and ongoing support for your clients, under your brand and covered by an NDA.</p></article>
     </div>
   </div>
 </section>
@@ -165,9 +168,9 @@
   <div class="wrap">
     <div class="head rv"><span class="eyebrow"><i class="ph ph-path" aria-hidden="true"></i>How it works</span><h2 class="h2" id="h-how">Three steps from messy account to a system that runs itself.</h2></div>
     <div class="steps">
-      <div class="st rv"><span class="n">01</span><h3>Free account audit</h3><p>Add me as a team user. I review your workflows, pipeline, calendars and messaging, then send a written plan with clear priorities.</p><span class="tag">48 hours · free</span></div>
-      <div class="st rv"><span class="n">02</span><h3>Build and fix</h3><p>I set up or repair everything in the plan and test every path end to end. You follow progress live in your own client dashboard.</p><span class="tag">Usually 5 to 10 days</span></div>
-      <div class="st rv"><span class="n">03</span><h3>Run it every week</h3><p>I manage the account on your monthly plan: new automations, fixes, updates and imports, with a short report every Friday.</p><span class="tag">Monthly, cancel any time</span></div>
+      <div data-tilt class="st rv"><span class="n">01</span><h3>Free account audit</h3><p>Add me as a team user. I review your workflows, pipeline, calendars and messaging, then send a written plan with clear priorities.</p><span class="tag">48 hours · free</span></div>
+      <div data-tilt class="st rv"><span class="n">02</span><h3>Build and fix</h3><p>I set up or repair everything in the plan and test every path end to end. You follow progress live in your own client dashboard.</p><span class="tag">Usually 5 to 10 days</span></div>
+      <div data-tilt class="st rv"><span class="n">03</span><h3>Run it every week</h3><p>I manage the account on your monthly plan: new automations, fixes, updates and imports, with a short report every Friday.</p><span class="tag">Monthly, cancel any time</span></div>
     </div>
   </div>
 </section>
@@ -178,11 +181,11 @@
     <div class="head rv"><span class="eyebrow"><i class="ph ph-shield-check" aria-hidden="true"></i>Safe hands</span><h2 class="h2" id="h-trust">Your account, your data and your clients stay protected.</h2></div>
     <div class="trust">
       <div class="tlist">
-        <div class="ti rv"><i class="ph-fill ph-lock-key" aria-hidden="true"></i><span><b>Team user access only</b>You add me as a staff user with the exact permissions you choose. I never ask for your password, and you can remove access in one click.</span></div>
-        <div class="ti rv"><i class="ph-fill ph-file-lock" aria-hidden="true"></i><span><b>NDA on request</b>For agencies and businesses with sensitive client data, I sign an NDA before I touch anything.</span></div>
-        <div class="ti rv"><i class="ph-fill ph-clock-countdown" aria-hidden="true"></i><span><b>Clear hours and replies</b>Working hours overlap the UK, the US East Coast and Australia. Messages get a reply within two working hours.</span></div>
-        <div class="ti rv"><i class="ph-fill ph-squares-four" aria-hidden="true"></i><span><b>Your own client dashboard</b>See every task, every update and every file in one place, and message me directly from it.</span></div>
-        <div class="ti rv"><i class="ph-fill ph-seal-check" aria-hidden="true"></i><span><b>No surprise invoices</b>Fixed monthly hours, agreed up front. Unused hours roll over one month.</span></div>
+        <div data-tilt class="ti rv"><i class="ph-fill ph-lock-key" aria-hidden="true"></i><span><b>Team user access only</b>You add me as a staff user with the exact permissions you choose. I never ask for your password, and you can remove access in one click.</span></div>
+        <div data-tilt class="ti rv"><i class="ph-fill ph-file-lock" aria-hidden="true"></i><span><b>NDA on request</b>For agencies and businesses with sensitive client data, I sign an NDA before I touch anything.</span></div>
+        <div data-tilt class="ti rv"><i class="ph-fill ph-clock-countdown" aria-hidden="true"></i><span><b>Clear hours and replies</b>Working hours overlap the UK, the US East Coast and Australia. Messages get a reply within two working hours.</span></div>
+        <div data-tilt class="ti rv"><i class="ph-fill ph-squares-four" aria-hidden="true"></i><span><b>Your own client dashboard</b>See every task, every update and every file in one place, and message me directly from it.</span></div>
+        <div data-tilt class="ti rv"><i class="ph-fill ph-seal-check" aria-hidden="true"></i><span><b>No surprise invoices</b>Fixed monthly hours, agreed up front. Unused hours roll over one month.</span></div>
       </div>
       <div class="report rv" aria-label="Example weekly report">
         <header><span><b>Weekly report</b><small>Example of what you receive every Friday</small></span><span class="pill">On track</span></header>
@@ -202,9 +205,9 @@
   <div class="wrap">
     <div class="head c rv"><span class="eyebrow"><i class="ph ph-tag" aria-hidden="true"></i>Simple monthly plans</span><h2 class="h2" id="h-price">A dedicated GoHighLevel assistant for less than one part time hire.</h2><p class="lead">Every plan starts with a free audit. Prices in USD, no long contracts.</p></div>
     <div class="plans">
-      <div class="plan rv"><span class="tg">Starter VA</span><h3>For one location getting set up properly</h3><div class="price">$300<small> / month</small></div><p class="hrs">10 hours of GoHighLevel work each month</p><ul><li><i class="ph-fill ph-check-circle"></i>Workflow fixes and small builds</li><li><i class="ph-fill ph-check-circle"></i>Pipeline and calendar upkeep</li><li><i class="ph-fill ph-check-circle"></i>Weekly report</li><li><i class="ph-fill ph-check-circle"></i>Replies within one working day</li></ul><a class="btn btn-g" href="#audit" data-plan="Starter VA">Start with a free audit</a></div>
-      <div class="plan hot rv"><span class="tg">Most chosen</span><h3>Growth VA for busy businesses</h3><div class="price">$550<small> / month</small></div><p class="hrs">20 hours of GoHighLevel work each month</p><ul><li><i class="ph-fill ph-check-circle"></i>Everything in Starter</li><li><i class="ph-fill ph-check-circle"></i>New automations and funnels each month</li><li><i class="ph-fill ph-check-circle"></i>Conversation AI setup and tuning</li><li><i class="ph-fill ph-check-circle"></i>Replies within two working hours</li></ul><a class="btn btn-p" href="#audit" data-plan="Growth VA">Start with a free audit</a></div>
-      <div class="plan rv"><span class="tg">Dedicated VA</span><h3>For agencies and multi location teams</h3><div class="price">$950<small> / month</small></div><p class="hrs">35 hours of GoHighLevel work each month</p><ul><li><i class="ph-fill ph-check-circle"></i>Everything in Growth</li><li><i class="ph-fill ph-check-circle"></i>White label sub account support</li><li><i class="ph-fill ph-check-circle"></i>Snapshots and client onboarding</li><li><i class="ph-fill ph-check-circle"></i>Priority same day replies</li></ul><a class="btn btn-g" href="#audit" data-plan="Dedicated VA">Start with a free audit</a></div>
+      <div data-tilt class="plan rv"><span class="tg">Starter VA</span><h3>For one location getting set up properly</h3><div class="price">$300<small> / month</small></div><p class="hrs">10 hours of GoHighLevel work each month</p><ul><li><i class="ph-fill ph-check-circle"></i>Workflow fixes and small builds</li><li><i class="ph-fill ph-check-circle"></i>Pipeline and calendar upkeep</li><li><i class="ph-fill ph-check-circle"></i>Weekly report</li><li><i class="ph-fill ph-check-circle"></i>Replies within one working day</li></ul><a class="btn btn-g" href="#audit" data-plan="Starter VA">Start with a free audit</a></div>
+      <div data-tilt class="plan hot rv"><span class="tg">Most chosen</span><h3>Growth VA for busy businesses</h3><div class="price">$550<small> / month</small></div><p class="hrs">20 hours of GoHighLevel work each month</p><ul><li><i class="ph-fill ph-check-circle"></i>Everything in Starter</li><li><i class="ph-fill ph-check-circle"></i>New automations and funnels each month</li><li><i class="ph-fill ph-check-circle"></i>Conversation AI setup and tuning</li><li><i class="ph-fill ph-check-circle"></i>Replies within two working hours</li></ul><a class="btn btn-p" href="#audit" data-plan="Growth VA">Start with a free audit</a></div>
+      <div data-tilt class="plan rv"><span class="tg">Dedicated VA</span><h3>For agencies and multi location teams</h3><div class="price">$950<small> / month</small></div><p class="hrs">35 hours of GoHighLevel work each month</p><ul><li><i class="ph-fill ph-check-circle"></i>Everything in Growth</li><li><i class="ph-fill ph-check-circle"></i>White label sub account support</li><li><i class="ph-fill ph-check-circle"></i>Snapshots and client onboarding</li><li><i class="ph-fill ph-check-circle"></i>Priority same day replies</li></ul><a class="btn btn-g" href="#audit" data-plan="Dedicated VA">Start with a free audit</a></div>
     </div>
     <div class="extras">
       <div class="ex rv"><span><b>One off setup or rescue</b><span>Full account build or repair, quoted after the audit</span></span><span class="p">from $300</span></div>
@@ -292,7 +295,7 @@
 <footer>
   <div class="wrap">
     <div class="fgrid">
-      <div><a class="logo" href="/"><img src="brand/vix-icon.svg" alt="" width="28" height="28"><span>Vix <b>Assist</b></span></a><p style="margin-top:12px;max-width:320px">A dedicated GoHighLevel virtual assistant for business owners and agencies. Run by Promise Felix.</p></div>
+      <div><a class="logo" href="/"><img src="brand/vix-icon-animated.svg" alt="" width="32" height="32"><span>Vix <b>Assist</b></span></a><p style="margin-top:12px;max-width:320px">A dedicated GoHighLevel virtual assistant for business owners and agencies. Run by Promise Felix.</p></div>
       <div><h4>GoHighLevel</h4><a href="#ecosystem">What I manage</a><a href="#how">How it works</a><a href="#pricing">Pricing</a><a href="#audit">Free audit</a></div>
       <div><h4>More services</h4><a href="va-services.html">Virtual assistance</a><a href="tiktok.html">TikTok marketing</a><a href="web-design.html">Website design</a><a href="portal/">Client login</a></div>
       <div><h4>Company</h4><a href="about.html">About</a><a href="https://www.linkedin.com/in/promise-felix-a491a7233/" target="_blank" rel="noopener">LinkedIn</a><a href="mailto:vixautomations@gmail.com">vixautomations@gmail.com</a><a href="https://wa.me/447723149573" target="_blank" rel="noopener">WhatsApp +44 7723 149573</a></div>
@@ -301,7 +304,8 @@
   </div>
 </footer>
 
-<script src="assist.js?v=1"></script>
+<script src="assist.js?v=2"></script>
+<script type="module" src="hero3d.assist.js?v=1"></script>
 <script src="chatbot.js?v=20261104c" defer></script>
 </body>
 </html>

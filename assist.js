@@ -151,3 +151,37 @@
       .catch(function (x) { err.textContent = (x.message || "That didn't send.") + " You can also message me on WhatsApp: +44 7723 149573."; btn.disabled = false; btn.firstChild.textContent = "Book my free audit "; });
   });
 })();
+
+/* ===== 3D interactions ===== */
+(function () {
+  "use strict";
+  var reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var fine = window.matchMedia && matchMedia("(pointer: fine)").matches;
+  // replay the logo animation on hover
+  var logo = document.getElementById("logo-anim");
+  if (logo) logo.parentElement.addEventListener("mouseenter", function () { logo.src = "brand/vix-icon-animated.svg?r=" + Date.now(); });
+  if (reduce || !fine) return;
+  // console follows the cursor in 3D
+  var con = document.getElementById("console");
+  if (con && innerWidth > 1080) {
+    var base = { y: -14, x: 7 };
+    addEventListener("pointermove", function (e) {
+      var dx = e.clientX / innerWidth - 0.5, dy = e.clientY / innerHeight - 0.5;
+      con.style.transform = "rotateY(" + (base.y + dx * 10).toFixed(2) + "deg) rotateX(" + (base.x - dy * 8).toFixed(2) + "deg) rotateZ(1deg)";
+    }, { passive: true });
+  }
+  // cards tilt with a light glare
+  document.querySelectorAll("[data-tilt]").forEach(function (el) {
+    var raf = 0;
+    el.addEventListener("pointermove", function (e) {
+      var r = el.getBoundingClientRect(), px = (e.clientX - r.left) / r.width, py = (e.clientY - r.top) / r.height;
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(function () {
+        el.style.transition = "transform .15s cubic-bezier(.22,1,.36,1)";
+        el.style.transform = "perspective(900px) rotateX(" + ((0.5 - py) * 9).toFixed(2) + "deg) rotateY(" + ((px - 0.5) * 11).toFixed(2) + "deg) translateZ(6px)";
+        el.style.setProperty("--gx", (px * 100).toFixed(1) + "%"); el.style.setProperty("--gy", (py * 100).toFixed(1) + "%");
+      });
+    });
+    el.addEventListener("pointerleave", function () { el.style.transition = "transform .7s cubic-bezier(.22,1,.36,1)"; el.style.transform = ""; });
+  });
+})();
