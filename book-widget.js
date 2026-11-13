@@ -1,6 +1,6 @@
 /* Vix Assist: "Book a call" on every page.
    Adds a floating button and opens the booking page in a pop-up for any link to book.html.
-   Works on other sites too: <script src="https://vixautomations.pages.dev/book-widget.js" defer></script> */
+   Works on other sites too: <script src="https://vixassist.com/book-widget.js" defer></script> */
 (function () {
   "use strict";
   if (window.__vxBook) return; window.__vxBook = true;
