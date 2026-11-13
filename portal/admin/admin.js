@@ -31,18 +31,29 @@
     api("admin/book").then(function (d) {
       var s = d.settings, g = d.google, P = function (p) { return p === "zoom" ? "Zoom" : "Google Meet"; };
       var up = d.bookings.filter(function (b) { return !b.cancelled && Date.parse(b.end) > Date.now(); }).sort(function (a, b) { return a.start.localeCompare(b.start); });
+      var past = d.bookings.filter(function (b) { return !b.cancelled && Date.parse(b.end) <= Date.now() && Date.now() - Date.parse(b.end) < 21 * 864e5; }).sort(function (a, b) { return b.start.localeCompare(a.start); });
+      var SVC = { "ghl-va": "GoHighLevel VA, monthly", "ghl-build": "GoHighLevel setup or rescue", website: "Website design", tiktok: "TikTok marketing", va: "Virtual assistance", unsure: "Not sure yet" };
+      var inviteLine = function (b) {
+        if (b.invite) return '<p class="note ' + (b.invite.emailed ? "ok" : "") + '" style="margin:6px 0 0">' + (b.invite.emailed ? "✓ Dashboard link emailed " : "Dashboard link ready (client emails are off, send it yourself) ") + esc(VX.date(b.invite.at, true)) + ' · <a href="' + esc(b.invite.link) + '" target="_blank" rel="noopener" style="text-decoration:underline">link</a> <button class="btn btn-g btn-sm" type="button" data-copy-link="' + esc(b.invite.link) + '" style="min-height:30px">Copy</button></p>';
+        if (b.noShow) return '<p class="note" style="margin:6px 0 0;color:var(--warn)">Marked as no-show, no dashboard link will be sent. <button class="btn btn-g btn-sm" type="button" data-inv="undo" data-id="' + esc(b.id) + '" style="min-height:30px">Undo</button></p>';
+        return '<p class="note" style="margin:6px 0 0">Dashboard link goes out automatically 30 minutes after the call.</p>';
+      };
+      var bkCard = function (b, isPast) {
+        return '<div class="card" style="margin-top:8px;padding:14px 16px"><b>' + esc(when(b.start)) + " · " + esc(b.name) + (b.business ? " (" + esc(b.business) + ")" : "") + '</b><p class="muted" style="margin:4px 0">' + esc(SVC[b.service] || "Service not chosen") + " · " + P(b.platform) + " · " + esc(b.email) + (b.whatsapp ? " · " + esc(b.whatsapp) : "") + "</p>" +
+          (b.notes ? '<p style="margin:4px 0;white-space:pre-wrap">' + esc(b.notes) + "</p>" : "") + inviteLine(b) +
+          '<div class="acts" style="margin-top:8px">' + (!isPast ? (b.link ? '<a class="btn btn-p btn-sm" href="' + esc(b.link) + '" target="_blank" rel="noopener">Open call link</a>' : '<span class="note" style="color:var(--warn)">No call link was created. Send them one.</span>') : "") +
+          (!b.invite && !b.noShow ? '<button class="btn btn-p btn-sm" type="button" data-inv="send" data-id="' + esc(b.id) + '">Send dashboard link now</button><button class="btn btn-g btn-sm" type="button" data-inv="noshow" data-id="' + esc(b.id) + '">They didn\'t show up</button>' : "") +
+          (b.invite ? '<button class="btn btn-g btn-sm" type="button" data-inv="resend" data-id="' + esc(b.id) + '">Send again</button>' : "") +
+          '<a class="btn btn-g btn-sm" href="mailto:' + esc(b.email) + '?subject=' + encodeURIComponent("Our strategy call") + '">Email</a>' + (b.whatsapp ? '<a class="btn btn-g btn-sm" target="_blank" rel="noopener" href="https://wa.me/' + esc(b.whatsapp.replace(/\D/g, "")) + '">WhatsApp</a>' : "") +
+          (!isPast ? '<button class="btn btn-g btn-sm" type="button" data-cancel="' + esc(b.id) + '">Free up this slot</button>' : "") + "</div></div>";
+      };
       var when = function (iso) { try { return new Intl.DateTimeFormat("en-GB", { timeZone: s.tz, weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }).format(new Date(iso)); } catch (e) { return iso; } };
       var stateRow = function (on, txt) { return '<li><i class="ph-fill ' + (on ? "ph-check-circle ok" : "ph-circle-dashed") + '" aria-hidden="true"' + (on ? "" : ' style="color:var(--soft)"') + "></i> " + txt + "</li>"; };
       box.innerHTML =
         '<div class="card"><div class="help"><div><h2 style="margin:0"><i class="ph ph-video-camera" aria-hidden="true"></i> Strategy calls</h2><p class="muted">People book at <a href="/book.html" target="_blank" rel="noopener" style="text-decoration:underline">/book.html</a>. Every booking goes to your Gmail, your phone notifications and WhatsApp (once set up).</p></div></div>' +
         '<h3 style="margin:16px 0 8px">Coming up (' + up.length + ")</h3>" +
-        (up.length ? up.map(function (b) {
-          return '<div class="card" style="margin-top:8px;padding:14px 16px"><b>' + esc(when(b.start)) + " · " + esc(b.name) + (b.business ? " (" + esc(b.business) + ")" : "") + '</b><p class="muted" style="margin:4px 0">' + P(b.platform) + " · " + esc(b.email) + (b.whatsapp ? " · " + esc(b.whatsapp) : "") + "</p>" +
-            (b.notes ? '<p style="margin:4px 0;white-space:pre-wrap">' + esc(b.notes) + "</p>" : "") +
-            '<div class="acts" style="margin-top:8px">' + (b.link ? '<a class="btn btn-p btn-sm" href="' + esc(b.link) + '" target="_blank" rel="noopener">Open call link</a>' : '<span class="note" style="color:var(--warn)">No call link was created. Send them one.</span>') +
-            '<a class="btn btn-g btn-sm" href="mailto:' + esc(b.email) + '?subject=' + encodeURIComponent("Our strategy call") + '">Email</a>' + (b.whatsapp ? '<a class="btn btn-g btn-sm" target="_blank" rel="noopener" href="https://wa.me/' + esc(b.whatsapp.replace(/\D/g, "")) + '">WhatsApp</a>' : "") +
-            '<button class="btn btn-g btn-sm" type="button" data-cancel="' + esc(b.id) + '">Free up this slot</button></div></div>';
-        }).join("") : '<p class="muted">No calls booked yet.</p>') + "</div>" +
+        (up.length ? up.map(function (b) { return bkCard(b, false); }).join("") : '<p class="muted">No calls booked yet.</p>') +
+        (past.length ? '<h3 style="margin:24px 0 8px">Recent calls (' + past.length + ")</h3>" + past.map(function (b) { return bkCard(b, true); }).join("") : "") + "</div>" +
 
         '<div class="card" style="margin-top:16px"><h2><i class="ph ph-plugs-connected" aria-hidden="true"></i>Connections</h2><ul style="list-style:none;padding:0;margin:8px 0;display:grid;gap:6px">' +
           stateRow(g.connected, g.connected ? "Google Calendar connected" + (g.email ? " (" + esc(g.email) + ")" : "") + ": unique Meet links, invites to the client, your busy times blocked" : "Google Calendar not connected" + (g.clientSet ? "" : " (add GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in Cloudflare first)")) +
@@ -61,6 +72,12 @@
         '<div class="acts" style="margin-top:12px"><button class="btn btn-p" type="button" id="bk-save"><i class="ph ph-floppy-disk" aria-hidden="true"></i>Save booking settings</button><span class="note" id="bk-msg"></span></div></div>';
 
       box.querySelectorAll("[data-cancel]").forEach(function (b) { b.onclick = function () { if (!confirm("Free up this time so someone else can book it? Tell the client yourself.")) return; api("admin/book/cancel", { id: b.dataset.cancel }).then(function () { callsView(into); }); }; });
+      box.querySelectorAll("[data-inv]").forEach(function (b) { b.onclick = function () {
+        var a = b.dataset.inv; if (a === "resend" && !confirm("Email their dashboard link again?")) return;
+        b.disabled = true; b.textContent = "Working…";
+        api("admin/book/invite", { id: b.dataset.id, action: a }).then(function () { callsView(into); }).catch(function (x) { alert(x.message); callsView(into); });
+      }; });
+      box.querySelectorAll("[data-copy-link]").forEach(function (b) { b.onclick = function () { navigator.clipboard.writeText(b.dataset.copyLink).then(function () { b.textContent = "Copied ✓"; }); }; });
       var off = $("#g-off"); if (off) off.onclick = function () { api("admin/google/disconnect", {}).then(function () { callsView(into); }); };
       var wt = $("#wa-test"); if (wt) wt.onclick = function () { $("#cx-msg").textContent = "Sending…"; api("admin/book/whatsapp-test", {}).then(function () { $("#cx-msg").innerHTML = '<span class="ok">Sent ✓ Check WhatsApp.</span>'; }).catch(function (x) { $("#cx-msg").innerHTML = '<span class="err">' + esc(x.message) + "</span>"; }); };
       $("#bk-save").onclick = function () {

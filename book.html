@@ -21,7 +21,7 @@
 <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
 <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
 <link rel="stylesheet" href="assist.css?v=6">
-<link rel="stylesheet" href="book.css?v=4">
+<link rel="stylesheet" href="book.css?v=5">
 </head>
 <body class="bk-body">
 <a class="skip" href="#main">Skip to content</a>
@@ -70,13 +70,21 @@
 
   <section class="bk-card" aria-live="polite">
     <ol class="bk-steps" aria-label="Booking steps">
-      <li class="on" data-s="1"><span>1</span>Date and time</li>
-      <li data-s="2"><span>2</span>Your details</li>
-      <li data-s="3"><span>3</span>Confirmed</li>
+      <li class="on" data-s="0"><span>1</span>Service</li>
+      <li data-s="1"><span>2</span>Date and time</li>
+      <li data-s="2"><span>3</span>Your details</li>
+      <li data-s="3"><span>4</span>Confirmed</li>
     </ol>
 
+    <!-- step 0: service -->
+    <div class="bk-pane" id="s0">
+      <h2 class="svc-h">What would you like help with?</h2>
+      <p class="svc-p">Pick one so I can prepare for your call. Your client dashboard is set up for this service after we talk.</p>
+      <div class="svc-grid" role="radiogroup" aria-label="Service"><label class="svc"><input type="radio" name="service" value="ghl-va"><span class="svc-in"><i class="ph ph-user-gear" aria-hidden="true"></i><span><b>GoHighLevel VA, monthly</b><small>Ongoing management, fixes and new automations</small></span><i class="ph-fill ph-check-circle tick" aria-hidden="true"></i></span></label><label class="svc"><input type="radio" name="service" value="ghl-build"><span class="svc-in"><i class="ph ph-wrench" aria-hidden="true"></i><span><b>GoHighLevel setup or rescue</b><small>A full build or repair of your account</small></span><i class="ph-fill ph-check-circle tick" aria-hidden="true"></i></span></label><label class="svc"><input type="radio" name="service" value="website"><span class="svc-in"><i class="ph ph-browser" aria-hidden="true"></i><span><b>Website design</b><small>New website, redesign or fixes</small></span><i class="ph-fill ph-check-circle tick" aria-hidden="true"></i></span></label><label class="svc"><input type="radio" name="service" value="tiktok"><span class="svc-in"><i class="ph ph-tiktok-logo" aria-hidden="true"></i><span><b>TikTok marketing</b><small>Content, posting and growth</small></span><i class="ph-fill ph-check-circle tick" aria-hidden="true"></i></span></label><label class="svc"><input type="radio" name="service" value="va"><span class="svc-in"><i class="ph ph-briefcase" aria-hidden="true"></i><span><b>Virtual assistance</b><small>Inbox, calendar, admin and support</small></span><i class="ph-fill ph-check-circle tick" aria-hidden="true"></i></span></label><label class="svc"><input type="radio" name="service" value="unsure"><span class="svc-in"><i class="ph ph-question" aria-hidden="true"></i><span><b>Not sure yet</b><small>We'll work it out together on the call</small></span><i class="ph-fill ph-check-circle tick" aria-hidden="true"></i></span></label></div>
+    </div>
+
     <!-- step 1 -->
-    <div class="bk-pane" id="s1">
+    <div class="bk-pane" id="s1" hidden>
       <div class="bk-pick">
         <div class="cal">
           <div class="cal-head">
@@ -134,6 +142,6 @@
     </div>
   </section>
 </main>
-<script src="book.js?v=3" defer></script>
+<script src="book.js?v=4" defer></script>
 </body>
 </html>
