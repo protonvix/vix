@@ -13,7 +13,7 @@ CONTENT = os.path.join(ROOT, "tools", "content")
 SITE = "https://vixassist.com"
 V = "9"  # bump to bust caches for assist.css / site.js
 LINKEDIN = "https://www.linkedin.com/in/promise-felix-a491a7233/"
-DESIGN = "https://vixautomationsportfolio.pages.dev"  # websites studio (move to https://design.vixassist.com once connected)
+DESIGN = "https://design.vixassist.com"  # websites studio
 WA = "447723149573"
 
 def head(title, desc, path, extra_css=""):
