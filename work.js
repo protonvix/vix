@@ -81,30 +81,30 @@
     c.prog((steps.length + 1) / (steps.length + 3)); await c.sleep(600);
     var nodes = chain.querySelectorAll(".node");
     for (var k = 0; k < nodes.length; k++) { nodes[k].classList.add("lit"); await c.sleep(380); if (k < nodes.length - 1) nodes[k].classList.remove("lit"); }
-    c.cap("Test passed: lead replied in 8 seconds and booked Tuesday 10:30");
+    c.cap("Test passed: lead replied in 8 seconds and booked a Saturday showing");
     c.prog(1); await c.sleep(2200);
   };
 
   scenes.lead = async function (c) {
-    c.cap("A new enquiry arrives on the website");
-    stage.innerHTML = '<div class="sl wfade"><div class="sl-form"><b>Get a free quote</b><small>Bright Smile Dental · Leeds</small><div class="sl-in" data-ph="Full name" id="f1"></div><div class="sl-in" data-ph="Mobile" id="f2"></div><div class="sl-in" data-ph="What do you need?" id="f3"></div><div class="sl-btn" id="fb">Send enquiry</div></div><div class="phone"><div class="ph-top"><b>Bright Smile Dental</b><span>SMS · Sarah’s phone</span></div><div class="ph-msgs" id="msgs"></div></div></div><span class="timer" id="timer">0.0s</span>';
+    c.cap("A buyer enquires about a listing at 9:47pm");
+    stage.innerHTML = '<div class="sl wfade"><div class="sl-form"><b>Book a viewing</b><small>Harbor &amp; Main Realty · Austin</small><div class="sl-in" data-ph="Full name" id="f1"></div><div class="sl-in" data-ph="Mobile" id="f2"></div><div class="sl-in" data-ph="What do you need?" id="f3"></div><div class="sl-btn" id="fb">Send enquiry</div></div><div class="phone"><div class="ph-top"><b>Harbor &amp; Main Realty</b><span>SMS · Sarah’s phone</span></div><div class="ph-msgs" id="msgs"></div></div></div><span class="timer" id="timer">0.0s</span>';
     cursor();
     var f1 = stage.querySelector("#f1"), f2 = stage.querySelector("#f2"), f3 = stage.querySelector("#f3"), fb = stage.querySelector("#fb"), msgs = stage.querySelector("#msgs"), timer = stage.querySelector("#timer");
     moveTo(f1, 20); await c.sleep(700); click(); await typeInto(c, f1, "Sarah Whitfield"); c.prog(.1);
-    moveTo(f2, 20); await c.sleep(500); click(); await typeInto(c, f2, "07700 900 412", 40); c.prog(.2);
-    moveTo(f3, 20); await c.sleep(500); click(); await typeInto(c, f3, "Teeth whitening price", 35); c.prog(.3);
+    moveTo(f2, 20); await c.sleep(500); click(); await typeInto(c, f2, "(512) 555 0142", 40); c.prog(.2);
+    moveTo(f3, 20); await c.sleep(500); click(); await typeInto(c, f3, "14 Oak Ridge Dr viewing", 35); c.prog(.3);
     moveTo(fb); await c.sleep(600); click(); fb.classList.add("go"); fb.textContent = "Sent ✓";
-    c.cap("GoHighLevel replies instantly, before any competitor"); timer.classList.add("on");
+    c.cap("GoHighLevel replies instantly, before any other agent"); timer.classList.add("on");
     var t = 0; while (t < 8) { t += 0.4; timer.textContent = t.toFixed(1) + "s"; await c.sleep(55); }
     function add(cls, html) { var b = c.h('<div class="bub ' + cls + '">' + html + "</div>"); msgs.appendChild(b); while (msgs.children.length > 6) msgs.removeChild(msgs.firstChild); return b; }
-    add("out", "Hi Sarah, thanks for your enquiry about whitening. Can I ask a couple of quick questions?<small>Bright Smile · 8s after form</small>");
+    add("out", "Hi Sarah, it’s Harbor &amp; Main. Thanks for asking about 14 Oak Ridge Dr. Are you pre approved, or still working out numbers?<small>Harbor &amp; Main · 8s after enquiry</small>");
     c.prog(.5); await c.sleep(1400);
-    add("in", "Yes sure, how much is it?"); await c.sleep(900);
-    var ty = c.h('<div class="typing"><i></i><i></i><i></i></div>'); msgs.appendChild(ty); c.cap("Conversation AI answers and offers times"); await c.sleep(1200); ty.remove();
-    add("ai", "Whitening starts from £249. I have Tue 10:30 or Thu 4:15 free. Which suits you?<small>AI assistant</small>"); c.prog(.7); await c.sleep(1500);
-    add("in", "Tue 10:30 please"); await c.sleep(900);
-    msgs.appendChild(c.h('<div class="calcard"><i class="ph-fill ph-calendar-check"></i><span><b>Booked: Tue 10:30</b><br>Reminders set for 24h and 1h before</span></div>'));
-    c.cap("Booked automatically and added to the pipeline, no staff needed"); c.prog(1); await c.sleep(2600);
+    add("in", "Pre approved up to 650k. Can I see it this weekend?"); await c.sleep(900);
+    var ty = c.h('<div class="typing"><i></i><i></i><i></i></div>'); msgs.appendChild(ty); c.cap("Conversation AI qualifies and offers showing times"); await c.sleep(1200); ty.remove();
+    add("ai", "Great news. Jessica can show you Saturday 11:00 or Sunday 2:30. Which suits you?<small>AI assistant</small>"); c.prog(.7); await c.sleep(1500);
+    add("in", "Saturday 11 please"); await c.sleep(900);
+    msgs.appendChild(c.h('<div class="calcard"><i class="ph-fill ph-calendar-check"></i><span><b>Showing booked: Sat 11:00</b><br>Reminders set for 24h and 1h before</span></div>'));
+    c.cap("Showing booked and added to the pipeline, before a competitor even called back"); c.prog(1); await c.sleep(2600);
   };
 
   scenes.clean = async function (c) {
@@ -145,21 +145,21 @@
   };
 
   scenes.reviews = async function (c) {
-    c.cap("A job is completed in GoHighLevel");
-    stage.innerHTML = '<div class="rv-sc wfade"><div class="job"><b>Boiler service · James Carter</b><span style="color:var(--soft);font-size:12px">Opportunity · Northgate Heating</span><span class="st8" id="st8">In progress</span><div class="phone" style="width:100%;max-width:260px;height:200px;border-width:6px;border-radius:24px;justify-self:center"><div class="ph-msgs" id="rm"></div></div></div><div class="rate"><div class="meter"><span id="rt">4.2</span><small>Google rating</small></div><div class="stars" id="stars"><i class="ph-fill ph-star"></i><i class="ph-fill ph-star"></i><i class="ph-fill ph-star"></i><i class="ph-fill ph-star"></i><i class="ph-fill ph-star"></i></div><div id="gslot" style="width:100%;display:grid;justify-items:center"></div></div></div>';
+    c.cap("A deal closes in GoHighLevel");
+    stage.innerHTML = '<div class="rv-sc wfade"><div class="job"><b>Closing · James Carter</b><span style="color:var(--soft);font-size:12px">Opportunity · Harbor &amp; Main Realty</span><span class="st8" id="st8">In progress</span><div class="phone" style="width:100%;max-width:260px;height:200px;border-width:6px;border-radius:24px;justify-self:center"><div class="ph-msgs" id="rm"></div></div></div><div class="rate"><div class="meter"><span id="rt">4.2</span><small>Google rating</small></div><div class="stars" id="stars"><i class="ph-fill ph-star"></i><i class="ph-fill ph-star"></i><i class="ph-fill ph-star"></i><i class="ph-fill ph-star"></i><i class="ph-fill ph-star"></i></div><div id="gslot" style="width:100%;display:grid;justify-items:center"></div></div></div>';
     cursor();
     var st8 = stage.querySelector("#st8"), rm = stage.querySelector("#rm");
     moveTo(st8); await c.sleep(800); click(); await c.sleep(200);
-    st8.classList.add("done"); st8.textContent = "Job completed"; c.prog(.25);
-    c.cap("Review request sent automatically 1 hour later"); await c.sleep(900);
-    rm.appendChild(c.h('<div class="bub out">Thanks for choosing Northgate Heating, James. Could you leave us a quick review? It really helps.<small>Automated · 1h after job</small></div>'));
-    await c.sleep(1500); rm.appendChild(c.h('<div class="bub in">Of course, great service</div>')); c.prog(.5);
-    c.cap("The customer leaves 5 stars");
+    st8.classList.add("done"); st8.textContent = "Closed"; c.prog(.25);
+    c.cap("Review and referral request sent the day after closing"); await c.sleep(900);
+    rm.appendChild(c.h('<div class="bub out">Congratulations on your new home, James. Would you leave a quick review? And if a friend is moving, we’d love to help them too.<small>Automated · 1 day after closing</small></div>'));
+    await c.sleep(1500); rm.appendChild(c.h('<div class="bub in">Of course. My sister is selling soon, I’ll send her your way</div>')); c.prog(.5);
+    c.cap("The client leaves 5 stars and sends a referral");
     var stars = stage.querySelectorAll("#stars i");
     for (var i = 0; i < 5; i++) { await c.sleep(260); stars[i].classList.add("on"); }
     await c.sleep(500);
-    stage.querySelector("#gslot").appendChild(c.h('<div class="gcard"><b><span>James Carter</span><span class="gs">★★★★★</span></b><p style="margin:6px 0 0">Engineer arrived on time, explained everything and left the place spotless. Booking was easy too.</p></div>'));
-    c.prog(.8); c.cap("Every completed job does this. The rating climbs on its own");
+    stage.querySelector("#gslot").appendChild(c.h('<div class="gcard"><b><span>James Carter</span><span class="gs">★★★★★</span></b><p style="margin:6px 0 0">Jessica made buying our first home simple. Fast replies, every question answered, and she found us the right place.</p></div>'));
+    c.prog(.8); c.cap("Every closing does this. Reviews and referrals grow on their own");
     var rt = stage.querySelector("#rt"), v = 4.2;
     while (v < 4.69) { v += 0.05; rt.textContent = v.toFixed(1); await c.sleep(160); }
     c.prog(1); await c.sleep(2400);
