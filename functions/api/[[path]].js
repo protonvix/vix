@@ -1079,6 +1079,7 @@ const OWNER_WA = "+447723149573";
 const BOOK_SERVICES = {
   "ghl-va": { type: "ghl", title: "GoHighLevel virtual assistant" },
   "ghl-build": { type: "ghl", title: "GoHighLevel setup" },
+  "real-estate": { type: "ghl", title: "GoHighLevel for real estate" },
   website: { type: "website", title: "Website design" },
   tiktok: { type: "tiktok", title: "TikTok marketing" },
   va: { type: "other", title: "Virtual assistance" },
