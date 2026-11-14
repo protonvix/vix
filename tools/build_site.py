@@ -11,8 +11,9 @@ import os, re, html
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CONTENT = os.path.join(ROOT, "tools", "content")
 SITE = "https://vixassist.com"
-V = "8"  # bump to bust caches for assist.css / site.js
+V = "9"  # bump to bust caches for assist.css / site.js
 LINKEDIN = "https://www.linkedin.com/in/promise-felix-a491a7233/"
+DESIGN = "https://vixautomationsportfolio.pages.dev"  # websites studio (move to https://design.vixassist.com once connected)
 WA = "447723149573"
 
 def head(title, desc, path, extra_css=""):
@@ -25,7 +26,7 @@ def head(title, desc, path, extra_css=""):
 <meta name="description" content="{html.escape(desc)}">
 <meta name="theme-color" content="#F6F5F1">
 <meta name="color-scheme" content="light">
-<link rel="canonical" href="{SITE}/{path[:-5] if path.endswith('.html') else path}">
+<link rel="canonical" href="{SITE}/{'' if path == 'index.html' else (path[:-5] if path.endswith('.html') else path)}">
 <meta property="og:type" content="website">
 <meta property="og:title" content="{html.escape(title)}">
 <meta property="og:description" content="{html.escape(desc)}">
@@ -52,47 +53,37 @@ def nav(cur=""):
   <a class="logo" href="/" aria-label="Vix Assist home"><img id="logo-anim" src="brand/vix-icon-animated.svg" alt="" width="30" height="30"><span>Vix <b>Assist</b></span></a>
   <a class="nav-acct" href="book.html?account=1"><i class="ph ph-user-plus" aria-hidden="true"></i>Create an account</a>
   <nav class="nav-links" aria-label="Main">
+    <a href="/#leak">Revenue check</a>
     <a href="/#work">See the work</a>
-    <a href="/#ecosystem">GoHighLevel</a>
+    <a href="/#retention">Client retention</a>
     <a href="pricing.html"{c("pricing")}>Pricing</a>
-    <div class="dd" id="dd">
-      <button type="button" aria-expanded="false" aria-controls="dd-menu">More services <i class="ph ph-caret-down" aria-hidden="true"></i></button>
-      <div class="dd-menu" id="dd-menu">
-        <a href="va-services.html"{c("va")}><i class="ph ph-user-gear" aria-hidden="true"></i><span>Virtual assistance<small>Inbox, calendar, admin, support</small></span></a>
-        <a href="tiktok.html"{c("tiktok")}><i class="ph ph-tiktok-logo" aria-hidden="true"></i><span>TikTok marketing<small>Content, posting, growth</small></span></a>
-        <a href="web-design.html"{c("web")}><i class="ph ph-browser" aria-hidden="true"></i><span>Website design<small>Fast sites outside GoHighLevel</small></span></a>
-        <a href="free-design.html"{c("free")}><i class="ph ph-gift" aria-hidden="true"></i><span>Free website design<small>Offer ends 4 December</small></span></a>
-      </div>
-    </div>
-    <a href="real-estate.html"{c("re")}>Real estate</a>
+    <a href="{DESIGN}/" target="_blank" rel="noopener">Websites <i class="ph ph-arrow-up-right" aria-hidden="true"></i></a>
   </nav>
   <a class="btn btn-p btn-sm nav-cta" href="book.html">Book a strategy call</a>
   <button class="menu-btn" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="mpanel"><span></span><span></span><span></span></button>
 </header>
 <div class="mpanel" id="mpanel" aria-hidden="true">
   <a href="/">Home</a>
+  <a href="/#leak">Revenue check</a>
   <a href="/#work">See the work</a>
-  <a href="/#ecosystem">GoHighLevel</a>
-  <a href="real-estate.html">Real estate</a>
+  <a href="/#retention">Client retention</a>
   <a href="pricing.html">Pricing</a>
   <a href="about.html">About</a>
-  <a class="sub" href="va-services.html">Virtual assistance</a>
-  <a class="sub" href="tiktok.html">TikTok marketing</a>
-  <a class="sub" href="web-design.html">Website design</a>
+  <a class="sub" href="{DESIGN}/" target="_blank" rel="noopener">Websites</a>
   <a class="sub" href="book.html?account=1">Create an account</a>
   <a class="sub" href="portal/">Client login</a>
   <a class="btn btn-p" href="book.html">Book a strategy call</a>
 </div>
 '''
 
-def footer(cta_h="Let's make your GoHighLevel account <em>earn its keep.</em>", cta2=("Get a free audit", "/#audit")):
+def footer(cta_h="Stop losing clients <em>to faster agents.</em>", cta2=("Get a free revenue audit", "/#audit")):
     return f'''<footer>
   <div class="wrap">
     <div class="fcta"><h2>{cta_h}</h2><div class="talk-row"><a class="btn btn-p" href="book.html">Book a strategy call <i class="ph ph-arrow-right" aria-hidden="true"></i></a><a class="btn btn-g" href="{cta2[1]}">{cta2[0]}</a></div></div>
     <div class="fgrid">
-      <div><a class="logo" href="/"><img src="brand/vix-icon.svg" alt="" width="30" height="30"><span>Vix <b>Assist</b></span></a><p style="margin-top:14px;max-width:320px">A dedicated GoHighLevel virtual assistant for business owners and agencies. Run by Promise Felix.</p></div>
-      <div><h4>GoHighLevel</h4><a href="real-estate.html">For real estate</a><a href="/#ecosystem">What I manage</a><a href="/#how">How it works</a><a href="pricing.html">Pricing</a><a href="/#audit">Free audit</a></div>
-      <div><h4>More services</h4><a href="va-services.html">Virtual assistance</a><a href="tiktok.html">TikTok marketing</a><a href="web-design.html">Website design</a><a href="portal/">Client login</a></div>
+      <div><a class="logo" href="/"><img src="brand/vix-icon.svg" alt="" width="30" height="30"><span>Vix <b>Assist</b></span></a><p style="margin-top:14px;max-width:320px">GoHighLevel growth systems for real estate brokers, agents and investors. More closings from the leads you already have, and clients who stay. Run by Promise Felix.</p></div>
+      <div><h4>Real estate growth</h4><a href="/#leak">Revenue leak calculator</a><a href="/#check">CRM health check</a><a href="/#work">See the work</a><a href="/#retention">Client retention</a><a href="pricing.html">Pricing</a><a href="about.html">About</a></div>
+      <div><h4>Websites</h4><a href="{DESIGN}/real-estate/" target="_blank" rel="noopener">Real estate websites</a><a href="{DESIGN}/ecommerce/" target="_blank" rel="noopener">E-commerce websites</a><a href="{DESIGN}/home-services/" target="_blank" rel="noopener">Home service websites</a></div>
       <div><h4>Support</h4><a href="book.html?account=1"><b style="color:#fff">Create an account</b></a><a href="portal/">Client login</a><a href="mailto:support@vixassist.com">Contact support</a><a href="book.html">Book a call</a><a href="{LINKEDIN}" target="_blank" rel="noopener">LinkedIn</a><a href="https://wa.me/{WA}" target="_blank" rel="noopener">WhatsApp +44 7723 149573</a></div>
     </div>
     <div class="fbot"><span>© 2026 Vix Assist. GoHighLevel is a trademark of HighLevel Inc. Vix Assist is an independent service and is not affiliated with HighLevel.</span><span><a href="about.html">About</a> · <a href="privacy.html">Privacy</a> · <a href="payment.html">Payments</a> · <a href="delivery.html">Delivery</a> · <a href="refund.html">Refunds</a></span></div>
@@ -102,7 +93,7 @@ def footer(cta_h="Let's make your GoHighLevel account <em>earn its keep.</em>", 
 
 def scripts(extra=""):
     return f'''<script src="site.js?v={V}"></script>{extra}
-<script src="chatbot.js?v=7" defer></script>
+<script src="chatbot.js?v=8" defer></script>
 <script src="/book-widget.js?v=3" defer></script>
 </body>
 </html>
@@ -275,44 +266,44 @@ for key, name, sub, usd, items, hot in [
 <ul>{lis}</ul><a class="btn {"btn-p" if hot else "btn-g"}" href="pay/?p={key}">Pay and start</a><a class="tlink" style="align-self:center;font-size:14px" href="book.html">or book a free call first</a></div>''')
 
 MONTHLY = '''<div class="plans">
-<div class="plan rv"><span class="tg">Starter VA</span><h3>For one location getting set up properly</h3><div class="price">$300<small> / month</small></div><p class="hrs">10 hours of GoHighLevel work each month</p><ul><li><i class="ph-fill ph-check-circle"></i>Workflow fixes and small builds</li><li><i class="ph-fill ph-check-circle"></i>Pipeline and calendar upkeep</li><li><i class="ph-fill ph-check-circle"></i>Weekly report</li><li><i class="ph-fill ph-check-circle"></i>Replies within one working day</li></ul><a class="btn btn-g" href="/#audit">Start with a free audit</a></div>
-<div class="plan hot rv"><span class="tg">Most chosen</span><h3>Growth VA for busy businesses</h3><div class="price">$550<small> / month</small></div><p class="hrs">20 hours of GoHighLevel work each month</p><ul><li><i class="ph-fill ph-check-circle"></i>Everything in Starter</li><li><i class="ph-fill ph-check-circle"></i>New automations and funnels each month</li><li><i class="ph-fill ph-check-circle"></i>Conversation AI set up and tuning</li><li><i class="ph-fill ph-check-circle"></i>Replies within two working hours</li></ul><a class="btn btn-p" href="/#audit">Start with a free audit</a></div>
-<div class="plan rv"><span class="tg">Dedicated VA</span><h3>For agencies and multi location teams</h3><div class="price">$950<small> / month</small></div><p class="hrs">35 hours of GoHighLevel work each month</p><ul><li><i class="ph-fill ph-check-circle"></i>Everything in Growth</li><li><i class="ph-fill ph-check-circle"></i>White label sub account support</li><li><i class="ph-fill ph-check-circle"></i>Snapshots and client onboarding</li><li><i class="ph-fill ph-check-circle"></i>Priority same day replies</li></ul><a class="btn btn-g" href="/#audit">Start with a free audit</a></div>
+<div class="plan rv"><span class="tg">Lead Response</span><h3>For agents who want every lead answered</h3><div class="price">$300<small> / month</small></div><p class="hrs">Built, managed and improved every month</p><ul><li><i class="ph-fill ph-check-circle"></i>Instant replies on every lead source</li><li><i class="ph-fill ph-check-circle"></i>Showing booking and reminders</li><li><i class="ph-fill ph-check-circle"></i>A clean pipeline you can trust</li><li><i class="ph-fill ph-check-circle"></i>Monthly results report</li></ul><a class="btn btn-g" href="/#audit" data-plan="Lead Response">Start with a free audit</a></div>
+<div class="plan hot rv"><span class="tg">Most chosen · Growth</span><h3>For teams that want more closings and repeat clients</h3><div class="price">$550<small> / month</small></div><p class="hrs">Everything in Lead Response, plus</p><ul><li><i class="ph-fill ph-check-circle"></i>Long term buyer and seller nurture</li><li><i class="ph-fill ph-check-circle"></i>Old lead and past client revival</li><li><i class="ph-fill ph-check-circle"></i>Review and referral engine</li><li><i class="ph-fill ph-check-circle"></i>AI lead qualifying and agent routing</li><li><i class="ph-fill ph-check-circle"></i>Weekly results report</li></ul><a class="btn btn-p" href="/#audit" data-plan="Growth">Start with a free audit</a></div>
+<div class="plan rv"><span class="tg">Brokerage</span><h3>For brokerages, multi office teams and investors</h3><div class="price">$950<small> / month</small></div><p class="hrs">Everything in Growth, plus</p><ul><li><i class="ph-fill ph-check-circle"></i>Systems rolled out across every agent</li><li><i class="ph-fill ph-check-circle"></i>New agent onboarding and snapshots</li><li><i class="ph-fill ph-check-circle"></i>Investor seller pipelines and texting</li><li><i class="ph-fill ph-check-circle"></i>Lead source and agent reporting</li><li><i class="ph-fill ph-check-circle"></i>Priority same day support</li></ul><a class="btn btn-g" href="/#audit" data-plan="Brokerage">Start with a free audit</a></div>
 </div>'''
 
 page("pricing.html", "Pricing · Vix Assist",
- "Clear prices for GoHighLevel support: monthly virtual assistant plans, one off builds with a fixed price, and quotes for websites and TikTok.",
+ "Clear prices for real estate GoHighLevel growth systems: monthly plans, fixed price builds, and quotes for websites.",
  "pricing", "\n".join([
   hero("Pricing", "Clear prices. <em>No surprises.</em>",
-       "Monthly GoHighLevel support, fixed price builds, and quotes for everything else. Every price is agreed before any work starts.",
+       "Monthly growth systems for agents, teams and brokerages, fixed price builds, and quotes for websites. Every price is agreed before any work starts.",
        '<a class="btn btn-p" href="#monthly">Monthly plans</a><a class="btn btn-g" href="#builds">One off builds</a>'),
-  sec(head2("Monthly", "A dedicated GoHighLevel assistant, <em>every month.</em>", "Every plan starts with a free audit. Prices in USD. Cancel any month.") + MONTHLY +
-      '<p class="guarantee rv"><i class="ph-fill ph-shield-check" aria-hidden="true"></i>No long contract. Unused hours roll over one month.</p>', "monthly", "padding-top:0;border-top:0"),
+  sec(head2("Monthly", "Systems that win and keep clients, <em>run for you every month.</em>", "Every plan starts with a free revenue audit. Prices in USD. Cancel any month.") + MONTHLY +
+      '<p class="guarantee rv"><i class="ph-fill ph-shield-check" aria-hidden="true"></i>No long contract. Everything built stays in your account.</p>', "monthly", "padding-top:0;border-top:0"),
   sec(head2("One off builds", "A full GoHighLevel build <em>at a fixed price.</em>", "Pay online and your project and client dashboard start straight away.") +
       '''<div class="pctl rv"><div class="discount-banner" data-discount-banner hidden><span class="discount-pill" data-discount-percent></span><span data-discount-label></span></div><label class="currency-picker">Show prices in<select id="currency-select" aria-describedby="currency-note"></select></label></div>''' +
       '<div class="plans">' + "".join(PKG) + '</div><p class="guarantee rv" id="currency-note" data-currency-note>Prices are set in US dollars (USD).</p><p class="guarantee rv"><i class="ph-fill ph-lock-key" aria-hidden="true"></i>Pay securely by card, bank transfer or USSD through Paystack, or by bank transfer in USD, GBP, EUR or NGN.</p>', "builds"),
-  sec(head2("Other services", "Websites and TikTok, <em>quoted to you.</em>") + '<div class="extras">' +
-      '<a class="ex rv" href="web-design.html"><span><b>Website design</b><span>New sites, redesigns, fixes and funnels</span></span><span class="p">Quote <i class="ph ph-arrow-right" style="font-size:18px"></i></span></a>' +
-      '<a class="ex rv" href="tiktok.html"><span><b>TikTok marketing</b><span>Content, posting, management and ads</span></span><span class="p">Quote <i class="ph ph-arrow-right" style="font-size:18px"></i></span></a></div>'),
+  sec(head2("Websites", "A website that matches <em>the system behind it.</em>") + '<div class="extras">' +
+      f'<a class="ex rv" href="{DESIGN}/real-estate/" target="_blank" rel="noopener"><span><b>Real estate websites</b><span>Listings, valuations and lead capture wired to GoHighLevel</span></span><span class="p">Quote <i class="ph ph-arrow-up-right" style="font-size:18px"></i></span></a>' +
+      f'<a class="ex rv" href="{DESIGN}/" target="_blank" rel="noopener"><span><b>E-commerce and home service websites</b><span>30 templates to start from</span></span><span class="p">Quote <i class="ph ph-arrow-up-right" style="font-size:18px"></i></span></a></div>'),
   sec(head2("Questions", "Good to <em>know.</em>", center=True) + faq([
-    ("Is the GoHighLevel subscription included?", "No. You pay HighLevel directly for your own account, so you always own it. My prices cover the setup, the work and the support."),
+    ("Is the GoHighLevel subscription included?", "No. You pay HighLevel directly for your own account, so you always own it. My prices cover building, running and improving your system."),
     ("Which currency will I pay in?", "Prices are set in US dollars. Other currencies are shown as an estimate, and your invoice shows the exact amount before you pay."),
     ("How can I pay?", "By card, bank transfer or USSD through Paystack, or by bank transfer to accounts in the US, UK, Europe and Nigeria."),
     ("What does fixed price mean?", "The scope is agreed in writing before work starts, and that is the price. Anything extra is quoted first and only added with your approval."),
-    ("Monthly plan or one off build?", "If your account needs building, start with a one off build. If it is set up but needs ongoing work, a monthly plan fits better. The free audit tells you which."),
+    ("Monthly plan or one off build?", "If your account needs building from scratch, start with a one off build. If you want the system run and improved every month, choose a monthly plan. The free revenue audit tells you which."),
   ])),
  ]), extra_js='\n<script src="pricing.js?v=2"></script>')
 
 # ---------------------------------------------------------------- About
 page("about.html", "About · Vix Assist",
- "Vix Assist is run by Promise Felix, a GoHighLevel virtual assistant helping business owners and agencies in the UK, the US, Australia and Nigeria.",
+ "Vix Assist is run by Promise Felix, who builds and runs GoHighLevel growth systems that help real estate brokers, teams and agents win and keep more clients.",
  "about", "\n".join([
-  hero("About", "I'm Promise. I run GoHighLevel accounts <em>so owners don't have to.</em>",
-       "Vix Assist is my GoHighLevel virtual assistant service. I set up, fix and manage accounts for business owners and agencies, so leads get answered and the software earns what it costs.",
+  hero("About", "I'm Promise. I help real estate teams <em>keep the clients they already paid for.</em>",
+       "Vix Assist builds and runs the GoHighLevel systems that answer every lead in seconds, follow up until they are ready, and keep past clients coming back with referrals.",
        BOOK + f'<a class="btn btn-g" href="{LINKEDIN}" target="_blank" rel="noopener"><i class="ph-fill ph-linkedin-logo" aria-hidden="true"></i>LinkedIn</a>'),
-  sec('<div class="grid2"><div class="prose rv"><h2>Why this exists</h2><p>Most businesses don\'t have a lead problem. They have a follow up problem. Someone enquires and nobody replies fast enough, the calendar fills with no shows, and the platform that was meant to fix it sits half set up.</p><p>GoHighLevel can solve all of that, but only when someone builds it properly and looks after it every week. That is the job I do.</p></div>'
-      '<div class="tlist rv"><div class="ti"><i class="ph-fill ph-seal-check" aria-hidden="true"></i><span><b>Fixed price first</b>You know the full cost before any work starts.</span></div><div class="ti"><i class="ph-fill ph-key" aria-hidden="true"></i><span><b>You own everything</b>Your account, data, website and content stay yours.</span></div><div class="ti"><i class="ph-fill ph-video" aria-hidden="true"></i><span><b>Documented and recorded</b>Every system comes with walkthrough videos and written notes.</span></div><div class="ti"><i class="ph-fill ph-chat-circle-text" aria-hidden="true"></i><span><b>Direct access</b>You talk to the person doing the work, on WhatsApp, email or video call.</span></div></div></div>', style="padding-top:0;border-top:0"),
-  sec('<div class="prose rv"><h2>Honest by design</h2><p>Vix Assist is a young business, so you won\'t find fake reviews or borrowed client logos here. Instead, the work is shown openly on the homepage, every price is fixed up front, and you can see every task in your own client dashboard.</p><p>I work with clients in the UK, the US, Australia and Nigeria. Email <a href="mailto:support@vixassist.com">support@vixassist.com</a>, message me on <a href="https://wa.me/447723149573" target="_blank" rel="noopener">WhatsApp</a>, or <a href="book.html">book a call</a>.</p></div>'),
+  sec('<div class="grid2"><div class="prose rv"><h2>Why this exists</h2><p>Most agents do not have a lead problem. They have a follow up problem. A buyer enquires at night and the first agent to reply wins them. A seller who is six months away gets forgotten. A happy client from two years ago uses someone else, simply because nobody stayed in touch.</p><p>GoHighLevel can fix all of that, but only when it is built properly and looked after every week. That is the job I do, so brokers and agents can focus on showings, negotiations and closings.</p></div>'
+      '<div class="tlist rv"><div class="ti"><i class="ph-fill ph-seal-check" aria-hidden="true"></i><span><b>Fixed price first</b>You know the full cost before any work starts.</span></div><div class="ti"><i class="ph-fill ph-key" aria-hidden="true"></i><span><b>You own everything</b>Your account, data and campaigns stay yours.</span></div><div class="ti"><i class="ph-fill ph-video" aria-hidden="true"></i><span><b>Documented and recorded</b>Every system comes with walkthrough videos and written notes.</span></div><div class="ti"><i class="ph-fill ph-chat-circle-text" aria-hidden="true"></i><span><b>Direct access</b>You talk to the person building your system, on WhatsApp, email or video call.</span></div></div></div>', style="padding-top:0;border-top:0"),
+  sec('<div class="prose rv"><h2>Honest by design</h2><p>Vix Assist is a young business, so you will not find fake reviews or borrowed client logos here. Instead, the work is shown openly on this website, every price is fixed up front, and you can follow every task in your own client dashboard.</p><p>I work with brokers, teams, agents and investors in the US, Canada, the UK and Australia. Email <a href="mailto:support@vixassist.com">support@vixassist.com</a>, message me on <a href="https://wa.me/447723149573" target="_blank" rel="noopener">WhatsApp</a>, or <a href="book.html">book a call</a>.</p></div>'),
  ]))
 
 # ---------------------------------------------------------------- Policies
@@ -486,3 +477,159 @@ page("real-estate.html", "GoHighLevel for Real Estate Teams, Brokerages and Inve
   ])),
   sec(brief_form("Real estate page", "Real estate GoHighLevel audit request", ["Solo agent", "Real estate team", "Brokerage", "Investor or wholesaler", "Mortgage broker", "Property manager", "Other"], "Get a free real estate <em>account audit.</em>", "Tell me about your team and lead sources. I'll review your GoHighLevel and send a written plan with the first fixes that will bring in more showings.")),
  ]), extra_js=RE_DATA, foot=footer("Never lose another lead <em>to a faster agent.</em>", ("Get a free audit", "#enquire")))
+
+# ---------------------------------------------------------------- Homepage (real estate growth)
+WORK = open(os.path.join(ROOT, "tools", "content", "work_section.html"), encoding="utf-8").read()
+SEL = lambda name, opts: f'<select name="{name}">' + "".join(f'<option value="{v}"{" selected" if sel else ""}>{t}</option>' for v, t, sel in opts) + "</select>"
+LEAK = f'''<div class="leak rv" id="leak-box">
+  <form class="leak-in" id="leak-form" onsubmit="return false">
+    <div class="two"><label>New leads per month<input name="leads" type="number" min="0" value="60" inputmode="numeric"></label><label>Your commission per closing ($)<input name="commission" type="number" min="0" step="500" value="9000" inputmode="numeric"></label></div>
+    <label>How many of your leads become closings today (%)<input name="rate" type="number" min="0" max="100" step="0.1" value="1.5" inputmode="decimal"></label>
+    <label>How fast does a new lead get a reply?{SEL("speed", [("1", "Under 5 minutes, day and night", False), ("0.75", "Within an hour", True), ("0.55", "Same day", False), ("0.4", "Next day or later", False)])}</label>
+    <label>How long do you follow up with leads who are not ready?{SEL("follow", [("1", "12 months or more, automatically", False), ("0.75", "A few weeks", True), ("0.55", "Once or twice, then they go cold", False)])}</label>
+    <label>How often do past clients hear from you?{SEL("past", [("1", "Regularly, with referral asks", False), ("0.6", "Now and then", True), ("0.2", "Rarely after closing", False)])}</label>
+  </form>
+  <div class="leak-out" aria-live="polite">
+    <span class="eyebrow" style="color:rgba(255,255,255,.6)">Estimated commission you may be missing</span>
+    <b class="leak-total" id="leak-total">$0</b>
+    <p class="leak-sub">per year · about <b id="leak-month">$0</b> a month · <b id="leak-deals">0 closings</b></p>
+    <div class="leak-meter"><i id="leak-bar"></i></div>
+    <p class="leak-note" id="leak-note"></p>
+    <a class="btn btn-p" href="#audit">Show me where it's leaking <i class="ph ph-arrow-right" aria-hidden="true"></i></a>
+    <p class="leak-fine">An estimate, not a promise. It assumes faster replies and longer follow up let you keep more of each lead list's potential (up to double your current closing rate), and that well nurtured past clients send repeat and referral business. Change the numbers to match your business.</p>
+  </div>
+</div>'''
+
+CHECK_QS = [
+  ("Does every new lead get a personal reply within 5 minutes, even at night and on weekends?", "Leads wait for a reply and call the next agent"),
+  ("Do leads who are not ready yet get follow up for 6 to 12 months without anyone remembering to do it?", "Buyers and sellers who are months away are forgotten"),
+  ("Can you see, right now, which lead source brought your last 10 closings?", "You cannot see which lead sources actually make money"),
+  ("Do showings get automatic confirmations and reminders?", "Missed showings and no shows waste agents' time"),
+  ("Do your old leads get a regular campaign that restarts conversations?", "Thousands of old leads sit untouched in the CRM"),
+  ("Do past clients hear from you on home anniversaries and market updates?", "Past clients forget you and use another agent next time"),
+  ("Is every closed client asked for a review and a referral, automatically?", "Reviews and referrals depend on someone remembering"),
+  ("Is every new lead assigned to an agent instantly, with an alert if nobody claims it?", "Leads sit unclaimed while agents assume someone else has it"),
+]
+CHECK = '<div class="check rv"><form id="check-quiz" class="check-q" onsubmit="return false">' + "".join(
+  f'<div class="q" data-gap="{gap}"><p><span>{i:02d}</span>{q}</p><div class="yn"><label><input type="radio" name="q{i}" value="yes"><span>Yes</span></label><label><input type="radio" name="q{i}" value="no"><span>No</span></label></div></div>'
+  for i, (q, gap) in enumerate(CHECK_QS, 1)) + '''</form>
+<div class="check-res" id="check-result" hidden><div class="ring"><b id="check-score">0%</b></div><div><h3 id="check-title"></h3><p id="check-text"></p><ul class="gaps" id="check-gaps"></ul><div class="talk-row" style="margin-top:20px"><a class="btn btn-p" href="#audit">Fix these gaps <i class="ph ph-arrow-right" aria-hidden="true"></i></a><a class="btn btn-g" href="book.html?service=real-estate">Talk it through</a></div></div></div></div>'''
+
+RETAIN = [
+  ("ph-house-line", "Home anniversaries", "A personal note on the day they got their keys, every year."),
+  ("ph-chart-line-up", "Market updates", "What their home is worth now, so they think of you when it is time to move."),
+  ("ph-gift", "Referral asks at the right moment", "After closing, after a great review, and when friends are likely to move."),
+  ("ph-star", "Reviews on autopilot", "Every closing becomes social proof that wins the next client."),
+  ("ph-calendar-heart", "Seasonal check ins", "Holiday, tax season and new year messages that keep you remembered."),
+  ("ph-arrows-clockwise", "Next move reminders", "Renters, growing families and empty nesters nudged when the timing fits."),
+]
+
+HOME_AUDIT = '''<div class="audit rv" id="contact">
+  <div>
+    <span class="eyebrow">Free revenue audit</span>
+    <h2 class="h2" id="h-audit">Find out where your commission is <em>leaking.</em></h2>
+    <ul class="alist">
+      <li><i class="ph-fill ph-check-circle" aria-hidden="true"></i>A written review of how your leads are answered, followed up and kept</li>
+      <li><i class="ph-fill ph-check-circle" aria-hidden="true"></i>The three fixes that will add closings fastest</li>
+      <li><i class="ph-fill ph-check-circle" aria-hidden="true"></i>A clear plan and price, with no obligation</li>
+    </ul>
+    <div class="talk"><p>Rather talk it through live?</p><div class="talk-row"><a class="btn btn-g btn-sm" href="book.html?service=real-estate"><i class="ph ph-video-camera" aria-hidden="true"></i>Book a call on Zoom or Google Meet</a><a class="btn btn-g btn-sm" href="''' + LINKEDIN + '''" target="_blank" rel="noopener"><i class="ph-fill ph-linkedin-logo" aria-hidden="true"></i>Message me on LinkedIn</a></div></div>
+  </div>
+  <div>
+    <form class="f" id="audit-form" novalidate>
+      <div class="two"><label>Your name<input name="name" autocomplete="name" required></label><label>Work email<input name="email" type="email" autocomplete="email" required></label></div>
+      <div class="two"><label>Brokerage or team<input name="business" autocomplete="organization"></label><label>WhatsApp (optional)<input name="whatsapp" type="tel" autocomplete="tel"></label></div>
+      <div class="two">
+        <label>You are<select name="setup"><option>A solo agent</option><option>A team lead</option><option>A broker or brokerage owner</option><option>An investor or wholesaler</option><option>A mortgage broker</option><option>Other</option></select></label>
+        <label>Plan you are considering<select name="plan"><option>Not sure yet</option><option>Lead Response</option><option>Growth</option><option>Brokerage</option><option>One off build or rescue</option></select></label>
+      </div>
+      <label>What should I look at first?<textarea name="message" rows="4" placeholder="For example: Zillow leads wait hours for a reply, old leads are never contacted, no reviews after closing" required></textarea></label>
+      <input class="hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <button class="btn btn-p" type="submit">Get my free revenue audit <i class="ph ph-arrow-right" aria-hidden="true"></i></button>
+      <p class="err" id="audit-err" role="alert"></p>
+      <p class="note">I reply within one working day. Your details are only used to answer your request.</p>
+    </form>
+    <div class="done" id="audit-done" role="status"><i class="ph-fill ph-check-circle" aria-hidden="true"></i><b>Request received.</b><p class="muted">I'll email you within one working day with how to give me team access for the audit.</p></div>
+  </div>
+</div>'''
+
+MODULES = ["Zillow leads", "Realtor.com", "Open houses", "Sign calls", "Facebook ads", "Showings", "Round robin", "Buyer nurture", "Seller nurture", "Database revival", "Home anniversaries", "Reviews", "Referrals", "A2P 10DLC", "Lead source reporting", "Investor pipelines"]
+mq = "".join(f"<span><i class=\"ph ph-check-circle\"></i>{m}</span>" for m in MODULES)
+
+page("index.html", "Vix Assist · GoHighLevel Growth Systems for Real Estate Brokers and Agents",
+ "More closings from the leads you already pay for, and clients who come back and refer. GoHighLevel systems built and run for real estate brokers, teams, agents and investors.",
+ "home", "\n".join([
+  f'''<section class="hero" aria-labelledby="h1">
+  <div class="wrap hero-grid">
+    <div>
+      <span class="presence"><span class="av"><img src="brand/vix-icon-animated.svg" alt=""></span><span><b>Promise</b> · GoHighLevel growth for real estate</span></span>
+      <h1 id="h1">Your next closing is already in your CRM. <em>Stop letting competitors take it.</em></h1>
+      <p class="sub">I build and run the GoHighLevel system that answers every lead in seconds, follows up until they are ready, and keeps past clients coming back with referrals. More commission from the leads you already pay for.</p>
+      <div class="cta"><a class="btn btn-p" href="#leak">Find my revenue leak <i class="ph ph-arrow-right" aria-hidden="true"></i></a><button class="btn btn-g" type="button" data-tour><i class="ph-fill ph-play-circle" aria-hidden="true"></i>Watch the 2 minute tour</button></div>
+      <div class="proofline"><span><i class="ph-fill ph-lock-key" aria-hidden="true"></i>Team access, never your password</span><span><i class="ph-fill ph-file-lock" aria-hidden="true"></i>NDA on request</span><span><i class="ph-fill ph-arrows-clockwise" aria-hidden="true"></i>Cancel any month</span></div>
+    </div>
+    {RE_CONSOLE}
+  </div>
+</section>
+<div class="modules" aria-label="What the system handles"><div class="mq">{mq}{mq.replace("<span>", '<span aria-hidden="true">')}</div></div>''',
+  sec(head2("Where your commission disappears", "You don't lose deals to better agents. <em>You lose them to faster ones.</em>", "The first agent to reply usually wins the client. Most buyers are months away when they first enquire. And past clients forget you within a year.") + '''<div class="pain">
+<div class="pc rv"><p class="was">Portal leads wait hours for a call back.</p><p class="now">Every lead answered in seconds</p><p>Zillow, Realtor.com, ads and website leads get a personal text and email instantly, day or night, before another agent calls.</p></div>
+<div class="pc rv"><p class="was">Buyers who are not ready yet get forgotten.</p><p class="now">Follow up until they are ready</p><p>Months of helpful, personal follow up, so when they are ready to buy or sell, they come back to you.</p></div>
+<div class="pc rv"><p class="was">Past clients drift to another agent next time.</p><p class="now">Clients who stay and refer</p><p>Anniversaries, market updates and referral asks that keep you their agent for life.</p></div>
+</div>''', style="border-top:0"),
+  sec(head2("Revenue leak calculator", "How much is slow follow up <em>costing you?</em>", "Enter your numbers. See what your current process may be leaving on the table every year.", True) + LEAK, "leak"),
+  WORK,
+  sec(head2("A lead's journey", "From portal lead to signed client, <em>without anyone lifting a finger.</em>", "This is the system I build inside your GoHighLevel. You see every step in your account.", True) +
+      '<ol class="journey">' + "".join(f'<li class="rv"><span class="jt">{t}</span><span class="ji"><i class="ph {ic}" aria-hidden="true"></i></span><div><h3>{h}</h3><p>{p}</p></div></li>' for t, ic, h, p in JOURNEY) + '</ol>', "journey"),
+  sec(head2("Client retention", "A new lead costs money. <em>A past client is free revenue.</em>", "Your past clients and sphere already trust you. The system keeps you top of mind, so their next move and their friends' moves come to you, not a competitor.") +
+      '<div class="eco">' + "".join(f'<article class="ec rv"><span class="ic"><i class="ph {i}" aria-hidden="true"></i></span><h3>{t}</h3><p>{d}</p></article>' for i, t, d in RETAIN) + "</div>", "retention"),
+  '<section class="reveal-sec" aria-label="The promise"><div class="wrap"><p class="tagline" id="tagline">Every lead answered. Every client remembered. Every referral asked for. That is how you grow without buying more leads.</p></div></section>',
+  sec(head2("CRM health check", "Is your current CRM <em>quietly losing you clients?</em>", "Eight honest questions. Answer them about your system as it is today.", True) + CHECK, "check"),
+  sec(head2("What I build and run", "Everything that wins and keeps clients, <em>inside GoHighLevel.</em>") + boxes([
+    ("ph-lightning", "Speed to lead", "Instant text, email and missed call text back for every portal, ad and website lead."),
+    ("ph-robot", "Lead qualifying AI", "Asks budget, area, timeline and pre approval, then books the showing."),
+    ("ph-calendar-check", "Showings and reminders", "Booking links, agent calendars, confirmations and reminders that cut no shows."),
+    ("ph-users-three", "Agent routing", "Round robin or territory routing, with alerts so no lead sits unclaimed."),
+    ("ph-arrows-clockwise", "Buyer and seller nurture", "Long term follow up for leads who are not ready yet, in your voice."),
+    ("ph-database", "Database revival", "Campaigns that restart conversations with old leads and your sphere."),
+    ("ph-sign-in", "Open house sign ins", "Visitors land in the CRM with follow up already running."),
+    ("ph-megaphone", "Just listed and just sold", "Campaigns to past clients and neighbourhoods every time you list or close."),
+    ("ph-star", "Reviews and referrals", "Automatic review and referral requests after every closing."),
+    ("ph-funnel-simple", "Clean pipelines", "Buyer, seller and investor pipelines your agents actually use."),
+    ("ph-shield-check", "A2P 10DLC and compliance", "US texting registration, opt out handling and quiet hours."),
+    ("ph-chart-line-up", "Lead source reporting", "See which sources bring closings, so you spend where it works."),
+  ]), "ecosystem"),
+  sec(head2("How we start", "Live in days. <em>Growing every month after.</em>") + steps([
+    ("Free revenue audit", "You give me team access. I review how leads are answered, followed up and kept, then send a written plan with clear priorities."),
+    ("Speed to lead in week one", "Instant replies, showing booking and reminders go live first, because that is where deals are won or lost."),
+    ("Grow every month", "Nurture, database revival, reviews and referrals are added and improved, with a report on what changed."),
+  ]), "how"),
+  sec('<div class="trust"><div>' + head2("Working with a brokerage", "Your clients, your data, <em>your brand.</em>") + '''<div class="tlist">
+<div class="ti rv"><i class="ph-fill ph-lock-key" aria-hidden="true"></i><span><b>Team user access only</b>You add me as a staff user with the permissions you choose, and remove me in one click.</span></div>
+<div class="ti rv"><i class="ph-fill ph-file-lock" aria-hidden="true"></i><span><b>NDA before I start</b>For brokerages and teams, I sign your NDA before touching any client data.</span></div>
+<div class="ti rv"><i class="ph-fill ph-user-circle-check" aria-hidden="true"></i><span><b>I never contact your clients on my own</b>Every campaign is approved by you before it goes live, in your brand and your voice.</span></div>
+<div class="ti rv"><i class="ph-fill ph-database" aria-hidden="true"></i><span><b>Everything stays in your account</b>If we stop working together, you keep every workflow, contact and campaign.</span></div>
+<div class="ti rv"><i class="ph-fill ph-squares-four" aria-hidden="true"></i><span><b>Your own client dashboard</b>Every task, update and file in one place, with a direct line to me.</span></div>
+</div></div>''' + '''<div class="report static rv" aria-label="Example weekly report for a real estate team"><header><span><b>Weekly report</b><small>Example for a 6 agent team</small></span><span class="pill">On track</span></header>
+<div class="rrow"><i class="ph ph-lightning" aria-hidden="true"></i><span>Zillow and Realtor.com leads now answered in under 10 seconds</span><b>Live</b></div>
+<div class="rrow"><i class="ph ph-users-three" aria-hidden="true"></i><span>Round robin across 6 agents with claim alerts</span><b>Live</b></div>
+<div class="rrow"><i class="ph ph-arrows-clockwise" aria-hidden="true"></i><span>Revival campaign started with 1,240 old leads</span><b>Live</b></div>
+<div class="rrow"><i class="ph ph-house-line" aria-hidden="true"></i><span>Home anniversary messages set for 312 past clients</span><b>Live</b></div>
+<div class="rrow"><i class="ph ph-star" aria-hidden="true"></i><span>Review and referral request after every closing</span><b>Live</b></div>
+<p class="rnote">Example report · Next week: open house sign in flow and just listed campaign.</p></div></div>'''),
+  sec(head2("Pricing", "Less than the commission on <em>one extra closing a year.</em>", "Every plan starts with a free revenue audit. Prices in USD. No long contracts.", True) + MONTHLY +
+      '<div class="extras"><div class="ex rv"><span><b>One off build or rescue</b><span>A full GoHighLevel build or repair, fixed price</span></span><span class="p">from $499</span></div><div class="ex rv"><span><b>Revenue audit</b><span>Written review and action plan</span></span><span class="p">Free</span></div></div>' +
+      '<p class="guarantee rv"><i class="ph-fill ph-shield-check" aria-hidden="true"></i>No long contract. Cancel any month. Everything built stays in your account.</p>', "pricing"),
+  sec(head2("Investors and wholesalers", "Seller leads need follow up <em>even more.</em>", "If you buy property, your pipeline runs on follow up. I build and run the system that keeps motivated sellers talking to you, not the next investor.") +
+      '<ul class="checks rv" style="columns:2;column-gap:40px">' + "".join(f'<li><i class="ph-fill ph-check-circle"></i><span>{x}</span></li>' for x in ["Seller pipelines from first contact to closing", "Texting with A2P registration and opt out handling", "Instant follow up on PPC, PPL and direct mail", "Offer follow up that runs for months", "Missed call text back and voicemail drops", "Buyer lists for dispositions"]) + "</ul>"),
+  sec(head2("Questions", "Before you <em>decide.</em>", center=True) + faq([
+    ("I use Follow Up Boss, kvCORE or another CRM. Is this for me?", "Yes. I can move your leads and follow up into GoHighLevel, or connect your lead sources so GoHighLevel handles speed to lead, nurture and retention while your agents keep the tools they know. The free audit shows which makes more sense."),
+    ("How quickly will I see a difference?", "Instant replies and showing reminders are usually live in the first week, so you see faster conversations straight away. Nurture, revival and referral campaigns build results over the following months."),
+    ("Is texting my leads in the US compliant?", "I register your A2P 10DLC brand and campaign, add opt out handling and quiet hours, and only message people who enquired or opted in. Your compliance rules always come first."),
+    ("Will you talk to my clients?", "Only if you want me to. Every message goes out in your name and is approved by you. I never contact your clients on my own."),
+    ("Do I need my GoHighLevel password to give you access?", "No. You add me as a team user with the permissions you choose, and remove access any time in one click."),
+    ("What does it cost to try?", "The revenue audit is free and you get a written plan either way. Monthly plans have no long contract, and everything built stays in your account."),
+  ]), "faq"),
+  sec(HOME_AUDIT, "audit"),
+ ]), extra_js=RE_DATA.replace('<script src="assist.js?v=7"></script>', '<script src="assist.js?v=8"></script>\n<script src="work.js?v=2" defer></script>\n<script src="re.js?v=2" defer></script>\n<script src="tour.js?v=2" defer></script>'),
+ foot=footer())
