@@ -30,8 +30,9 @@
 
   /* ---------- live GoHighLevel console demo ---------- */
   var board = $("#board"), feed = $("#feed"), toast = $("#toast");
-  var people = ["Sarah Whitfield", "Daniel Okoro", "Priya Raman", "Tom Gallagher", "Ngozi Adeyemi", "Liam Carter", "Hannah Brooks", "Marcus Bell", "Aisha Bello", "Chloe Turner", "Ryan Doyle", "Fatima Khan"];
-  var sources = ["Facebook ad", "Website form", "Google Business", "Instagram DM", "Missed call", "Referral"];
+  var C = window.VX_CONSOLE || {}; // a page can swap in its own demo data (e.g. real estate)
+  var people = C.people || ["Sarah Whitfield", "Daniel Okoro", "Priya Raman", "Tom Gallagher", "Ngozi Adeyemi", "Liam Carter", "Hannah Brooks", "Marcus Bell", "Aisha Bello", "Chloe Turner", "Ryan Doyle", "Fatima Khan"];
+  var sources = C.sources || ["Facebook ad", "Website form", "Google Business", "Instagram DM", "Missed call", "Referral"];
   var cols = board ? board.querySelectorAll(".col") : [];
   var pi = 0;
   function card(name, src, colIdx, won) {
@@ -45,14 +46,14 @@
     return c;
   }
   function count() { cols.forEach(function (c) { var n = c.querySelectorAll(".card").length; c.querySelector("h4 span").textContent = n + Math.floor(Math.random() * 3); }); }
-  var evs = [
+  var evs = C.evs || [
     ["ph-paper-plane-tilt", "Instant reply sent to", "in 8s"],
     ["ph-calendar-check", "Appointment booked for", "now"],
     ["ph-bell-ringing", "Reminder sent to", "24h before"],
     ["ph-star", "Review request sent to", "after job"],
     ["ph-phone-call", "Missed call text back to", "in 5s"]
   ];
-  var toasts = [
+  var toasts = C.toasts || [
     ["Workflow published", "No show recovery · 4 steps tested"],
     ["A2P 10DLC approved", "US texting is live"],
     ["312 contacts imported", "Tagged and added to pipeline"],
@@ -74,9 +75,9 @@
     var ev = evs[pi % evs.length];
     event(ev[0], ev[1], name.split(" ")[0], ev[2]);
     var adv = people[(pi + 7) % people.length];
-    if (pi % 2 === 0) card(adv, "Replied by SMS", 1);
-    if (pi % 3 === 0) { card(people[(pi + 4) % people.length], "Tue 10:30 · confirmed", 2); booked++; $("#k-booked").textContent = booked; }
-    if (pi % 4 === 0) card(people[(pi + 9) % people.length], "Paid · review sent", 3, true);
+    if (pi % 2 === 0) card(adv, C.replied || "Replied by SMS", 1);
+    if (pi % 3 === 0) { card(people[(pi + 4) % people.length], C.booked || "Tue 10:30 · confirmed", 2); booked++; $("#k-booked").textContent = booked; }
+    if (pi % 4 === 0) card(people[(pi + 9) % people.length], C.won || "Paid · review sent", 3, true);
     $("#k-reply").textContent = "0:0" + (6 + (pi % 4));
     count();
     if (pi % 3 === 1) {
