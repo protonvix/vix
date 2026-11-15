@@ -745,3 +745,5 @@ a.ex{transition:border-color .3s var(--ease)}a.ex:hover{border-color:var(--ink)}
 .nav-links a{white-space:nowrap}
 @media (max-width:1520px){.nav-links a[href="/#retention"]{display:none}}
 @media (max-width:1240px){.nav-links a[href="/#work"]{display:none}}
+.ec-more{display:inline-flex;align-items:center;gap:6px;margin-top:4px;font-size:14px;font-weight:600;color:var(--brand);text-decoration:none}
+.ec-more:hover{text-decoration:underline}
