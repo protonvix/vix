@@ -11,7 +11,7 @@ import os, re, html
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CONTENT = os.path.join(ROOT, "tools", "content")
 SITE = "https://vixassist.com"
-V = "11"  # bump to bust caches for assist.css / site.js
+V = "12"  # bump to bust caches for assist.css / site.js
 LINKEDIN = "https://www.linkedin.com/in/promise-felix-a491a7233/"
 DESIGN = "https://design.vixassist.com"  # websites studio
 WA = "447723149573"
@@ -167,7 +167,7 @@ def brief_form(source, subject, options, heading, sub):
       <div class="two"><label>Business name<input name="business" autocomplete="organization"></label><label>WhatsApp (optional)<input name="whatsapp" type="tel" autocomplete="tel"></label></div>
       <label>What do you need?<select name="service">{opts}</select></label>
       <label>Tell me a little about it<textarea name="message" rows="4" required></textarea></label>
-      <input class="hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <input class="hp" name="vx_trap" tabindex="-1" autocomplete="off" data-lpignore="true" data-1p-ignore aria-hidden="true">
       <button class="btn btn-p" type="submit">Send my request <i class="ph ph-arrow-right" aria-hidden="true"></i></button>
       <p class="err" role="alert"></p>
       <p class="note">I reply within one working day with a fixed quote. Your details are only used to answer you.</p>
@@ -337,12 +337,12 @@ page("reviews.html", "Client Reviews · Vix Assist",
       '<label>Your review<textarea name="text" rows="5" required maxlength="3000" placeholder="What did you need, what happened, and what changed for you?"></textarea></label>'
       '<div class="two"><label>Your name<input name="name" autocomplete="name" required maxlength="80"></label><label>Business (optional)<input name="business" autocomplete="organization" maxlength="120"></label></div>'
       '<label class="rvw-email">Email (never shown publicly)<input name="email" type="email" autocomplete="email" required></label>'
-      '<input class="hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">'
+      '<input class="hp" name="vx_trap" tabindex="-1" autocomplete="off" data-lpignore="true" data-1p-ignore aria-hidden="true">'
       '<button class="btn btn-p" type="submit">Submit my review <i class="ph ph-arrow-right" aria-hidden="true"></i></button>'
       '<p class="err" role="alert"></p><p class="note">Your review appears once approved, usually within one working day. Your email is only used to confirm the review is genuine.</p></form>'
       '<div class="rvw-write rvw-done" id="rvw-done" hidden role="status"><i class="ph-fill ph-check-circle" aria-hidden="true"></i><b>Thank you for your review.</b><p class="muted">It will appear on this page once approved, usually within one working day.</p><a class="btn btn-g btn-sm" href="#all" style="justify-self:center">Read other reviews</a></div></div></div>', "reviews", "padding-top:0;border-top:0"),
   sec(head2("All reviews", "In their <em>own words.</em>") + '<div class="rvw-filter" id="rvw-filter" hidden></div><div class="rvw-list" id="rvw-list"><p class="muted">Loading reviews…</p></div>', "all"),
- ]), extra_js='\n<script src="reviews.js?v=2" defer></script>')
+ ]), extra_js='\n<script src="reviews.js?v=3" defer></script>')
 
 # ---------------------------------------------------------------- Policies
 POL = [
@@ -393,7 +393,7 @@ page("free-design.html", "Free Website Design Offer · Vix Assist",
   <fieldset class="chips-f"><legend>Pages you'd like designed (up to 4)</legend><div class="chips-row" data-max="4" data-name="pages">{CHIPS}</div></fieldset>
   <label>Brand colours (optional)<input name="colours" placeholder="e.g. Black and gold, or use my logo colours"></label>
   <label>What should the website do?<textarea name="notes" rows="4" placeholder="e.g. We sell used cars in Lekki. Buyers should see our cars with prices and contact us on WhatsApp."></textarea></label>
-  <input class="hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+  <input class="hp" name="vx_trap" tabindex="-1" autocomplete="off" data-lpignore="true" data-1p-ignore aria-hidden="true">
   <label class="agree"><input type="checkbox" name="agree" required> I understand the design is free, and building and launching the website is a separate, optional paid service.</label>
   <button class="btn btn-p" type="submit">Claim my free design <i class="ph ph-arrow-right" aria-hidden="true"></i></button>
   <p class="form-status" role="status" aria-live="polite"></p>
@@ -582,7 +582,7 @@ HOME_AUDIT = '''<div class="audit rv" id="contact">
         <label>Plan you are considering<select name="plan"><option>Not sure yet</option><option>Lead Response</option><option>Growth</option><option>Brokerage</option><option>One off build or rescue</option></select></label>
       </div>
       <label>What should I look at first?<textarea name="message" rows="4" placeholder="For example: Zillow leads wait hours for a reply, old leads are never contacted, no reviews after closing" required></textarea></label>
-      <input class="hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <input class="hp" name="vx_trap" tabindex="-1" autocomplete="off" data-lpignore="true" data-1p-ignore aria-hidden="true">
       <button class="btn btn-p" type="submit">Get my free revenue audit <i class="ph ph-arrow-right" aria-hidden="true"></i></button>
       <p class="err" id="audit-err" role="alert"></p>
       <p class="note">I reply within one working day. Your details are only used to answer your request.</p>
@@ -670,5 +670,5 @@ page("index.html", "Vix Assist · GoHighLevel Growth Systems for Real Estate Bro
     ("What does it cost to try?", "The revenue audit is free and you get a written plan either way. Monthly plans have no long contract, and everything built stays in your account."),
   ]), "faq"),
   sec(HOME_AUDIT, "audit"),
- ]), extra_js=RE_DATA.replace('<script src="assist.js?v=7"></script>', '<script src="assist.js?v=8"></script>\n<script src="work.js?v=2" defer></script>\n<script src="re.js?v=2" defer></script>\n<script src="tour.js?v=2" defer></script>\n<script src="reviews.js?v=2" defer></script>'),
+ ]), extra_js=RE_DATA.replace('<script src="assist.js?v=7"></script>', '<script src="assist.js?v=8"></script>\n<script src="work.js?v=2" defer></script>\n<script src="re.js?v=2" defer></script>\n<script src="tour.js?v=2" defer></script>\n<script src="reviews.js?v=3" defer></script>'),
  foot=footer())

@@ -33,7 +33,7 @@
         return '<div class="rvw-c' + (c.owner ? " own" : "") + '"><b>' + esc(c.name) + (c.owner ? ' <span class="rvw-tag">Vix Assist</span>' : c.verified ? ' <span class="rvw-tag ok">Verified client</span>' : "") + '<span class="rvw-cd">' + day(c.at) + "</span></b><p>" + esc(c.text) + "</p></div>";
       }).join("") +
         '<button class="rvw-cbtn" type="button" data-cmt="' + esc(r.id) + '"><i class="ph ph-chat-circle" aria-hidden="true"></i>' + (r.comments.length ? "Add a comment" : "Comment") + (r.comments.length ? " (" + r.comments.length + ")" : "") + "</button>" +
-        '<form class="f rvw-cform" data-for="' + esc(r.id) + '" hidden novalidate><div class="two"><label>Your name<input name="name" autocomplete="name" required maxlength="80"></label><span></span></div><label>Comment<textarea name="text" rows="3" required maxlength="1500"></textarea></label><input class="hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true"><div class="rvw-row"><button class="btn btn-p btn-sm" type="submit">Post comment</button><button class="btn btn-g btn-sm" type="button" data-cancel>Cancel</button></div><p class="err" role="alert"></p><p class="note">Comments appear once approved, usually within a day.</p></form></div>';
+        '<form class="f rvw-cform" data-for="' + esc(r.id) + '" hidden novalidate><div class="two"><label>Your name<input name="name" autocomplete="name" required maxlength="80"></label><span></span></div><label>Comment<textarea name="text" rows="3" required maxlength="1500"></textarea></label><input class="hp" name="vx_trap" tabindex="-1" autocomplete="off" data-lpignore="true" data-1p-ignore aria-hidden="true"><div class="rvw-row"><button class="btn btn-p btn-sm" type="submit">Post comment</button><button class="btn btn-g btn-sm" type="button" data-cancel>Cancel</button></div><p class="err" role="alert"></p><p class="note">Comments appear once approved, usually within a day.</p></form></div>';
     }
     return h + "</article>";
   }
@@ -85,7 +85,7 @@
       e.preventDefault();
       var err = f.querySelector(".err"), btn = f.querySelector("[type=submit]");
       err.textContent = ""; btn.disabled = true;
-      api("reviews/comment", { reviewId: f.dataset.for, name: f.elements.name.value, text: f.elements.text.value, website: f.elements.website.value })
+      api("reviews/comment", { reviewId: f.dataset.for, name: f.elements.name.value, text: f.elements.text.value, vx_trap: f.elements.vx_trap.value })
         .then(function () { f.outerHTML = '<p class="rvw-thanks"><i class="ph-fill ph-check-circle" aria-hidden="true"></i>Thanks! Your comment will appear once it is approved.</p>'; })
         .catch(function (x) { err.textContent = x.message; btn.disabled = false; });
     });
@@ -122,7 +122,7 @@
       err.textContent = "";
       if (!rating) { err.textContent = "Please choose a star rating."; return; }
       btn.disabled = true;
-      api("reviews", { rating: rating, experience: el.experience.value, title: el.title.value, text: el.text.value, name: el.name.value, business: el.business.value, email: me ? "" : el.email.value, website: el.website.value })
+      api("reviews", { rating: rating, experience: el.experience.value, title: el.title.value, text: el.text.value, name: el.name.value, business: el.business.value, email: me ? "" : el.email.value, vx_trap: el.vx_trap.value })
         .then(function () { form.hidden = true; document.getElementById("rvw-done").hidden = false; document.getElementById("rvw-done").scrollIntoView({ behavior: "smooth", block: "center" }); })
         .catch(function (x) { err.textContent = x.message; btn.disabled = false; });
     });

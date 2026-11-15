@@ -66,7 +66,7 @@
         <label>Email (for your receipt and dashboard)<input name="email" type="email" autocomplete="email" required></label>
         <label>Business name<input name="business" autocomplete="organization"></label>
         <label>WhatsApp number<input name="whatsapp" type="tel" autocomplete="tel" placeholder="+234…"></label>
-        <input class="hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px">
+        <input class="hp" name="vx_trap" tabindex="-1" autocomplete="off" data-lpignore="true" data-1p-ignore aria-hidden="true" style="position:absolute;left:-9999px">
       </div>
       <label class="consent" id="consent-pkg"><input type="checkbox"><span>I authorise <b>Vix Assist</b> to charge <b class="c-amt">this amount</b> to my card or account <b>today</b>. This is a <b>one-time payment</b>. No future payment will be taken without my approval.</span></label>
       <button class="btn btn-p" type="submit" id="pkg-pay"><i class="ph-fill ph-lock-simple" aria-hidden="true"></i><span>Pay now</span></button>
@@ -213,7 +213,7 @@
       [f.name, f.email].forEach(function (i) { var good = i.value.trim() && (i.type !== "email" || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(i.value.trim())); i.style.borderColor = good ? "" : "#ff7b7b"; if (!good) ok = false; });
       if (!ok) { $("pkg-err").textContent = "Please enter your name and a valid email."; return; }
       var b = this; b.disabled = true;
-      VX.api("pay/package", { p: pk, mode: "transfer", plan: picked.get(), name: f.name.value, email: f.email.value, business: f.business.value, whatsapp: f.whatsapp.value, website: f.website.value })
+      VX.api("pay/package", { p: pk, mode: "transfer", plan: picked.get(), name: f.name.value, email: f.email.value, business: f.business.value, whatsapp: f.whatsapp.value, vx_trap: f.vx_trap.value })
         .then(function (d) { location.href = location.pathname + "?r=" + encodeURIComponent(d.r) + "&t=1"; })
         .catch(function (x) { $("pkg-err").textContent = x.message; b.disabled = false; });
     });
@@ -224,7 +224,7 @@
       if (!ok) { $("pkg-err").textContent = "Please enter your name and a valid email."; return; }
       if (!consentOk("consent-pkg", "pkg-err")) return;
       var b = $("pkg-pay"); b.disabled = true; $("pkg-err").textContent = ""; b.querySelector("span").textContent = "Opening secure checkout…";
-      VX.api("pay/package", { p: pk, consent: true, plan: picked.get(), name: f.name.value, email: f.email.value, business: f.business.value, whatsapp: f.whatsapp.value, website: f.website.value })
+      VX.api("pay/package", { p: pk, consent: true, plan: picked.get(), name: f.name.value, email: f.email.value, business: f.business.value, whatsapp: f.whatsapp.value, vx_trap: f.vx_trap.value })
         .then(function (d) { location.href = d.url; })
         .catch(function (x) { $("pkg-err").textContent = x.message; b.disabled = false; b.querySelector("span").textContent = "Try again"; });
     });
