@@ -857,6 +857,11 @@ async function adminFeed(env) {
       if (last) items.push({ kind: "message", id: pj.id, at: last.at, unread: true, clientId: c.id, title: "New message from " + c.name + " (" + pj.title + ")", sub: last.text.slice(0, 160) });
     }
   }
+  for (const id of ((await get(env, "reviews:index")) || []).slice(-60)) {
+    const r = await get(env, "review:" + id); if (!r) continue;
+    if (r.status === "pending") items.push({ kind: "review", id: r.id, at: r.at, unread: !r.read, title: "Review to approve: " + "★".repeat(r.rating) + " from " + r.name, sub: (r.title || r.text).slice(0, 140) + " · approve in Reviews" });
+    for (const c of r.comments || []) if (c.status === "pending") items.push({ kind: "review", id: r.id, at: c.at, unread: !c.read, title: "Comment to approve from " + c.name, sub: c.text.slice(0, 140) + " · on " + r.name + "'s review" });
+  }
   items.sort((a, b) => String(b.at).localeCompare(String(a.at)));
   return json({ items: items.slice(0, 80), unread: items.filter((i) => i.unread).length });
 }
@@ -868,6 +873,14 @@ async function adminFeedSeen(env, req) {
   if (b.kind === "overdue") seen["od:" + clean(b.id, 50)] = 1;
   if (b.kind === "brief" || b.kind === "offer" || b.kind === "founding") { const it = await get(env, "brief:" + clean(b.id, 40)); if (it) { it.read = true; await put(env, "brief:" + it.id, it); } }
   if (b.kind === "call") { const k = await get(env, "booking:" + clean(b.id, 40)); if (k) { k.read = true; await put(env, "booking:" + k.id, k); } }
+  if (b.kind === "review" || b.all) {
+    const ids = b.kind === "review" && b.id ? [clean(b.id, 40)] : ((await get(env, "reviews:index")) || []);
+    for (const id of ids) {
+      const r = await get(env, "review:" + id); if (!r) continue;
+      if (r.read && (r.comments || []).every((c) => c.read)) continue;
+      r.read = true; (r.comments || []).forEach((c) => { c.read = true; }); await put(env, "review:" + r.id, r);
+    }
+  }
   if (b.all) {
     for (const id of ((await get(env, "bookings:index")) || [])) { const k = await get(env, "booking:" + id); if (k && !k.read) { k.read = true; await put(env, "booking:" + id, k); } }
     for (const id of ((await get(env, "payreqs:index")) || [])) { seen["pay:" + id] = 1; for (let k = 1; k < 4; k++) seen["pay:" + id + ":" + k] = 1; }
@@ -1341,6 +1354,117 @@ async function googleCallback(env, req, url) {
 }
 async function adminGoogleDisconnect(env) { await env.PORTAL.delete("google:oauth"); await env.PORTAL.delete("google:busy"); return json({ ok: true }); }
 
+/* ---------------- Reviews and comments ----------------
+   Anyone can write a review or comment; nothing is public until the owner approves it in Admin → Reviews.
+   "Verified client" is only set when the review comes from a logged-in client dashboard session
+   (or when the owner confirms it), never from an email address typed into a form. */
+const REVIEW_EXPERIENCES = {
+  call: "Strategy call", ghl: "GoHighLevel setup", automation: "Follow-up automation", website: "Website design",
+  support: "Ongoing support", onboarding: "Onboarding and payments", other: "Other",
+};
+const publicReview = (r) => ({
+  id: r.id, at: r.at, name: r.name, business: r.business, rating: r.rating, experience: r.experience,
+  experienceLabel: REVIEW_EXPERIENCES[r.experience] || "Other", title: r.title, text: r.text, verified: !!r.verified,
+  reply: r.reply || null, comments: (r.comments || []).filter((c) => c.status === "approved").map((c) => ({ id: c.id, at: c.at, name: c.name, text: c.text, owner: !!c.owner, verified: !!c.verified })),
+});
+async function reviewRate(env, req, what, max) {
+  const ip = req.headers.get("cf-connecting-ip") || "unknown";
+  const k = "rrate:" + what + ":" + ip, n = +(await env.PORTAL.get(k)) || 0;
+  if (n >= max) return true;
+  await env.PORTAL.put(k, String(n + 1), { expirationTtl: 3600 });
+  return false;
+}
+async function reviewsPublic(env) {
+  const idx = ((await get(env, "reviews:index")) || []).slice().reverse();
+  const list = (await Promise.all(idx.map((id) => get(env, "review:" + id)))).filter((r) => r && r.status === "approved").map(publicReview);
+  const n = list.length, avg = n ? list.reduce((s, r) => s + r.rating, 0) / n : 0;
+  return json({ reviews: list, count: n, average: Math.round(avg * 10) / 10, experiences: REVIEW_EXPERIENCES });
+}
+async function reviewCreate(env, req) {
+  const b = await req.json().catch(() => null);
+  if (!b) return fail(400, "Please try again.");
+  if (b.website) return json({ ok: true }); // honeypot
+  const client = await clientFromSession(env, req);
+  if (await reviewRate(env, req, "r", 5)) return fail(429, "Too many reviews from this connection. Please try again later.");
+  const rating = Math.round(+b.rating);
+  const r = {
+    id: rid(9), at: now(), status: "pending",
+    name: clean(b.name, 80) || (client && client.name) || "", business: clean(b.business, 120) || (client && client.business) || "",
+    email: (() => { const e = clean(b.email, 200).toLowerCase() || (client && client.email) || ""; return emailOk(e) ? e : ""; })(),
+    rating, experience: REVIEW_EXPERIENCES[b.experience] ? b.experience : "other",
+    title: clean(b.title, 120), text: clean(b.text, 3000),
+    verified: !!client, clientId: client ? client.id : "", comments: [], read: false,
+  };
+  if (!r.name) return fail(400, "Please add your name.");
+  if (!(rating >= 1 && rating <= 5)) return fail(400, "Please choose a star rating.");
+  if (r.text.length < 10) return fail(400, "Please tell us a little more about your experience.");
+  if (!client) {
+    if (!r.email) return fail(400, "Please add your email so we can confirm the review is genuine. It is never shown publicly.");
+    if (await env.PORTAL.get("email:" + r.email)) r.hint = "Email matches a client account";
+  }
+  await put(env, "review:" + r.id, r);
+  const idx = (await get(env, "reviews:index")) || []; idx.push(r.id); await put(env, "reviews:index", idx.slice(-1000));
+  await sendEmail(env, {
+    subject: "⭐ New review to approve: " + rating + "/5 from " + r.name,
+    replyTo: r.email,
+    text: (r.title ? r.title + "\n\n" : "") + r.text + "\n\n— — —\n" + r.name + (r.business ? " (" + r.business + ")" : "") + " · " + (REVIEW_EXPERIENCES[r.experience]) + (r.verified ? " · Verified client (logged in)" : r.hint ? " · " + r.hint : "") +
+      "\nIt is not public yet. Approve, reply or hide it in Admin → Reviews: https://vixassist.com/portal/admin/",
+  }).catch(() => {});
+  return json({ ok: true, verified: r.verified });
+}
+async function reviewComment(env, req) {
+  const b = await req.json().catch(() => null);
+  if (!b) return fail(400, "Please try again.");
+  if (b.website) return json({ ok: true });
+  const r = await get(env, "review:" + clean(b.reviewId, 40));
+  if (!r || r.status !== "approved") return fail(404, "That review could not be found.");
+  const client = await clientFromSession(env, req);
+  if (await reviewRate(env, req, "c", 10)) return fail(429, "Too many comments from this connection. Please try again later.");
+  const c = { id: rid(6), at: now(), status: "pending", name: clean(b.name, 80) || (client && client.name) || "", text: clean(b.text, 1500), verified: !!client, read: false };
+  if (!c.name) return fail(400, "Please add your name.");
+  if (c.text.length < 2) return fail(400, "Please write a comment.");
+  r.comments = (r.comments || []).concat(c).slice(-200);
+  await put(env, "review:" + r.id, r);
+  await sendEmail(env, { subject: "💬 New comment to approve from " + c.name, text: c.text + "\n\n— — —\nOn the review by " + r.name + ": \"" + (r.title || r.text.slice(0, 80)) + "\"\nApprove or hide it in Admin → Reviews: https://vixassist.com/portal/admin/" }).catch(() => {});
+  return json({ ok: true });
+}
+async function adminReviews(env) {
+  const idx = ((await get(env, "reviews:index")) || []).slice().reverse();
+  const list = (await Promise.all(idx.map((id) => get(env, "review:" + id)))).filter(Boolean)
+    .map((r) => ({ ...publicReview(r), status: r.status, email: r.email, hint: r.hint || "", read: !!r.read, comments: r.comments || [] }));
+  return json({ reviews: list, experiences: REVIEW_EXPERIENCES });
+}
+async function adminReviewUpdate(env, req) {
+  const b = await req.json().catch(() => ({}));
+  const r = await get(env, "review:" + clean(b.id, 40));
+  if (!r) return fail(404, "Review not found.");
+  const a = b.action;
+  if (b.commentId) {
+    const c = (r.comments || []).find((x) => x.id === b.commentId);
+    if (!c) return fail(404, "Comment not found.");
+    if (a === "approve") c.status = "approved";
+    else if (a === "hide") c.status = "hidden";
+    else if (a === "delete") r.comments = r.comments.filter((x) => x.id !== c.id);
+    else return fail(400, "Unknown action.");
+    c.read = true;
+  } else if (a === "approve" || a === "hide") { r.status = a === "approve" ? "approved" : "hidden"; r.read = true; }
+  else if (a === "verify") r.verified = !!b.on;
+  else if (a === "reply") {
+    const t = clean(b.text, 2000);
+    r.reply = t ? { text: t, at: now() } : null;
+  } else if (a === "comment") {
+    const t = clean(b.text, 1500); if (!t) return fail(400, "Please write a comment.");
+    r.comments = (r.comments || []).concat({ id: rid(6), at: now(), status: "approved", name: "Promise, Vix Assist", text: t, owner: true, read: true });
+  } else if (a === "delete") {
+    await env.PORTAL.delete("review:" + r.id);
+    await put(env, "reviews:index", ((await get(env, "reviews:index")) || []).filter((id) => id !== r.id));
+    return json({ ok: true });
+  } else if (a === "read") { r.read = true; (r.comments || []).forEach((c) => { c.read = true; }); }
+  else return fail(400, "Unknown action.");
+  await put(env, "review:" + r.id, r);
+  return json({ ok: true });
+}
+
 export async function onRequest(ctx) {
   const { request: req } = ctx;
   // Accept the KV binding whatever its capitalisation (PORTAL, Portal, portal).
@@ -1392,6 +1516,9 @@ export async function onRequest(ctx) {
     if (path === "cron" && m === "GET") return json({ ok: true, invites: await runDueInvites(env, url.origin) });
     if (path === "book" && m === "POST") return bookCreate(env, req, url.origin);
     if (path === "google/callback" && m === "GET") return googleCallback(env, req, url);
+    if (path === "reviews" && m === "GET") return reviewsPublic(env);
+    if (path === "reviews" && m === "POST") return reviewCreate(env, req);
+    if (path === "reviews/comment" && m === "POST") return reviewComment(env, req);
 
     if (path === "admin/login" && m === "POST") return adminLogin(env, req);
     if (path.startsWith("admin/")) {
@@ -1431,6 +1558,8 @@ export async function onRequest(ctx) {
       if (a === "book/invite" && m === "POST") return adminBookInvite(env, req, url.origin);
       if (a === "google/connect" && m === "GET") return adminGoogleConnect(env, url);
       if (a === "google/disconnect" && m === "POST") return adminGoogleDisconnect(env);
+      if (a === "reviews" && m === "GET") return adminReviews(env);
+      if (a === "reviews" && m === "POST") return adminReviewUpdate(env, req);
     }
     return fail(404, "Not found.");
   } catch (e) {
