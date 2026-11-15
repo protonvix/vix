@@ -272,15 +272,16 @@
     var freshIds = {}; (fresh || []).forEach(function (i) { freshIds[i.kind + i.id] = 1; });
     var count = function (k) { return d.items.filter(function (i) { return i.kind === k && i.unread; }).length; };
     var perm = window.Notification ? Notification.permission : "unsupported";
-    $("#main").innerHTML = '<div class="card"><div class="help"><div><h2 style="margin:0"><i class="ph ph-bell-ringing" aria-hidden="true"></i> Notifications</h2><p class="muted">New payments, briefs and messages, newest first. Updates every 30 seconds.</p></div>' +
+    $("#main").innerHTML = '<div class="card"><div class="help"><div><h2 style="margin:0"><i class="ph ph-bell-ringing" aria-hidden="true"></i> Notifications</h2><p class="muted">New payments, briefs, messages and reviews, newest first. Updates every 30 seconds.</p></div>' +
       '<div class="acts">' + (perm === "default" ? '<button class="btn btn-p btn-sm" type="button" id="alerts-on"><i class="ph ph-bell-simple-ringing" aria-hidden="true"></i>Turn on pop-up alerts</button>' : perm === "granted" ? '<span class="note ok">Pop-up alerts on ✓</span>' : "") +
       '<button class="btn btn-g btn-sm" type="button" id="all-read">Mark all as read</button></div></div>' + phoneBox() +
-      '<div class="kpi-row" style="margin-top:16px"><div><span>Payments</span><b>' + (count("payment") + count("transfer") + count("overdue")) + '</b></div><div><span>Briefs &amp; founding</span><b>' + (count("brief") + count("founding")) + '</b></div><div><span>Free design requests</span><b>' + count("offer") + '</b></div><div><span>Client messages</span><b>' + count("message") + "</b></div></div>" +
+      '<div class="kpi-row" style="margin-top:16px"><div><span>Payments</span><b>' + (count("payment") + count("transfer") + count("overdue")) + '</b></div><div><span>Briefs &amp; founding</span><b>' + (count("brief") + count("founding")) + '</b></div><div><span>Free design requests</span><b>' + count("offer") + '</b></div><div><span>Client messages</span><b>' + count("message") + '</b></div><button type="button" id="kpi-rev" style="text-align:left;cursor:pointer;font:inherit;color:inherit"><span>Reviews to approve</span><b>' + count("review") + "</b></button></div>" +
       '<div class="feed-list">' + (d.items.map(function (i) {
         return '<button type="button" class="nf k-' + i.kind + (i.unread ? " unread" : "") + (freshIds[i.kind + i.id] ? " fresh" : "") + '" data-kind="' + i.kind + '" data-id="' + esc(i.id) + '" data-client="' + esc(i.clientId || "") + '"><span class="ic"><i class="ph-fill ' + ICON[i.kind] + '" aria-hidden="true"></i></span><div><b>' + esc(i.title) + "</b><span>" + esc(NLABEL[i.kind] + " · " + i.sub) + "</span></div><time>" + VX.date(i.at, true) + "</time></button>";
       }).join("") || '<div class="empty"><i class="ph ph-bell-simple" aria-hidden="true"></i>Nothing yet. New payments, briefs and messages will appear here in bold.</div>') + "</div></div>";
     var on = $("#alerts-on"); if (on) on.onclick = function () { Notification.requestPermission().then(function () { poll(); }); };
     $("#all-read").onclick = function () { api("admin/feed/seen", { all: true }).then(poll); };
+    $("#kpi-rev").onclick = function () { onBell = false; reviewsView(); };
     wirePhone();
     $("#main").querySelectorAll(".nf").forEach(function (b) {
       b.onclick = function () {
