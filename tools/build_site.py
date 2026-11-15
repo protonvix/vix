@@ -16,22 +16,31 @@ LINKEDIN = "https://www.linkedin.com/in/promise-felix-a491a7233/"
 DESIGN = "https://design.vixassist.com"  # websites studio
 WA = "447723149573"
 
+# Old pages kept online for existing links, but kept out of Google so the site reads as a
+# US/UK/Canada/Australia real estate service rather than a local Nigerian design studio.
+NOINDEX = {"tiktok.html", "free-design.html", "va-services.html", "web-design.html", "real-estate.html"}
+ORG_LD = """<script type="application/ld+json">{"@context":"https://schema.org","@type":"ProfessionalService","name":"Vix Assist","url":"https://vixassist.com/","logo":"https://vixassist.com/brand/vix-icon-1024.png","image":"https://vixassist.com/brand/og-image.jpg","description":"GoHighLevel growth systems for real estate brokers, teams, agents and investors: instant lead follow-up, automated booking and client retention.","email":"support@vixassist.com","priceRange":"$$","currenciesAccepted":"USD, GBP, EUR, CAD, AUD","areaServed":[{"@type":"Country","name":"United States"},{"@type":"Country","name":"Canada"},{"@type":"Country","name":"United Kingdom"},{"@type":"Country","name":"Australia"}],"knowsAbout":["GoHighLevel","Real estate CRM","Lead follow-up automation","Client retention"],"sameAs":["https://www.linkedin.com/in/promise-felix-a491a7233/"]}</script>"""
+
 def head(title, desc, path, extra_css=""):
+    robots = '\n<meta name="robots" content="noindex, follow">' if path in NOINDEX else ""
+    ld = "\n" + ORG_LD if path == "index.html" else ""
     return f'''<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{html.escape(title)}</title>
-<meta name="description" content="{html.escape(desc)}">
+<meta name="description" content="{html.escape(desc)}">{robots}
 <meta name="theme-color" content="#F6F5F1">
 <meta name="color-scheme" content="light">
 <link rel="canonical" href="{SITE}/{'' if path == 'index.html' else (path[:-5] if path.endswith('.html') else path)}">
 <meta property="og:type" content="website">
+<meta property="og:locale" content="en_US">
+<meta property="og:site_name" content="Vix Assist">
 <meta property="og:title" content="{html.escape(title)}">
 <meta property="og:description" content="{html.escape(desc)}">
 <meta property="og:image" content="{SITE}/brand/og-image.jpg">
-<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:card" content="summary_large_image">{ld}
 <link rel="icon" href="brand/favicon.svg" type="image/svg+xml">
 <link rel="icon" href="brand/favicon-32.png" sizes="32x32">
 <link rel="apple-touch-icon" href="brand/apple-touch-icon.png">
