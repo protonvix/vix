@@ -11,7 +11,7 @@ import os, re, html
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CONTENT = os.path.join(ROOT, "tools", "content")
 SITE = "https://vixassist.com"
-V = "12"  # bump to bust caches for assist.css / site.js
+V = "13"  # bump to bust caches for assist.css / site.js
 LINKEDIN = "https://www.linkedin.com/in/promise-felix-a491a7233/"
 DESIGN = "https://design.vixassist.com"  # websites studio
 WA = "447723149573"
@@ -21,9 +21,11 @@ WA = "447723149573"
 NOINDEX = {"tiktok.html", "free-design.html", "va-services.html", "web-design.html", "real-estate.html"}
 ORG_LD = """<script type="application/ld+json">{"@context":"https://schema.org","@type":"ProfessionalService","name":"Vix Assist","url":"https://vixassist.com/","logo":"https://vixassist.com/brand/vix-icon-1024.png","image":"https://vixassist.com/brand/og-image.jpg","description":"GoHighLevel growth systems for real estate brokers, teams, agents and investors: instant lead follow-up, automated booking and client retention.","email":"support@vixassist.com","priceRange":"$$","currenciesAccepted":"USD, GBP, EUR, CAD, AUD","areaServed":{"@type":"Place","name":"Worldwide"},"availableLanguage":"English","knowsAbout":["GoHighLevel","Real estate CRM","Lead follow-up automation","Client retention"],"sameAs":["https://www.linkedin.com/in/promise-felix-a491a7233/"]}</script>"""
 
+EXTRA_LD = {}
+
 def head(title, desc, path, extra_css=""):
     robots = '\n<meta name="robots" content="noindex, follow">' if path in NOINDEX else ""
-    ld = "\n" + ORG_LD if path == "index.html" else ""
+    ld = ("\n" + ORG_LD if path == "index.html" else "") + EXTRA_LD.get(path, "")
     return f'''<!doctype html>
 <html lang="en">
 <head>
@@ -66,6 +68,7 @@ def nav(cur=""):
     <a href="/#work">See the work</a>
     <a href="/#retention">Client retention</a>
     <a href="pricing.html"{c("pricing")}>Pricing</a>
+    <a href="gohighlevel-guides"{c("guides")}>Guides</a>
     <a href="{DESIGN}/" target="_blank" rel="noopener">Websites <i class="ph ph-arrow-up-right" aria-hidden="true"></i></a>
   </nav>
   <a class="btn btn-p btn-sm nav-cta" href="book.html">Book a strategy call</a>
@@ -79,6 +82,7 @@ def nav(cur=""):
   <a href="pricing.html">Pricing</a>
   <a href="about.html">About</a>
   <a href="reviews.html">Reviews</a>
+  <a href="gohighlevel-guides">GoHighLevel guides</a>
   <a class="sub" href="reviews.html?experience=site#write">Rate this website</a>
   <a class="sub" href="{DESIGN}/" target="_blank" rel="noopener">Websites</a>
   <a class="sub" href="book.html?account=1">Create an account</a>
@@ -93,7 +97,7 @@ def footer(cta_h="Stop losing clients <em>to faster agents.</em>", cta2=("Get a 
     <div class="fcta"><h2>{cta_h}</h2><div class="talk-row"><a class="btn btn-p" href="book.html">Book a strategy call <i class="ph ph-arrow-right" aria-hidden="true"></i></a><a class="btn btn-g" href="{cta2[1]}">{cta2[0]}</a></div></div>
     <div class="fgrid">
       <div><a class="logo" href="/"><img src="brand/vix-icon.svg" alt="" width="30" height="30"><span>Vix <b>Assist</b></span></a><p style="margin-top:14px;max-width:320px">GoHighLevel growth systems for real estate brokers, agents and investors. More closings from the leads you already have, and clients who stay. Run by Promise Felix.</p></div>
-      <div><h4>Real estate growth</h4><a href="/#leak">Revenue leak calculator</a><a href="/#check">CRM health check</a><a href="/#work">See the work</a><a href="/#retention">Client retention</a><a href="pricing.html">Pricing</a><a href="about.html">About</a><a href="reviews.html">Client reviews</a></div>
+      <div><h4>Real estate growth</h4><a href="/#leak">Revenue leak calculator</a><a href="/#check">CRM health check</a><a href="/#work">See the work</a><a href="/#retention">Client retention</a><a href="pricing.html">Pricing</a><a href="about.html">About</a><a href="reviews.html">Client reviews</a><a href="gohighlevel-guides">GoHighLevel guides</a></div>
       <div><h4>Websites</h4><a href="{DESIGN}/real-estate/" target="_blank" rel="noopener">Real estate websites</a><a href="{DESIGN}/ecommerce/" target="_blank" rel="noopener">E-commerce websites</a><a href="{DESIGN}/home-services/" target="_blank" rel="noopener">Home service websites</a></div>
       <div><h4>Support</h4><a href="book.html?account=1"><b style="color:#fff">Create an account</b></a><a href="portal/">Client login</a><a href="mailto:support@vixassist.com">Contact support</a><a href="reviews.html?experience=site#write">Rate this website</a><a href="book.html">Book a call</a><a href="{LINKEDIN}" target="_blank" rel="noopener">LinkedIn</a><a href="https://wa.me/{WA}" target="_blank" rel="noopener">WhatsApp +44 7723 149573</a></div>
     </div>
@@ -343,6 +347,46 @@ page("reviews.html", "Client Reviews · Vix Assist",
       '<div class="rvw-write rvw-done" id="rvw-done" hidden role="status"><i class="ph-fill ph-check-circle" aria-hidden="true"></i><b>Thank you for your review.</b><p class="muted">It will appear on this page once approved, usually within one working day.</p><a class="btn btn-g btn-sm" href="#all" style="justify-self:center">Read other reviews</a></div></div></div>', "reviews", "padding-top:0;border-top:0"),
   sec(head2("All reviews", "In their <em>own words.</em>") + '<div class="rvw-filter" id="rvw-filter" hidden></div><div class="rvw-list" id="rvw-list"><p class="muted">Loading reviews…</p></div>', "all"),
  ]), extra_js='\n<script src="reviews.js?v=3" defer></script>')
+
+# ---------------------------------------------------------------- GoHighLevel guides (SEO)
+import json as _json, sys as _sys
+_sys.path.insert(0, os.path.join(ROOT, "tools", "content"))
+from guides import GUIDES
+GBY = {g["slug"]: g for g in GUIDES}
+def _ld(obj): return '\n<script type="application/ld+json">' + _json.dumps(obj, ensure_ascii=False) + "</script>"
+def _strip(h): return re.sub(r"<[^>]+>", "", h)
+for g in GUIDES:
+    path = g["slug"] + ".html"
+    url = f"{SITE}/{g['slug']}"
+    EXTRA_LD[path] = _ld({"@context": "https://schema.org", "@graph": [
+        {"@type": "Article", "headline": _strip(g["h1"]), "description": g["desc"], "url": url, "inLanguage": "en",
+         "author": {"@type": "Person", "name": "Promise Felix", "url": f"{SITE}/about"},
+         "publisher": {"@type": "Organization", "name": "Vix Assist", "logo": {"@type": "ImageObject", "url": f"{SITE}/brand/vix-icon-1024.png"}},
+         "datePublished": "2026-11-15", "dateModified": "2026-11-15", "about": ["GoHighLevel", "HighLevel"]},
+        {"@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": q, "acceptedAnswer": {"@type": "Answer", "text": a}} for q, a in g["faq"]]},
+        {"@type": "BreadcrumbList", "itemListElement": [
+            {"@type": "ListItem", "position": 1, "name": "Home", "item": f"{SITE}/"},
+            {"@type": "ListItem", "position": 2, "name": "GoHighLevel guides", "item": f"{SITE}/gohighlevel-guides"},
+            {"@type": "ListItem", "position": 3, "name": g["eyebrow"], "item": url}]},
+    ]})
+    rel = "".join(f'<a class="ex rv" href="{r}"><span><b>{GBY[r]["eyebrow"]}</b><span>{_strip(GBY[r]["h1"])}</span></span><span class="p"><i class="ph ph-arrow-right" style="font-size:18px"></i></span></a>' for r in g["related"])
+    crumbs = f'<nav class="crumbs" aria-label="Breadcrumb"><a href="/">Home</a> <span>/</span> <a href="gohighlevel-guides">GoHighLevel guides</a> <span>/</span> <span>{g["eyebrow"]}</span></nav>'
+    page(path, g["title"], g["desc"], "guides", "\n".join([
+      hero(g["eyebrow"], g["h1"], g["lead"], BOOK + '<a class="btn btn-g" href="/#leak">Check your revenue leak</a>').replace('<span class="eyebrow">', crumbs + '<span class="eyebrow">', 1),
+      sec('<div class="prose rv">' + g["body"] + '<p class="note-ind">Vix Assist is an independent service and is not affiliated with HighLevel. GoHighLevel and HighLevel are trademarks of HighLevel Inc. Updated November 2026.</p></div>', style="padding-top:0;border-top:0"),
+      sec(head2("Questions", "Quick <em>answers.</em>", center=True) + faq(g["faq"]), "faq"),
+      sec(head2("Keep reading", "Related <em>guides.</em>") + '<div class="extras">' + rel + "</div>"),
+      sec(cta_band("Want this set up <em>in your account?</em>", "Fixed price first, tested end to end, and you own everything. Clients in the US, UK and worldwide.")),
+    ]))
+
+page("gohighlevel-guides.html", "GoHighLevel Guides: Setup, Pipelines, Workflows, AI and Real Estate · Vix Assist",
+ "Practical GoHighLevel (HighLevel, GHL) guides: hiring an expert, virtual assistant support, pipelines, workflows, AI Employee, speed to lead, A2P 10DLC, UK setup and pricing.",
+ "guides", "\n".join([
+  hero("GoHighLevel guides", "GoHighLevel, <em>explained plainly.</em>",
+       "Straight answers on setting up and running GoHighLevel (HighLevel) for real estate teams and service businesses in the US, UK and worldwide. Written by Promise Felix, who builds these systems every week.",
+       BOOK),
+  sec('<div class="extras">' + "".join(f'<a class="ex rv" href="{g["slug"]}"><span><b>{g["eyebrow"]}</b><span>{g["desc"]}</span></span><span class="p"><i class="ph ph-arrow-right" style="font-size:18px"></i></span></a>' for g in GUIDES) + "</div>", style="padding-top:0;border-top:0"),
+ ]))
 
 # ---------------------------------------------------------------- Policies
 POL = [

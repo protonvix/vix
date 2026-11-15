@@ -738,3 +738,10 @@ a.ex{transition:border-color .3s var(--ease)}a.ex:hover{border-color:var(--ink)}
 .fb-tab:hover{background:var(--brand)}
 .fb-tab i{transform:rotate(90deg)}
 @media (max-width:900px){.fb-tab{display:none}}
+.crumbs{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:13px;color:var(--soft);margin:0 0 18px}
+.crumbs a{color:var(--mute);text-decoration:none}
+.crumbs a:hover{color:var(--ink)}
+.note-ind{margin-top:40px!important;font-size:13px!important;line-height:20px!important;color:var(--soft)!important}
+.nav-links a{white-space:nowrap}
+@media (max-width:1520px){.nav-links a[href="/#retention"]{display:none}}
+@media (max-width:1240px){.nav-links a[href="/#work"]{display:none}}
