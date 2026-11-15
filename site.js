@@ -110,4 +110,11 @@
   requestAnimationFrame(function () {
     heads.concat(paras, blocks).forEach(function (el) { var r = el.getBoundingClientRect(); if (r.top < innerHeight * 0.92) el.classList.add("in"); });
   });
+  // "Rate this website" tab on every page (except the reviews page itself)
+  if (!/reviews\.html/.test(location.pathname)) {
+    var fb = document.createElement("a");
+    fb.className = "fb-tab"; fb.href = "reviews.html?experience=site#write";
+    fb.innerHTML = '<i class="ph ph-star" aria-hidden="true"></i>Rate this website';
+    document.body.appendChild(fb);
+  }
 })();

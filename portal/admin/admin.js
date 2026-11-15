@@ -154,7 +154,7 @@
       var list = d.reviews.slice().sort(function (a, b) { return (b.status === "pending") - (a.status === "pending") || (pendingC(b) > 0) - (pendingC(a) > 0) || b.at.localeCompare(a.at); });
       var card = function (r) {
         return '<div class="card" style="margin-top:14px;border-left:4px solid ' + (r.status === "pending" ? "#C98A00" : r.status === "approved" ? "#1F5A45" : "#bbb") + '" data-r="' + r.id + '">' +
-          '<div class="help"><div><b>' + stars(r.rating) + " " + esc(r.title || "") + '</b><p class="muted" style="margin:4px 0 0">' + esc(r.name) + (r.business ? " · " + esc(r.business) : "") + " · " + esc(r.experienceLabel) + " · " + VX.date(r.at, true) + "</p>" +
+          '<div class="help"><div><b>' + stars(r.rating) + " " + esc(r.title || "") + '</b><p class="muted" style="margin:4px 0 0">' + esc(r.name) + (r.business ? " · " + esc(r.business) : "") + " · " + esc(r.experienceLabel) + (r.about ? ": <b>" + esc(r.about) + "</b>" : "") + " · " + VX.date(r.at, true) + "</p>" +
           '<p class="muted" style="margin:2px 0 0">' + esc(r.email || "no email") + (r.verified ? ' · <span class="ok">Verified client</span>' : "") + (r.hint && !r.verified ? " · " + esc(r.hint) : "") + "</p></div>" +
           '<span class="note' + (r.status === "approved" ? " ok" : "") + '">' + ST[r.status] + "</span></div>" +
           '<p style="white-space:pre-wrap;margin:10px 0">' + esc(r.text) + "</p>" +

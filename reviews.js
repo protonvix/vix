@@ -25,7 +25,7 @@
     var who = esc(r.name) + (r.business ? '<span class="rvw-biz">' + esc(r.business) + "</span>" : "");
     var h = '<article class="rvw-card" id="review-' + esc(r.id) + '">' +
       '<header><span class="rvw-av" aria-hidden="true">' + esc(initials(r.name)) + '</span><div class="rvw-who"><b>' + who + "</b>" +
-      '<span class="rvw-meta">' + (r.verified ? '<span class="rvw-ver"><i class="ph-fill ph-seal-check" aria-hidden="true"></i>Verified client</span>' : "") + esc(r.experienceLabel) + " · " + day(r.at) + "</span></div>" + stars(r.rating) + "</header>" +
+      '<span class="rvw-meta">' + (r.verified ? '<span class="rvw-ver"><i class="ph-fill ph-seal-check" aria-hidden="true"></i>Verified client</span>' : "") + esc(r.experienceLabel) + (r.about ? ": " + esc(r.about) : "") + " · " + day(r.at) + "</span></div>" + stars(r.rating) + "</header>" +
       (r.title ? "<h3>" + esc(r.title) + "</h3>" : "") + '<p class="rvw-text">' + esc(r.text) + "</p>";
     if (r.reply) h += '<div class="rvw-reply"><b><img src="brand/vix-icon.svg" alt="" width="18" height="18">Reply from Vix Assist</b><p>' + esc(r.reply.text) + "</p></div>";
     if (withComments) {
@@ -97,11 +97,16 @@
     var pick = form.querySelector(".rvw-pick"), rating = 0;
     var paint = function (n) { pick.querySelectorAll("button").forEach(function (b, i) { b.classList.toggle("on", i < n); b.setAttribute("aria-checked", i + 1 === rating); }); };
     pick.innerHTML = [1, 2, 3, 4, 5].map(function (n) { return '<button type="button" role="radio" aria-checked="false" aria-label="' + n + " star" + (n > 1 ? "s" : "") + '" data-s="' + n + '"><i class="ph-fill ph-star" aria-hidden="true"></i></button>'; }).join("");
-    pick.addEventListener("click", function (e) { var b = e.target.closest("[data-s]"); if (b) { rating = +b.dataset.s; paint(rating); form.querySelector(".rvw-rlabel").textContent = ["", "Poor", "Fair", "Good", "Very good", "Excellent"][rating]; } });
+    pick.addEventListener("click", function (e) { var b = e.target.closest("[data-s]"); if (b) { rating = +b.dataset.s; paint(rating); form.querySelector(".err").textContent = ""; form.querySelector(".rvw-rlabel").textContent = ["", "Poor", "Fair", "Good", "Very good", "Excellent"][rating]; } });
     pick.addEventListener("mouseover", function (e) { var b = e.target.closest("[data-s]"); if (b) paint(+b.dataset.s); });
     pick.addEventListener("mouseleave", function () { paint(rating); });
     var q = new URLSearchParams(location.search), exp = q.get("experience");
-    if (exp && form.elements.experience.querySelector('option[value="' + exp + '"]')) form.elements.experience.value = exp;
+    var sel = form.elements.experience, ta = form.elements.text, tip = ta.placeholder;
+    var siteMode = function () { ta.placeholder = sel.value === "site" ? "What was easy on this website, and what was confusing, slow or hard to find?" : tip; };
+    sel.addEventListener("change", siteMode);
+    if (exp && sel.querySelector('option[value="' + exp + '"]')) sel.value = exp;
+    siteMode();
+    document.querySelectorAll("[data-rate-site]").forEach(function (b) { b.addEventListener("click", function () { sel.value = "site"; siteMode(); document.getElementById("write").scrollIntoView({ behavior: "smooth", block: "start" }); setTimeout(function () { var f = pick.querySelector("button"); if (f) f.focus({ preventScroll: true }); }, 500); }); });
     // Logged-in clients get the verified badge and do not need to type their email.
     fetch("/api/me", { credentials: "same-origin", headers: { "x-vix": "1" } }).then(function (r) { return r.ok ? r.json() : null; }).then(function (d) {
       if (!d || !d.client) return;

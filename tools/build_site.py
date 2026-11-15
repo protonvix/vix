@@ -11,7 +11,7 @@ import os, re, html
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CONTENT = os.path.join(ROOT, "tools", "content")
 SITE = "https://vixassist.com"
-V = "10"  # bump to bust caches for assist.css / site.js
+V = "11"  # bump to bust caches for assist.css / site.js
 LINKEDIN = "https://www.linkedin.com/in/promise-felix-a491a7233/"
 DESIGN = "https://design.vixassist.com"  # websites studio
 WA = "447723149573"
@@ -70,6 +70,7 @@ def nav(cur=""):
   <a href="pricing.html">Pricing</a>
   <a href="about.html">About</a>
   <a href="reviews.html">Reviews</a>
+  <a class="sub" href="reviews.html?experience=site#write">Rate this website</a>
   <a class="sub" href="{DESIGN}/" target="_blank" rel="noopener">Websites</a>
   <a class="sub" href="book.html?account=1">Create an account</a>
   <a class="sub" href="portal/">Client login</a>
@@ -85,7 +86,7 @@ def footer(cta_h="Stop losing clients <em>to faster agents.</em>", cta2=("Get a 
       <div><a class="logo" href="/"><img src="brand/vix-icon.svg" alt="" width="30" height="30"><span>Vix <b>Assist</b></span></a><p style="margin-top:14px;max-width:320px">GoHighLevel growth systems for real estate brokers, agents and investors. More closings from the leads you already have, and clients who stay. Run by Promise Felix.</p></div>
       <div><h4>Real estate growth</h4><a href="/#leak">Revenue leak calculator</a><a href="/#check">CRM health check</a><a href="/#work">See the work</a><a href="/#retention">Client retention</a><a href="pricing.html">Pricing</a><a href="about.html">About</a><a href="reviews.html">Client reviews</a></div>
       <div><h4>Websites</h4><a href="{DESIGN}/real-estate/" target="_blank" rel="noopener">Real estate websites</a><a href="{DESIGN}/ecommerce/" target="_blank" rel="noopener">E-commerce websites</a><a href="{DESIGN}/home-services/" target="_blank" rel="noopener">Home service websites</a></div>
-      <div><h4>Support</h4><a href="book.html?account=1"><b style="color:#fff">Create an account</b></a><a href="portal/">Client login</a><a href="mailto:support@vixassist.com">Contact support</a><a href="book.html">Book a call</a><a href="{LINKEDIN}" target="_blank" rel="noopener">LinkedIn</a><a href="https://wa.me/{WA}" target="_blank" rel="noopener">WhatsApp +44 7723 149573</a></div>
+      <div><h4>Support</h4><a href="book.html?account=1"><b style="color:#fff">Create an account</b></a><a href="portal/">Client login</a><a href="mailto:support@vixassist.com">Contact support</a><a href="reviews.html?experience=site#write">Rate this website</a><a href="book.html">Book a call</a><a href="{LINKEDIN}" target="_blank" rel="noopener">LinkedIn</a><a href="https://wa.me/{WA}" target="_blank" rel="noopener">WhatsApp +44 7723 149573</a></div>
     </div>
     <div class="fbot"><span>© 2026 Vix Assist. GoHighLevel is a trademark of HighLevel Inc. Vix Assist is an independent service and is not affiliated with HighLevel.</span><span><a href="about.html">About</a> · <a href="reviews.html">Reviews</a> · <a href="privacy.html">Privacy</a> · <a href="payment.html">Payments</a> · <a href="delivery.html">Delivery</a> · <a href="refund.html">Refunds</a></span></div>
   </div>
@@ -308,7 +309,7 @@ page("about.html", "About · Vix Assist",
  ]))
 
 # ---------------------------------------------------------------- Reviews
-REVIEW_OPTS = "".join(f'<option value="{k}">{v}</option>' for k, v in [('call', 'Strategy call'), ('ghl', 'GoHighLevel setup'), ('automation', 'Follow-up automation'), ('website', 'Website design'), ('support', 'Ongoing support'), ('onboarding', 'Onboarding and payments'), ('other', 'Other')])
+REVIEW_OPTS = "".join(f'<option value="{k}">{v}</option>' for k, v in [('call', 'Strategy call'), ('ghl', 'GoHighLevel setup'), ('automation', 'Follow-up automation'), ('website', 'Website design'), ('support', 'Ongoing support'), ('onboarding', 'Onboarding and payments'), ('site', 'This website (design and ease of use)'), ('other', 'Other')])
 page("reviews.html", "Client Reviews · Vix Assist",
  "Honest reviews and comments from Vix Assist clients about strategy calls, GoHighLevel setups, follow-up automation and websites. Every review comes from a real client.",
  "reviews", "\n".join([
@@ -316,7 +317,8 @@ page("reviews.html", "Client Reviews · Vix Assist",
        "Every review here is written by a real person about a real experience: a strategy call, a GoHighLevel build, a website or ongoing support. Nothing is edited, and anyone can join the conversation in the comments.",
        '<a class="btn btn-p" href="#write">Write a review <i class="ph ph-pencil-simple" aria-hidden="true"></i></a><a class="btn btn-g" href="#all">Read reviews</a>'),
   sec('<div class="rvw-top"><div><div class="rvw-sum rv" id="rvw-sum"><p class="rvw-sumtxt">Loading reviews…</p></div>'
-      '<ul class="checks rv" style="margin-top:24px"><li><i class="ph-fill ph-check-circle"></i><span><b>Real clients only.</b> Reviews are checked before they go live, so spam and fake reviews never appear.</span></li><li><i class="ph-fill ph-check-circle"></i><span><b>Verified badges</b> show reviews written by clients logged in to their Vix Assist dashboard.</span></li><li><i class="ph-fill ph-check-circle"></i><span><b>Never edited.</b> Good or bad, reviews are published as written. I reply to every one.</span></li></ul></div>'
+      '<ul class="checks rv" style="margin-top:24px"><li><i class="ph-fill ph-check-circle"></i><span><b>Real clients only.</b> Reviews are checked before they go live, so spam and fake reviews never appear.</span></li><li><i class="ph-fill ph-check-circle"></i><span><b>Verified badges</b> show reviews written by clients logged in to their Vix Assist dashboard.</span></li><li><i class="ph-fill ph-check-circle"></i><span><b>Never edited.</b> Good or bad, reviews are published as written. I reply to every one.</span></li></ul>'
+      '<div class="rvw-site rv"><i class="ph ph-browser" aria-hidden="true"></i><div><b>How is this website to use?</b><p>Tell us what was easy, what was confusing, or what you would change about the design. Website feedback is published too, once approved.</p><button class="btn btn-g btn-sm" type="button" data-rate-site>Rate this website</button></div></div></div>'
       '<div id="write"><form class="f rvw-write rv" id="rvw-form" novalidate>'
       '<div><span class="eyebrow">Share your experience</span><h2 class="h2" style="margin-top:10px">Write a <em>review.</em></h2></div>'
       '<p class="rvw-vnote" hidden></p>'
@@ -331,7 +333,7 @@ page("reviews.html", "Client Reviews · Vix Assist",
       '<p class="err" role="alert"></p><p class="note">Your review appears once approved, usually within one working day. Your email is only used to confirm the review is genuine.</p></form>'
       '<div class="rvw-write rvw-done" id="rvw-done" hidden role="status"><i class="ph-fill ph-check-circle" aria-hidden="true"></i><b>Thank you for your review.</b><p class="muted">It will appear on this page once approved, usually within one working day.</p><a class="btn btn-g btn-sm" href="#all" style="justify-self:center">Read other reviews</a></div></div></div>', "reviews", "padding-top:0;border-top:0"),
   sec(head2("All reviews", "In their <em>own words.</em>") + '<div class="rvw-filter" id="rvw-filter" hidden></div><div class="rvw-list" id="rvw-list"><p class="muted">Loading reviews…</p></div>', "all"),
- ]), extra_js='\n<script src="reviews.js?v=1" defer></script>')
+ ]), extra_js='\n<script src="reviews.js?v=2" defer></script>')
 
 # ---------------------------------------------------------------- Policies
 POL = [
@@ -659,5 +661,5 @@ page("index.html", "Vix Assist · GoHighLevel Growth Systems for Real Estate Bro
     ("What does it cost to try?", "The revenue audit is free and you get a written plan either way. Monthly plans have no long contract, and everything built stays in your account."),
   ]), "faq"),
   sec(HOME_AUDIT, "audit"),
- ]), extra_js=RE_DATA.replace('<script src="assist.js?v=7"></script>', '<script src="assist.js?v=8"></script>\n<script src="work.js?v=2" defer></script>\n<script src="re.js?v=2" defer></script>\n<script src="tour.js?v=2" defer></script>\n<script src="reviews.js?v=1" defer></script>'),
+ ]), extra_js=RE_DATA.replace('<script src="assist.js?v=7"></script>', '<script src="assist.js?v=8"></script>\n<script src="work.js?v=2" defer></script>\n<script src="re.js?v=2" defer></script>\n<script src="tour.js?v=2" defer></script>\n<script src="reviews.js?v=2" defer></script>'),
  foot=footer())

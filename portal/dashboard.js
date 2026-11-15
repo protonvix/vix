@@ -69,6 +69,8 @@
       if (d.locked) { items += lockedItem(d.size ? "ph-file-arrow-down" : "ph-link", d.title, bl, d.isNew); return; }
       var href = d.fileId ? "/api/file/" + d.fileId : d.url;
       items += lnk(href, d.fileId ? "ph-download-simple" : "ph-link", d.title, d.fileId ? (d.name || "File") + " · " + VX.size(d.size) + " · " + VX.date(d.at) : VX.date(d.at), d.isNew, !d.fileId);
+      items += (p.reviews && p.reviews[d.id]) ? '<div class="rv-act"><span class="done"><i class="ph-fill ph-check-circle" aria-hidden="true"></i>You reviewed this delivery. Thank you!</span></div>'
+        : '<div class="rv-act"><button type="button" data-rv-d="' + esc(d.id) + '" data-rv-t="' + esc(d.title) + '"><i class="ph ph-star" aria-hidden="true"></i>Review this delivery</button></div>';
     });
     html += '<section class="card c4"><h2><i class="ph ph-package" aria-hidden="true"></i>Your deliveries</h2><div class="links">' + (items || '<div class="empty"><i class="ph ph-hourglass-medium" aria-hidden="true"></i>Your files and links will pop up here as soon as they\'re ready.</div>') + "</div></section>";
 
@@ -109,8 +111,10 @@
       ((p.messages || []).length ? p.messages.map(function (m) { return '<div class="msg ' + (m.from === "client" ? "mine" : "them") + '">' + esc(m.text) + "<time>" + (m.from === "client" ? "You" : "Vix Assist") + " · " + VX.date(m.at, true) + "</time></div>"; }).join("") : '<div class="empty"><i class="ph ph-chat-teardrop-text" aria-hidden="true"></i>Ask a question or request a change. We usually reply within one business day.</div>') +
       '</div><form class="send" id="send"><label class="sr" style="flex:1"><span hidden>Message</span><textarea name="text" rows="2" placeholder="Request a change or ask a question…" required></textarea></label><button class="btn btn-p" type="submit"><i class="ph ph-paper-plane-tilt" aria-hidden="true"></i>Send</button></form><p class="err" id="send-err"></p></section>';
 
-    var rx = { website: "website", ghl: "ghl", tiktok: "other", other: "other" }[p.type] || "other";
-    html += '<section class="card c12 help"><div><h2><i class="ph ph-star" aria-hidden="true"></i>How are we doing?</h2><p class="muted">Share your experience with this project. Your review shows a <b>Verified client</b> badge because you are logged in.</p></div><div class="acts"><a class="btn btn-p" href="/reviews.html?experience=' + rx + '#write"><i class="ph ph-pencil-simple" aria-hidden="true"></i>Leave a review</a><a class="btn btn-g" href="/reviews.html#all">Read reviews</a></div></section>';
+    var reviewedProject = p.reviews && p.reviews.project;
+    html += '<section class="card c12 help"><div><h2><i class="ph ph-star" aria-hidden="true"></i>How are we doing?</h2><p class="muted">Review each delivery as it arrives, the project as a whole, or how easy our website is to use. Your reviews show a <b>Verified client</b> badge and appear on vixassist.com once approved.</p></div><div class="acts">' +
+      (reviewedProject ? '<span class="note ok"><i class="ph-fill ph-check-circle" aria-hidden="true"></i> Project reviewed</span>' : '<button class="btn btn-p" type="button" data-rv-d="" data-rv-t="' + esc(p.title) + '"><i class="ph ph-pencil-simple" aria-hidden="true"></i>Review this project</button>') +
+      '<button class="btn btn-g" type="button" data-rv-site><i class="ph ph-browser" aria-hidden="true"></i>Rate our website</button><a class="btn btn-g" href="/reviews.html#all" target="_blank" rel="noopener">Read reviews</a></div></section>';
     html += '<section class="card c12 help"><div><h2>Need anything?</h2><p class="muted">Message us here, on WhatsApp or by email. A real person replies.</p></div><div class="acts"><a class="btn btn-wa" href="https://wa.me/447723149573" target="_blank" rel="noopener"><i class="ph-fill ph-whatsapp-logo" aria-hidden="true"></i>WhatsApp UK</a><a class="btn btn-g" href="https://wa.me/message/WV3WLO4FC656K" target="_blank" rel="noopener">WhatsApp Nigeria</a><a class="btn btn-g" href="mailto:support@vixassist.com">Email us</a></div></section>';
     return html + "</div>";
   }
@@ -124,6 +128,8 @@
 
   function wire(p) {
     requestAnimationFrame(function () { var v = document.querySelector(".ring .v"); if (v) v.style.strokeDashoffset = v.dataset.off; });
+    document.querySelectorAll("[data-rv-d]").forEach(function (b) { b.addEventListener("click", function () { reviewBox(p, b.dataset.rvD, b.dataset.rvT); }); });
+    document.querySelectorAll("[data-rv-site]").forEach(function (b) { b.addEventListener("click", function () { reviewBox(p, null, "Our website"); }); });
     var chat = $("#chat"); if (chat) chat.scrollTop = chat.scrollHeight;
     document.querySelectorAll(".kpi").forEach(function (b) { b.addEventListener("click", function () { metricKey = b.dataset.k; render(); }); });
     $("#send").addEventListener("submit", function (e) {
@@ -137,6 +143,43 @@
     });
   }
 
+
+
+  /* review a delivery, the whole project, or the website, without leaving the dashboard */
+  function reviewBox(p, deliverableId, title) {
+    var site = deliverableId === null, m = document.getElementById("rv-modal");
+    if (!m) { m = document.createElement("div"); m.id = "rv-modal"; m.className = "rv-modal"; m.setAttribute("role", "dialog"); m.setAttribute("aria-modal", "true"); document.body.appendChild(m); }
+    var heading = site ? "How easy is our website to use?" : deliverableId ? "How was this delivery?" : "How was your project overall?";
+    m.innerHTML = '<form class="rv-box" novalidate><button class="x" type="button" aria-label="Close" data-x><i class="ph ph-x" aria-hidden="true"></i></button>' +
+      "<h2>" + heading + '</h2><p class="muted" style="margin:0">' + (site ? "Tell us about the design and ease of use of vixassist.com and this dashboard." : "About: <b>" + esc(title) + "</b>") + "</p>" +
+      '<div><b style="font-size:13px">Your rating</b><div class="rv-stars" role="radiogroup" aria-label="Star rating">' + [1, 2, 3, 4, 5].map(function (n) { return '<button type="button" role="radio" aria-checked="false" aria-label="' + n + ' star' + (n > 1 ? "s" : "") + '" data-s="' + n + '">★</button>'; }).join("") + "<span></span></div></div>" +
+      '<label>Headline (optional)<input name="title" maxlength="120" placeholder="Sum it up in a few words"></label>' +
+      '<label>Your review<textarea name="text" rows="4" maxlength="3000" placeholder="' + (site ? "What was easy, and what was confusing or slow?" : "What did you like, and what could be better?") + '"></textarea></label>' +
+      '<p class="err" role="alert" style="margin:0"></p><div class="rv-cta"><button class="btn btn-p" type="submit">Submit review</button><button class="btn btn-g" type="button" data-x>Cancel</button></div>' +
+      '<p class="muted" style="margin:0;font-size:12px">Your review is checked before it appears on vixassist.com with a Verified client badge.</p></form>';
+    m.hidden = false;
+    var f = m.querySelector("form"), rating = 0, stars = f.querySelectorAll("[data-s]");
+    var paint = function (n) { stars.forEach(function (b, i) { b.classList.toggle("on", i < n); b.setAttribute("aria-checked", i + 1 === rating); }); };
+    f.querySelector(".rv-stars").addEventListener("click", function (e) { var b = e.target.closest("[data-s]"); if (!b) return; rating = +b.dataset.s; paint(rating); f.querySelector(".err").textContent = ""; f.querySelector(".rv-stars span").textContent = ["", "Poor", "Fair", "Good", "Very good", "Excellent"][rating]; });
+    var close = function () { m.hidden = true; };
+    m.querySelectorAll("[data-x]").forEach(function (b) { b.onclick = close; });
+    m.onclick = function (e) { if (e.target === m) close(); };
+    f.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var err = f.querySelector(".err"), btn = f.querySelector("[type=submit]"); err.textContent = "";
+      if (!rating) { err.textContent = "Please choose a star rating."; return; }
+      btn.disabled = true;
+      var body = { rating: rating, title: f.elements.title.value, text: f.elements.text.value };
+      if (site) body.experience = "site"; else { body.projectId = p.id; body.deliverableId = deliverableId; if (deliverableId) body.experience = "delivery"; }
+      api("reviews", body).then(function () {
+        if (!site) { p.reviews = p.reviews || {}; p.reviews[deliverableId || "project"] = "pending"; data.projects.forEach(function (x) { if (x.id === p.id) x.reviews = p.reviews; }); render(); }
+        m.hidden = false;
+        m.innerHTML = '<div class="rv-box rv-ok"><i class="ph-fill ph-check-circle" aria-hidden="true"></i><b>Thank you for your review!</b><p class="muted">It will appear on vixassist.com once it has been approved, usually within one working day.</p><div class="rv-cta" style="justify-content:center"><a class="btn btn-g" href="/reviews.html#all" target="_blank" rel="noopener">See all reviews</a><button class="btn btn-p" type="button" data-x>Done</button></div></div>';
+        m.querySelector("[data-x]").onclick = close;
+      }).catch(function (x) { err.textContent = x.message; btn.disabled = false; });
+    });
+    setTimeout(function () { stars[4].focus(); }, 50);
+  }
 
   /* live chat: check for new messages from Vix every 15 seconds */
   function chatHtml(p) {
@@ -171,7 +214,7 @@
     var title, sub, bl = p.billing;
     var DUEPOP = { now: "💳 Payment due now", overdue: "⚠️ Your payment is overdue", soon: "💳 Payment due soon", "delivery-due": "🎉 Your project is ready: final payment due" };
     if (bl && bl.next && DUEPOP[bl.next.state] && !bl.next.claimed) { title = DUEPOP[bl.next.state] + ": " + VX.money(bl.next.amount, bl.currency); sub = (fresh.some(function (d) { return d.locked; }) ? "Your new delivery is ready and unlocks once you've paid in full. " : "") + "Tap Pay now at the top of your dashboard."; }
-    else if (fresh.length) { title = fresh.length === 1 ? "🎉 " + fresh[0].title + " is ready!" : "🎉 " + fresh.length + " new deliveries are ready!"; sub = fresh.some(function (d) { return d.locked; }) ? "It unlocks once you've paid in full. See Your payments below." : "Find them under Your deliveries."; }
+    else if (fresh.length) { title = fresh.length === 1 ? "🎉 " + fresh[0].title + " is ready!" : "🎉 " + fresh.length + " new deliveries are ready!"; sub = fresh.some(function (d) { return d.locked; }) ? "It unlocks once you've paid in full. See Your payments below." : "Find them under Your deliveries, then tap Review this delivery to tell us how it went."; }
     else if (p.unreadClient) { title = "You have " + p.unreadClient + " new update" + (p.unreadClient > 1 ? "s" : ""); sub = "Your project is moving forward."; }
     else return;
     $("#toast-t").textContent = title; $("#toast-s").textContent = sub;
