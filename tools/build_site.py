@@ -11,7 +11,7 @@ import os, re, html
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CONTENT = os.path.join(ROOT, "tools", "content")
 SITE = "https://vixassist.com"
-V = "9"  # bump to bust caches for assist.css / site.js
+V = "10"  # bump to bust caches for assist.css / site.js
 LINKEDIN = "https://www.linkedin.com/in/promise-felix-a491a7233/"
 DESIGN = "https://design.vixassist.com"  # websites studio
 WA = "447723149573"
@@ -69,6 +69,7 @@ def nav(cur=""):
   <a href="/#retention">Client retention</a>
   <a href="pricing.html">Pricing</a>
   <a href="about.html">About</a>
+  <a href="reviews.html">Reviews</a>
   <a class="sub" href="{DESIGN}/" target="_blank" rel="noopener">Websites</a>
   <a class="sub" href="book.html?account=1">Create an account</a>
   <a class="sub" href="portal/">Client login</a>
@@ -82,11 +83,11 @@ def footer(cta_h="Stop losing clients <em>to faster agents.</em>", cta2=("Get a 
     <div class="fcta"><h2>{cta_h}</h2><div class="talk-row"><a class="btn btn-p" href="book.html">Book a strategy call <i class="ph ph-arrow-right" aria-hidden="true"></i></a><a class="btn btn-g" href="{cta2[1]}">{cta2[0]}</a></div></div>
     <div class="fgrid">
       <div><a class="logo" href="/"><img src="brand/vix-icon.svg" alt="" width="30" height="30"><span>Vix <b>Assist</b></span></a><p style="margin-top:14px;max-width:320px">GoHighLevel growth systems for real estate brokers, agents and investors. More closings from the leads you already have, and clients who stay. Run by Promise Felix.</p></div>
-      <div><h4>Real estate growth</h4><a href="/#leak">Revenue leak calculator</a><a href="/#check">CRM health check</a><a href="/#work">See the work</a><a href="/#retention">Client retention</a><a href="pricing.html">Pricing</a><a href="about.html">About</a></div>
+      <div><h4>Real estate growth</h4><a href="/#leak">Revenue leak calculator</a><a href="/#check">CRM health check</a><a href="/#work">See the work</a><a href="/#retention">Client retention</a><a href="pricing.html">Pricing</a><a href="about.html">About</a><a href="reviews.html">Client reviews</a></div>
       <div><h4>Websites</h4><a href="{DESIGN}/real-estate/" target="_blank" rel="noopener">Real estate websites</a><a href="{DESIGN}/ecommerce/" target="_blank" rel="noopener">E-commerce websites</a><a href="{DESIGN}/home-services/" target="_blank" rel="noopener">Home service websites</a></div>
       <div><h4>Support</h4><a href="book.html?account=1"><b style="color:#fff">Create an account</b></a><a href="portal/">Client login</a><a href="mailto:support@vixassist.com">Contact support</a><a href="book.html">Book a call</a><a href="{LINKEDIN}" target="_blank" rel="noopener">LinkedIn</a><a href="https://wa.me/{WA}" target="_blank" rel="noopener">WhatsApp +44 7723 149573</a></div>
     </div>
-    <div class="fbot"><span>© 2026 Vix Assist. GoHighLevel is a trademark of HighLevel Inc. Vix Assist is an independent service and is not affiliated with HighLevel.</span><span><a href="about.html">About</a> · <a href="privacy.html">Privacy</a> · <a href="payment.html">Payments</a> · <a href="delivery.html">Delivery</a> · <a href="refund.html">Refunds</a></span></div>
+    <div class="fbot"><span>© 2026 Vix Assist. GoHighLevel is a trademark of HighLevel Inc. Vix Assist is an independent service and is not affiliated with HighLevel.</span><span><a href="about.html">About</a> · <a href="reviews.html">Reviews</a> · <a href="privacy.html">Privacy</a> · <a href="payment.html">Payments</a> · <a href="delivery.html">Delivery</a> · <a href="refund.html">Refunds</a></span></div>
   </div>
 </footer>
 '''
@@ -305,6 +306,32 @@ page("about.html", "About · Vix Assist",
       '<div class="tlist rv"><div class="ti"><i class="ph-fill ph-seal-check" aria-hidden="true"></i><span><b>Fixed price first</b>You know the full cost before any work starts.</span></div><div class="ti"><i class="ph-fill ph-key" aria-hidden="true"></i><span><b>You own everything</b>Your account, data and campaigns stay yours.</span></div><div class="ti"><i class="ph-fill ph-video" aria-hidden="true"></i><span><b>Documented and recorded</b>Every system comes with walkthrough videos and written notes.</span></div><div class="ti"><i class="ph-fill ph-chat-circle-text" aria-hidden="true"></i><span><b>Direct access</b>You talk to the person building your system, on WhatsApp, email or video call.</span></div></div></div>', style="padding-top:0;border-top:0"),
   sec('<div class="prose rv"><h2>Honest by design</h2><p>Vix Assist is a young business, so you will not find fake reviews or borrowed client logos here. Instead, the work is shown openly on this website, every price is fixed up front, and you can follow every task in your own client dashboard.</p><p>I work with brokers, teams, agents and investors in the US, Canada, the UK and Australia. Email <a href="mailto:support@vixassist.com">support@vixassist.com</a>, message me on <a href="https://wa.me/447723149573" target="_blank" rel="noopener">WhatsApp</a>, or <a href="book.html">book a call</a>.</p></div>'),
  ]))
+
+# ---------------------------------------------------------------- Reviews
+REVIEW_OPTS = "".join(f'<option value="{k}">{v}</option>' for k, v in [('call', 'Strategy call'), ('ghl', 'GoHighLevel setup'), ('automation', 'Follow-up automation'), ('website', 'Website design'), ('support', 'Ongoing support'), ('onboarding', 'Onboarding and payments'), ('other', 'Other')])
+page("reviews.html", "Client Reviews · Vix Assist",
+ "Honest reviews and comments from Vix Assist clients about strategy calls, GoHighLevel setups, follow-up automation and websites. Every review comes from a real client.",
+ "reviews", "\n".join([
+  hero("Client reviews", "What working with Vix Assist <em>is really like.</em>",
+       "Every review here is written by a real person about a real experience: a strategy call, a GoHighLevel build, a website or ongoing support. Nothing is edited, and anyone can join the conversation in the comments.",
+       '<a class="btn btn-p" href="#write">Write a review <i class="ph ph-pencil-simple" aria-hidden="true"></i></a><a class="btn btn-g" href="#all">Read reviews</a>'),
+  sec('<div class="rvw-top"><div><div class="rvw-sum rv" id="rvw-sum"><p class="rvw-sumtxt">Loading reviews…</p></div>'
+      '<ul class="checks rv" style="margin-top:24px"><li><i class="ph-fill ph-check-circle"></i><span><b>Real clients only.</b> Reviews are checked before they go live, so spam and fake reviews never appear.</span></li><li><i class="ph-fill ph-check-circle"></i><span><b>Verified badges</b> show reviews written by clients logged in to their Vix Assist dashboard.</span></li><li><i class="ph-fill ph-check-circle"></i><span><b>Never edited.</b> Good or bad, reviews are published as written. I reply to every one.</span></li></ul></div>'
+      '<div id="write"><form class="f rvw-write rv" id="rvw-form" novalidate>'
+      '<div><span class="eyebrow">Share your experience</span><h2 class="h2" style="margin-top:10px">Write a <em>review.</em></h2></div>'
+      '<p class="rvw-vnote" hidden></p>'
+      '<div><span style="font-size:13px;font-weight:600;color:var(--ink)">Your rating</span><div class="rvw-pickrow"><div class="rvw-pick" role="radiogroup" aria-label="Star rating"></div><span class="rvw-rlabel"></span></div></div>'
+      '<label>Which experience is this about?<select name="experience">' + REVIEW_OPTS + '</select></label>'
+      '<label>Headline (optional)<input name="title" maxlength="120" placeholder="Sum it up in a few words"></label>'
+      '<label>Your review<textarea name="text" rows="5" required maxlength="3000" placeholder="What did you need, what happened, and what changed for you?"></textarea></label>'
+      '<div class="two"><label>Your name<input name="name" autocomplete="name" required maxlength="80"></label><label>Business (optional)<input name="business" autocomplete="organization" maxlength="120"></label></div>'
+      '<label class="rvw-email">Email (never shown publicly)<input name="email" type="email" autocomplete="email" required></label>'
+      '<input class="hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">'
+      '<button class="btn btn-p" type="submit">Submit my review <i class="ph ph-arrow-right" aria-hidden="true"></i></button>'
+      '<p class="err" role="alert"></p><p class="note">Your review appears once approved, usually within one working day. Your email is only used to confirm the review is genuine.</p></form>'
+      '<div class="rvw-write rvw-done" id="rvw-done" hidden role="status"><i class="ph-fill ph-check-circle" aria-hidden="true"></i><b>Thank you for your review.</b><p class="muted">It will appear on this page once approved, usually within one working day.</p><a class="btn btn-g btn-sm" href="#all" style="justify-self:center">Read other reviews</a></div></div></div>', "reviews", "padding-top:0;border-top:0"),
+  sec(head2("All reviews", "In their <em>own words.</em>") + '<div class="rvw-filter" id="rvw-filter" hidden></div><div class="rvw-list" id="rvw-list"><p class="muted">Loading reviews…</p></div>', "all"),
+ ]), extra_js='\n<script src="reviews.js?v=1" defer></script>')
 
 # ---------------------------------------------------------------- Policies
 POL = [
@@ -622,6 +649,7 @@ page("index.html", "Vix Assist · GoHighLevel Growth Systems for Real Estate Bro
       '<p class="guarantee rv"><i class="ph-fill ph-shield-check" aria-hidden="true"></i>No long contract. Cancel any month. Everything built stays in your account.</p>', "pricing"),
   sec(head2("Investors and wholesalers", "Seller leads need follow up <em>even more.</em>", "If you buy property, your pipeline runs on follow up. I build and run the system that keeps motivated sellers talking to you, not the next investor.") +
       '<ul class="checks rv" style="columns:2;column-gap:40px">' + "".join(f'<li><i class="ph-fill ph-check-circle"></i><span>{x}</span></li>' for x in ["Seller pipelines from first contact to closing", "Texting with A2P registration and opt out handling", "Instant follow up on PPC, PPL and direct mail", "Offer follow up that runs for months", "Missed call text back and voicemail drops", "Buyer lists for dispositions"]) + "</ul>"),
+  '<section id="client-reviews" data-reviews-home hidden><div class="wrap">' + head2("Client reviews", "What clients <em>say.</em>", center=True) + '<p class="rvw-home-avg" data-avg></p><div class="rvw-grid" data-cards style="margin-top:32px"></div><p style="text-align:center;margin-top:28px"><a class="btn btn-g" href="reviews.html">Read all reviews and comments <i class="ph ph-arrow-right" aria-hidden="true"></i></a></p></div></section>',
   sec(head2("Questions", "Before you <em>decide.</em>", center=True) + faq([
     ("I use Follow Up Boss, kvCORE or another CRM. Is this for me?", "Yes. I can move your leads and follow up into GoHighLevel, or connect your lead sources so GoHighLevel handles speed to lead, nurture and retention while your agents keep the tools they know. The free audit shows which makes more sense."),
     ("How quickly will I see a difference?", "Instant replies and showing reminders are usually live in the first week, so you see faster conversations straight away. Nurture, revival and referral campaigns build results over the following months."),
@@ -631,5 +659,5 @@ page("index.html", "Vix Assist · GoHighLevel Growth Systems for Real Estate Bro
     ("What does it cost to try?", "The revenue audit is free and you get a written plan either way. Monthly plans have no long contract, and everything built stays in your account."),
   ]), "faq"),
   sec(HOME_AUDIT, "audit"),
- ]), extra_js=RE_DATA.replace('<script src="assist.js?v=7"></script>', '<script src="assist.js?v=8"></script>\n<script src="work.js?v=2" defer></script>\n<script src="re.js?v=2" defer></script>\n<script src="tour.js?v=2" defer></script>'),
+ ]), extra_js=RE_DATA.replace('<script src="assist.js?v=7"></script>', '<script src="assist.js?v=8"></script>\n<script src="work.js?v=2" defer></script>\n<script src="re.js?v=2" defer></script>\n<script src="tour.js?v=2" defer></script>\n<script src="reviews.js?v=1" defer></script>'),
  foot=footer())

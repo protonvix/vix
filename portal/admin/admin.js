@@ -21,6 +21,7 @@
   $("#bell-btn").addEventListener("click", function () { sel = null; drawList(); bell(); });
   $("#set-btn").addEventListener("click", function () { onBell = false; sel = null; drawList(); settings(); });
   $("#call-btn").addEventListener("click", function () { onBell = false; onChats = false; sel = null; drawList(); callsView(); });
+  $("#rev-btn").addEventListener("click", function () { onBell = false; onChats = false; sel = null; drawList(); reviewsView(); });
 
 
   /* ---------- strategy calls: availability, Google / Zoom, WhatsApp, booked calls ---------- */
@@ -141,9 +142,67 @@
     });
   }
 
+
+  /* ---------- reviews: approve, reply, hide ---------- */
+  function reviewsView() {
+    var box = $("#main");
+    box.innerHTML = '<div class="card"><p class="note">Loading reviews…</p></div>';
+    api("admin/reviews").then(function (d) {
+      var stars = function (n) { return '<span style="color:#C98A00;letter-spacing:1px">' + "★★★★★".slice(0, n) + '<span style="color:#d6d2c8">' + "★★★★★".slice(n) + "</span></span>"; };
+      var ST = { pending: "Waiting for approval", approved: "Public", hidden: "Hidden" };
+      var pendingC = function (r) { return r.comments.filter(function (c) { return c.status === "pending"; }).length; };
+      var list = d.reviews.slice().sort(function (a, b) { return (b.status === "pending") - (a.status === "pending") || (pendingC(b) > 0) - (pendingC(a) > 0) || b.at.localeCompare(a.at); });
+      var card = function (r) {
+        return '<div class="card" style="margin-top:14px;border-left:4px solid ' + (r.status === "pending" ? "#C98A00" : r.status === "approved" ? "#1F5A45" : "#bbb") + '" data-r="' + r.id + '">' +
+          '<div class="help"><div><b>' + stars(r.rating) + " " + esc(r.title || "") + '</b><p class="muted" style="margin:4px 0 0">' + esc(r.name) + (r.business ? " · " + esc(r.business) : "") + " · " + esc(r.experienceLabel) + " · " + VX.date(r.at, true) + "</p>" +
+          '<p class="muted" style="margin:2px 0 0">' + esc(r.email || "no email") + (r.verified ? ' · <span class="ok">Verified client</span>' : "") + (r.hint && !r.verified ? " · " + esc(r.hint) : "") + "</p></div>" +
+          '<span class="note' + (r.status === "approved" ? " ok" : "") + '">' + ST[r.status] + "</span></div>" +
+          '<p style="white-space:pre-wrap;margin:10px 0">' + esc(r.text) + "</p>" +
+          '<div class="acts">' + (r.status !== "approved" ? '<button class="btn btn-p btn-sm" type="button" data-a="approve">Approve &amp; publish</button>' : "") +
+          (r.status !== "hidden" ? '<button class="btn btn-g btn-sm" type="button" data-a="hide">Hide</button>' : "") +
+          '<button class="btn btn-g btn-sm" type="button" data-a="verify" data-on="' + (r.verified ? "0" : "1") + '">' + (r.verified ? "Remove verified badge" : "Mark as verified client") + "</button>" +
+          '<button class="btn btn-g btn-sm" type="button" data-a="delete">Delete</button></div>' +
+          '<label style="display:block;margin-top:12px">Your public reply<textarea rows="2" data-reply placeholder="Thank them, or answer their point. Shown under the review.">' + esc(r.reply ? r.reply.text : "") + '</textarea></label><div class="acts"><button class="btn btn-g btn-sm" type="button" data-a="reply">Save reply</button></div>' +
+          (r.comments.length ? '<h4 style="margin:16px 0 6px">Comments (' + r.comments.length + ")</h4>" + r.comments.map(function (c) {
+            return '<div style="padding:10px 12px;border:1px solid var(--line,#e4e1d9);border-radius:12px;margin-top:8px" data-c="' + c.id + '"><b>' + esc(c.name) + "</b>" + (c.owner ? " (you)" : "") + (c.verified ? ' <span class="ok">· Verified client</span>' : "") + ' <span class="muted">· ' + VX.date(c.at, true) + " · " + (c.status === "approved" ? "Public" : c.status === "pending" ? "<b style='color:#C98A00'>Waiting for approval</b>" : "Hidden") + '</span><p style="margin:6px 0;white-space:pre-wrap">' + esc(c.text) + '</p><div class="acts">' +
+              (c.status !== "approved" ? '<button class="btn btn-p btn-sm" type="button" data-ca="approve">Approve</button>' : "") + (c.status !== "hidden" ? '<button class="btn btn-g btn-sm" type="button" data-ca="hide">Hide</button>' : "") + '<button class="btn btn-g btn-sm" type="button" data-ca="delete">Delete</button></div></div>';
+          }).join("") : "") +
+          (r.status === "approved" ? '<label style="display:block;margin-top:12px">Add a comment as Vix Assist<textarea rows="2" data-cm></textarea></label><div class="acts"><button class="btn btn-g btn-sm" type="button" data-a="comment">Post comment</button></div>' : "") +
+          '<p class="note" data-msg></p></div>';
+      };
+      var pend = d.reviews.filter(function (r) { return r.status === "pending"; }).length + d.reviews.reduce(function (s, r) { return s + pendingC(r); }, 0);
+      var pub = d.reviews.filter(function (r) { return r.status === "approved"; });
+      var avg = pub.length ? (pub.reduce(function (s, r) { return s + r.rating; }, 0) / pub.length).toFixed(1) : "–";
+      box.innerHTML = '<div class="card"><div class="help"><div><h2 style="margin:0"><i class="ph ph-star" aria-hidden="true"></i> Reviews &amp; comments</h2><p class="muted">Nothing goes public until you approve it. Clients who are logged in to their dashboard get a "Verified client" badge automatically.</p></div><div class="acts"><a class="btn btn-g btn-sm" href="/reviews.html" target="_blank" rel="noopener">View public page</a></div></div>' +
+        '<div class="kpi-row" style="margin-top:12px"><div><span>Waiting for you</span><b>' + pend + '</b></div><div><span>Public reviews</span><b>' + pub.length + '</b></div><div><span>Average rating</span><b>' + avg + "</b></div></div>" +
+        '<p class="muted" style="margin-top:12px">Share this link with clients after a call or delivery: <b>vixassist.com/reviews.html#write</b></p></div>' +
+        (list.length ? list.map(card).join("") : '<div class="card" style="margin-top:14px"><div class="empty"><i class="ph ph-star" aria-hidden="true"></i>No reviews yet. Send happy clients to vixassist.com/reviews.html#write.</div></div>');
+      box.querySelectorAll("[data-r]").forEach(function (el) {
+        var id = el.dataset.r, msg = el.querySelector("[data-msg]");
+        var send = function (body) { msg.textContent = "Saving…"; return api("admin/reviews", body).then(function () { reviewsView(); poll(); }).catch(function (x) { msg.innerHTML = '<span class="err">' + esc(x.message) + "</span>"; }); };
+        el.querySelectorAll("[data-a]").forEach(function (b) {
+          b.onclick = function () {
+            var a = b.dataset.a;
+            if (a === "delete" && !confirm("Delete this review for good?")) return;
+            if (a === "reply") return send({ id: id, action: "reply", text: el.querySelector("[data-reply]").value });
+            if (a === "comment") return send({ id: id, action: "comment", text: el.querySelector("[data-cm]").value });
+            if (a === "verify") return send({ id: id, action: "verify", on: b.dataset.on === "1" });
+            send({ id: id, action: a });
+          };
+        });
+        el.querySelectorAll("[data-c]").forEach(function (ce) {
+          ce.querySelectorAll("[data-ca]").forEach(function (b) {
+            b.onclick = function () { if (b.dataset.ca === "delete" && !confirm("Delete this comment?")) return; send({ id: id, commentId: ce.dataset.c, action: b.dataset.ca }); };
+          });
+        });
+      });
+      api("admin/feed/seen", { kind: "review", id: "" }).catch(function () {});
+    }).catch(function (x) { box.innerHTML = '<div class="card"><p class="err">' + esc(x.message) + "</p></div>"; });
+  }
+
   /* ---------- notifications: everything new, in bold, live ---------- */
-  var ICON = { payment: "ph-currency-circle-dollar", transfer: "ph-bank", brief: "ph-file-text", offer: "ph-gift", founding: "ph-star", overdue: "ph-warning-circle", message: "ph-chat-circle-dots", call: "ph-video-camera" };
-  var NLABEL = { payment: "Payment", transfer: "Bank transfer to confirm", brief: "Brief / enquiry", offer: "Free design request", founding: "Founding client application", overdue: "Payment overdue", message: "Client message", call: "Strategy call" };
+  var ICON = { payment: "ph-currency-circle-dollar", transfer: "ph-bank", brief: "ph-file-text", offer: "ph-gift", founding: "ph-star", overdue: "ph-warning-circle", message: "ph-chat-circle-dots", call: "ph-video-camera", review: "ph-star" };
+  var NLABEL = { payment: "Payment", transfer: "Bank transfer to confirm", brief: "Brief / enquiry", offer: "Free design request", founding: "Founding client application", overdue: "Payment overdue", message: "Client message", call: "Strategy call", review: "Review" };
   var lastUnread = null, onBell = false, known = {};
   function chime() {
     try {
@@ -190,6 +249,7 @@
   function poll() {
     return api("admin/feed").then(function (d) {
       $("#bell-n").hidden = !d.unread; $("#bell-n").textContent = d.unread;
+      var rv = d.items.filter(function (i) { return i.kind === "review" && i.unread; }).length; $("#rev-n").hidden = !rv; $("#rev-n").textContent = rv;
       document.title = (d.unread ? "(" + d.unread + ") " : "") + "Admin · Vix Assist";
       var fresh = d.items.filter(function (i) { return i.unread && !known[i.kind + i.id]; });
       if (lastUnread !== null && fresh.length) {
@@ -225,7 +285,7 @@
     $("#main").querySelectorAll(".nf").forEach(function (b) {
       b.onclick = function () {
         var k = b.dataset.kind, id = b.dataset.id, cid = b.dataset.client;
-        var go = function () { onBell = false; if (k === "transfer" || k === "overdue") { payments(); } else if (k === "brief" || k === "offer" || k === "founding") { inbox(); } else if (k === "call") { callsView(); } else if (k === "message" && cid) { sel = null; refresh().then(function () { drawList(); chats(cid); }); } else if (cid) { sel = cid; refresh(true).then(function () { drawList(); showClient(cid); }); } };
+        var go = function () { onBell = false; if (k === "transfer" || k === "overdue") { payments(); } else if (k === "brief" || k === "offer" || k === "founding") { inbox(); } else if (k === "call") { callsView(); } else if (k === "review") { reviewsView(); } else if (k === "message" && cid) { sel = null; refresh().then(function () { drawList(); chats(cid); }); } else if (cid) { sel = cid; refresh(true).then(function () { drawList(); showClient(cid); }); } };
         if (k === "message") go(); else api("admin/feed/seen", { kind: k, id: id }).then(go, go);
       };
     });
