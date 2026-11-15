@@ -11,7 +11,7 @@ import os, re, html
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CONTENT = os.path.join(ROOT, "tools", "content")
 SITE = "https://vixassist.com"
-V = "13"  # bump to bust caches for assist.css / site.js
+V = "14"  # bump to bust caches for assist.css / site.js
 LINKEDIN = "https://www.linkedin.com/in/promise-felix-a491a7233/"
 DESIGN = "https://design.vixassist.com"  # websites studio
 WA = "447723149573"
@@ -76,6 +76,7 @@ def nav(cur=""):
 </header>
 <div class="mpanel" id="mpanel" aria-hidden="true">
   <a href="/">Home</a>
+  <a href="/#ecosystem">Our services</a>
   <a href="/#leak">Revenue check</a>
   <a href="/#work">See the work</a>
   <a href="/#retention">Client retention</a>
@@ -97,7 +98,7 @@ def footer(cta_h="Stop losing clients <em>to faster agents.</em>", cta2=("Get a 
     <div class="fcta"><h2>{cta_h}</h2><div class="talk-row"><a class="btn btn-p" href="book.html">Book a strategy call <i class="ph ph-arrow-right" aria-hidden="true"></i></a><a class="btn btn-g" href="{cta2[1]}">{cta2[0]}</a></div></div>
     <div class="fgrid">
       <div><a class="logo" href="/"><img src="brand/vix-icon.svg" alt="" width="30" height="30"><span>Vix <b>Assist</b></span></a><p style="margin-top:14px;max-width:320px">GoHighLevel growth systems for real estate brokers, agents and investors. More closings from the leads you already have, and clients who stay. Run by Promise Felix.</p></div>
-      <div><h4>Real estate growth</h4><a href="/#leak">Revenue leak calculator</a><a href="/#check">CRM health check</a><a href="/#work">See the work</a><a href="/#retention">Client retention</a><a href="pricing.html">Pricing</a><a href="about.html">About</a><a href="reviews.html">Client reviews</a><a href="gohighlevel-guides">GoHighLevel guides</a></div>
+      <div><h4>Real estate growth</h4><a href="/#ecosystem">Our services</a><a href="/#leak">Revenue leak calculator</a><a href="/#check">CRM health check</a><a href="/#work">See the work</a><a href="/#retention">Client retention</a><a href="pricing.html">Pricing</a><a href="about.html">About</a><a href="reviews.html">Client reviews</a><a href="gohighlevel-guides">GoHighLevel guides</a></div>
       <div><h4>Websites</h4><a href="{DESIGN}/real-estate/" target="_blank" rel="noopener">Real estate websites</a><a href="{DESIGN}/ecommerce/" target="_blank" rel="noopener">E-commerce websites</a><a href="{DESIGN}/home-services/" target="_blank" rel="noopener">Home service websites</a></div>
       <div><h4>Support</h4><a href="book.html?account=1"><b style="color:#fff">Create an account</b></a><a href="portal/">Client login</a><a href="mailto:support@vixassist.com">Contact support</a><a href="reviews.html?experience=site#write">Rate this website</a><a href="book.html">Book a call</a><a href="{LINKEDIN}" target="_blank" rel="noopener">LinkedIn</a><a href="https://wa.me/{WA}" target="_blank" rel="noopener">WhatsApp +44 7723 149573</a></div>
     </div>
@@ -140,7 +141,11 @@ def head2(eyebrow, h2, lead="", center=False):
     return f'<div class="head{" c" if center else ""}"><span class="eyebrow">{eyebrow}</span><h2 class="h2">{h2}</h2>{f"<p class=lead>{lead}</p>" if lead else ""}</div>'
 
 def boxes(items, cols=3):
-    cells = "".join(f'<article class="ec rv"><span class="ic"><i class="ph {i}" aria-hidden="true"></i></span><h3>{t}</h3><p>{p}</p></article>' for i, t, p in items)
+    def cell(it):
+        i, t, p = it[:3]; href = it[3] if len(it) > 3 else ""
+        more = f'<a class="ec-more" href="{href}">Learn more <i class="ph ph-arrow-right" aria-hidden="true"></i></a>' if href else ""
+        return f'<article class="ec rv"><span class="ic"><i class="ph {i}" aria-hidden="true"></i></span><h3>{t}</h3><p>{p}</p>{more}</article>'
+    cells = "".join(cell(it) for it in items)
     return f'<div class="eco">{cells}</div>'
 
 def steps(items):
@@ -667,20 +672,23 @@ page("index.html", "Vix Assist · GoHighLevel Growth Systems for Real Estate Bro
       '<div class="eco">' + "".join(f'<article class="ec rv"><span class="ic"><i class="ph {i}" aria-hidden="true"></i></span><h3>{t}</h3><p>{d}</p></article>' for i, t, d in RETAIN) + "</div>", "retention"),
   '<section class="reveal-sec" aria-label="The promise"><div class="wrap"><p class="tagline" id="tagline">Every lead answered. Every client remembered. Every referral asked for. That is how you grow without buying more leads.</p></div></section>',
   sec(head2("CRM health check", "Is your current CRM <em>quietly losing you clients?</em>", "Eight honest questions. Answer them about your system as it is today.", True) + CHECK, "check"),
-  sec(head2("What I build and run", "Everything that wins and keeps clients, <em>inside GoHighLevel.</em>") + boxes([
-    ("ph-lightning", "Speed to lead", "Instant text, email and missed call text back for every portal, ad and website lead."),
-    ("ph-robot", "Lead qualifying AI", "Asks budget, area, timeline and pre approval, then books the showing."),
-    ("ph-calendar-check", "Showings and reminders", "Booking links, agent calendars, confirmations and reminders that cut no shows."),
-    ("ph-users-three", "Agent routing", "Round robin or territory routing, with alerts so no lead sits unclaimed."),
-    ("ph-arrows-clockwise", "Buyer and seller nurture", "Long term follow up for leads who are not ready yet, in your voice."),
-    ("ph-database", "Database revival", "Campaigns that restart conversations with old leads and your sphere."),
-    ("ph-sign-in", "Open house sign ins", "Visitors land in the CRM with follow up already running."),
-    ("ph-megaphone", "Just listed and just sold", "Campaigns to past clients and neighbourhoods every time you list or close."),
-    ("ph-star", "Reviews and referrals", "Automatic review and referral requests after every closing."),
-    ("ph-funnel-simple", "Clean pipelines", "Buyer, seller and investor pipelines your agents actually use."),
-    ("ph-shield-check", "A2P 10DLC and compliance", "US texting registration, opt out handling and quiet hours."),
-    ("ph-chart-line-up", "Lead source reporting", "See which sources bring closings, so you spend where it works."),
-  ]), "ecosystem"),
+  sec(head2("Our services", "Everything our team builds and runs <em>inside GoHighLevel.</em>", "Every service is set up in your own account, tested end to end and documented. Pick what you need, or let the free audit show where you are losing the most.") + boxes([
+    ("ph-rocket-launch", "Done-for-you GoHighLevel setup", "A complete HighLevel build or rescue, fixed price, tested and handed over with walkthrough videos.", "gohighlevel-expert"),
+    ("ph-lightning", "Speed to lead", "Instant text, email and missed call text back for every portal, ad and website lead.", "speed-to-lead"),
+    ("ph-chats-circle", "Lead follow-up and nurture", "First week follow-up, then useful contact for months, in your voice, until they are ready.", "real-estate-lead-follow-up"),
+    ("ph-robot", "AI Employee and Voice AI", "AI that answers chats and calls around the clock, qualifies leads and books showings, with guardrails.", "gohighlevel-ai-employee"),
+    ("ph-house-line", "Zillow and portal lead conversion", "Zillow, Realtor.com, Rightmove and Zoopla leads answered in minutes and followed up properly.", "zillow-lead-conversion"),
+    ("ph-database", "Database reactivation", "Compliant campaigns that restart conversations with old leads already in your CRM.", "database-reactivation"),
+    ("ph-heart", "Past client retention", "Home value updates, anniversaries and check-ins that keep past clients coming back to you.", "past-client-retention-real-estate"),
+    ("ph-star", "Referral and review system", "Automatic review and referral requests at the right moments after every closing or completion.", "real-estate-referral-system"),
+    ("ph-funnel-simple", "Pipelines and agent routing", "Buyer, seller, landlord and past client pipelines, with round robin routing so no lead sits unclaimed.", "gohighlevel-pipelines"),
+    ("ph-flow-arrow", "Workflows and automations", "Showing and viewing reminders, no-show recovery, open house sign-ins and just listed campaigns.", "gohighlevel-workflows"),
+    ("ph-swap", "CRM choice and migration", "Honest advice on the right CRM, and clean moves from Follow Up Boss and other tools.", "best-crm-for-real-estate-teams"),
+    ("ph-shield-check", "A2P 10DLC and UK compliance", "US texting registration, opt-outs and quiet hours, and consent-based messaging for the UK.", "a2p-10dlc-gohighlevel"),
+    ("ph-headset", "Ongoing GoHighLevel support", "A dedicated specialist who keeps pipelines clean, automations working and follow-up on time.", "gohighlevel-virtual-assistant"),
+    ("ph-globe-hemisphere-west", "UK and worldwide setups", "UK numbers and wording, US realtor setups, and remote support across time zones.", "gohighlevel-uk"),
+    ("ph-chart-line-up", "Lead source reporting", "See which sources and agents bring closings, so you spend where it works."),
+  ]) + '<p style="margin-top:28px"><a class="btn btn-g" href="gohighlevel-guides">Read our GoHighLevel guides <i class="ph ph-arrow-right" aria-hidden="true"></i></a></p>', "ecosystem"),
   sec(head2("How we start", "Live in days. <em>Growing every month after.</em>") + steps([
     ("Free revenue audit", "You give me team access. I review how leads are answered, followed up and kept, then send a written plan with clear priorities."),
     ("Speed to lead in week one", "Instant replies, showing booking and reminders go live first, because that is where deals are won or lost."),
