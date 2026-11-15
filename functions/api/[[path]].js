@@ -470,7 +470,8 @@ async function brief(env, req, h) {
   const reply = (d, st) => json(d, st || 200, h);
   const b = await req.json().catch(() => null);
   if (!b) return reply({ error: "Please try again." }, 400);
-  if (b.website) return reply({ ok: true, emailed: true }); // honeypot: bots fill the hidden field
+  // Hidden anti-spam box: never discard, just flag it so the owner decides (browsers sometimes autofill it).
+  const suspect = !!b.vx_trap;
   if (/free design offer/i.test(String(b.source || "")) && Date.now() > Date.parse(OFFER_END)) return reply({ error: "Sorry, the free design offer ended on 4 December 2026." }, 410);
   const ip = req.headers.get("cf-connecting-ip") || "unknown";
   const rk = "brate:" + ip, n = +(await env.PORTAL.get(rk)) || 0;
@@ -479,7 +480,7 @@ async function brief(env, req, h) {
   const email = clean(b.email, 200);
   const item = {
     id: rid(9), at: now(), read: false,
-    source: clean(b.source, 60) || "website", subject: clean(b.subject, 200) || "New enquiry",
+    source: clean(b.source, 60) || "website", subject: (suspect ? "⚠️ Possible spam: " : "") + (clean(b.subject, 200) || "New enquiry"),
     name: clean(b.name, 100), email: emailOk(email) ? email : "", whatsapp: clean(b.whatsapp, 40), business: clean(b.business, 120),
     service: clean(b.service, 120), text: clean(b.text, 8000),
   };
@@ -796,7 +797,6 @@ async function payPackage(env, url) {
 }
 async function payPackageStart(env, req, origin) {
   const b = await req.json().catch(() => ({}));
-  if (b.website) return fail(400, "Please try again.");
   const pr = await packagePrice(env, clean(b.p, 30));
   if (!pr) return fail(404, "That package was not found.");
   const email = clean(b.email, 200).toLowerCase();
@@ -1197,7 +1197,6 @@ async function bookSlots(env) {
 async function bookCreate(env, req, origin) {
   const b = await req.json().catch(() => null);
   if (!b) return fail(400, "Please try again.");
-  if (b.website) return json({ ok: true, booking: {} }); // honeypot
   const ip = req.headers.get("cf-connecting-ip") || "unknown", rk = "bkrate:" + ip, n = +(await env.PORTAL.get(rk)) || 0;
   if (n >= 5) return fail(429, "Too many bookings from this connection. Please message me on WhatsApp instead.");
   const name = clean(b.name, 100), email = clean(b.email, 200), start = clean(b.start, 40), platform = b.platform === "zoom" ? "zoom" : "meet";
@@ -1385,7 +1384,6 @@ async function reviewsPublic(env) {
 async function reviewCreate(env, req) {
   const b = await req.json().catch(() => null);
   if (!b) return fail(400, "Please try again.");
-  if (b.website) return json({ ok: true }); // honeypot
   const client = await clientFromSession(env, req);
   if (await reviewRate(env, req, "r", 5)) return fail(429, "Too many reviews from this connection. Please try again later.");
   const rating = Math.round(+b.rating);
@@ -1418,6 +1416,7 @@ async function reviewCreate(env, req) {
     if (!r.email) return fail(400, "Please add your email so we can confirm the review is genuine. It is never shown publicly.");
     if (await env.PORTAL.get("email:" + r.email)) r.hint = "Email matches a client account";
   }
+  if (b.vx_trap) r.hint = "Possible spam: a hidden anti-spam box was filled in" + (r.hint ? " · " + r.hint : "");
   await put(env, "review:" + r.id, r);
   const idx = (await get(env, "reviews:index")) || []; idx.push(r.id); await put(env, "reviews:index", idx.slice(-1000));
   if (pj) { pj.reviews = Object.assign({}, pj.reviews, { [r.delivery.deliverableId || "project"]: r.id }); await put(env, "project:" + pj.id, pj); }
@@ -1432,12 +1431,11 @@ async function reviewCreate(env, req) {
 async function reviewComment(env, req) {
   const b = await req.json().catch(() => null);
   if (!b) return fail(400, "Please try again.");
-  if (b.website) return json({ ok: true });
   const r = await get(env, "review:" + clean(b.reviewId, 40));
   if (!r || r.status !== "approved") return fail(404, "That review could not be found.");
   const client = await clientFromSession(env, req);
   if (await reviewRate(env, req, "c", 10)) return fail(429, "Too many comments from this connection. Please try again later.");
-  const c = { id: rid(6), at: now(), status: "pending", name: clean(b.name, 80) || (client && client.name) || "", text: clean(b.text, 1500), verified: !!client, read: false };
+  const c = { id: rid(6), at: now(), status: "pending", name: clean(b.name, 80) || (client && client.name) || "", text: clean(b.text, 1500), verified: !!client, read: false, hint: b.vx_trap ? "Possible spam" : "" };
   if (!c.name) return fail(400, "Please add your name.");
   if (c.text.length < 2) return fail(400, "Please write a comment.");
   r.comments = (r.comments || []).concat(c).slice(-200);

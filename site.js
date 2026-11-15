@@ -59,7 +59,7 @@
       if (bad.length) { bad.forEach(function (n) { f.elements[n].classList.add("invalid"); }); err.textContent = bad.indexOf("email") > -1 ? "Please enter a valid email so I can reply." : "Please fill in your name and a few details."; f.elements[bad[0]].focus(); return; }
       err.textContent = ""; btn.disabled = true; btn.textContent = "Sending…";
       var text = (f.dataset.subject || "Website enquiry") + "\n\nService: " + (d.service || "-") + "\n\n" + (d.message || "");
-      fetch("/api/brief", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ source: f.dataset.brief, subject: (f.dataset.subject || "Website enquiry") + ": " + (d.business || d.name), name: d.name, email: d.email, whatsapp: d.whatsapp, business: d.business, service: d.service, text: text, website: d.website }) })
+      fetch("/api/brief", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ source: f.dataset.brief, subject: (f.dataset.subject || "Website enquiry") + ": " + (d.business || d.name), name: d.name, email: d.email, whatsapp: d.whatsapp, business: d.business, service: d.service, text: text, vx_trap: d.vx_trap }) })
         .then(function (r) { return r.json().then(function (j) { if (!r.ok) throw new Error(j.error || "That didn't send."); return j; }); })
         .then(function () { f.style.display = "none"; if (done) done.classList.add("show"); })
         .catch(function (x) { err.textContent = x.message + " You can also message me on WhatsApp: +44 7723 149573."; btn.disabled = false; btn.innerHTML = label; });

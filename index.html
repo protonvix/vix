@@ -24,8 +24,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
 <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
-<link rel="stylesheet" href="assist.css?v=11">
-<link rel="stylesheet" href="chat.css?v=11">
+<link rel="stylesheet" href="assist.css?v=12">
+<link rel="stylesheet" href="chat.css?v=12">
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
@@ -217,7 +217,7 @@
         <label>Plan you are considering<select name="plan"><option>Not sure yet</option><option>Lead Response</option><option>Growth</option><option>Brokerage</option><option>One off build or rescue</option></select></label>
       </div>
       <label>What should I look at first?<textarea name="message" rows="4" placeholder="For example: Zillow leads wait hours for a reply, old leads are never contacted, no reviews after closing" required></textarea></label>
-      <input class="hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <input class="hp" name="vx_trap" tabindex="-1" autocomplete="off" data-lpignore="true" data-1p-ignore aria-hidden="true">
       <button class="btn btn-p" type="submit">Get my free revenue audit <i class="ph ph-arrow-right" aria-hidden="true"></i></button>
       <p class="err" id="audit-err" role="alert"></p>
       <p class="note">I reply within one working day. Your details are only used to answer your request.</p>
@@ -242,7 +242,7 @@
   </div>
 </footer>
 
-<script src="site.js?v=11"></script>
+<script src="site.js?v=12"></script>
 <script>
 window.VX_CONSOLE = {
   people: ["Jessica Moreno", "David Chen", "Amanda Brooks", "Kevin Walsh", "Maria Santos", "Tyler Reed", "Rachel Kim", "Brandon Lee", "Olivia Grant", "Marcus Hall", "Emily Turner", "Jordan Price"],
@@ -258,7 +258,7 @@ window.VX_CONSOLE = {
 <script src="work.js?v=2" defer></script>
 <script src="re.js?v=2" defer></script>
 <script src="tour.js?v=2" defer></script>
-<script src="reviews.js?v=2" defer></script>
+<script src="reviews.js?v=3" defer></script>
 <script src="chatbot.js?v=8" defer></script>
 <script src="/book-widget.js?v=3" defer></script>
 </body>
