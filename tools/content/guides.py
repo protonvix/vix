@@ -442,3 +442,230 @@ GUIDES = [
  "related": ["gohighlevel-expert", "gohighlevel-vs-follow-up-boss", "gohighlevel-virtual-assistant"],
 },
 ]
+
+GUIDES += [
+# ------------------------------------------------------------------ lead follow-up guide
+{
+ "slug": "real-estate-lead-follow-up",
+ "title": "How to Follow Up With Real Estate Leads: A Simple System That Works · Vix Assist",
+ "desc": "How to follow up with real estate leads: what to send in the first five minutes, the first week and the next twelve months, with a lead nurture sequence you can automate in GoHighLevel.",
+ "eyebrow": "Real estate lead follow-up",
+ "h1": "How to follow up with real estate leads <em>until they're ready.</em>",
+ "lead": "Most real estate leads aren't ready to move today. The agent who wins them is the one who's still in touch, helpfully, when they are. Here's a follow-up system you can run by hand or automate.",
+ "body": """
+<h2>The first five minutes</h2>
+<ul>
+<li>Reply by text and email straight away with one easy question ("Is it the 3-bed on Oak Street you'd like to see, or are you still browsing?").</li>
+<li>Call if you can. If they don't answer, leave a short voicemail and send a text saying you called.</li>
+<li>Offer a booking link so ready leads can pick a showing or viewing time themselves.</li>
+</ul>
+<p>Speed matters more than polish here. See <a href="speed-to-lead">speed to lead</a> for why.</p>
+<h2>The first week</h2>
+<ul>
+<li><b>Day 1:</b> a second text later the same day if there's no reply.</li>
+<li><b>Day 2:</b> a call, then a helpful email (similar homes, area guide, next steps).</li>
+<li><b>Day 4:</b> a short check-in text.</li>
+<li><b>Day 7:</b> a "should I keep sending you homes?" message. It's honest and gets surprisingly many replies.</li>
+</ul>
+<h2>The next twelve months: the nurture sequence</h2>
+<p>Leads who go quiet aren't lost; they're early. Keep in touch with something useful roughly every two to four weeks:</p>
+<ul>
+<li>New listings that match what they asked for.</li>
+<li>A monthly market update for their area.</li>
+<li>Buying or selling tips at the right moment (mortgage rates, school terms, seasonal timing).</li>
+<li>A personal check-in every couple of months, from you, not a template.</li>
+</ul>
+<h2>Rules that keep follow-up from feeling like spam</h2>
+<ul>
+<li>Stop automated messages the moment someone replies, and let a human take over.</li>
+<li>Keep texts short and personal. No links in the very first text.</li>
+<li>Always make it easy to opt out, and respect quiet hours.</li>
+<li>Follow local rules: A2P 10DLC and consent in the US, PECR and UK GDPR in the UK.</li>
+</ul>
+<h2>Automating it in GoHighLevel</h2>
+<p>Every step above can run as a GoHighLevel workflow, with tasks for the calls only a person should make. See <a href="gohighlevel-workflows">GoHighLevel workflows</a>, or """ + BOOK + """ and I'll build it for your team.</p>
+""",
+ "faq": [
+  ("How many times should you follow up with a real estate lead?", "Far more than most agents do. Several touches in the first week, then useful contact every few weeks for months. Many leads only become active long after their first enquiry."),
+  ("What should I text a new real estate lead?", "Something short and personal with one easy question, for example: \"Hi Sam, it's Alex from Harbor Realty. Is it the 3-bed on Oak Street you'd like to see, or are you still browsing?\""),
+  ("When should I stop following up with a lead?", "When they ask you to stop, buy elsewhere, or clearly aren't moving. Otherwise move them to long-term nurture rather than deleting them."),
+ ],
+ "related": ["speed-to-lead", "database-reactivation", "gohighlevel-workflows"],
+},
+# ------------------------------------------------------------------ best CRM
+{
+ "slug": "best-crm-for-real-estate-teams",
+ "title": "Best CRM for Real Estate Teams and Brokerages: How to Choose (2026) · Vix Assist",
+ "desc": "How to choose the best CRM for a real estate team or brokerage: what matters most, the main options (Follow Up Boss, BoldTrail, Lofty, GoHighLevel and UK agency software) and when to combine tools.",
+ "eyebrow": "Best CRM for real estate teams",
+ "h1": "The best CRM for your real estate team <em>is the one agents actually use.</em>",
+ "lead": "There's no single best real estate CRM. There's the one that fits how your team gets leads, follows up and keeps past clients. Here's how to choose without wasting months on the wrong one.",
+ "body": """
+<h2>What actually matters</h2>
+<ul>
+<li><b>Lead routing:</b> new leads reach the right agent instantly, with a backup if they don't respond.</li>
+<li><b>Speed to lead automation:</b> an instant reply by text and email, before anyone picks up the phone.</li>
+<li><b>Long-term nurture:</b> follow-up that runs for months without agents remembering to do it.</li>
+<li><b>Past client marketing:</b> check-ins, anniversaries and review and referral requests.</li>
+<li><b>Agent adoption:</b> a simple mobile app agents will really open.</li>
+<li><b>Reporting:</b> which lead sources and agents turn into closings.</li>
+<li><b>Cost as you grow:</b> per-user pricing versus account-based pricing.</li>
+</ul>
+<h2>The main options</h2>
+<ul>
+<li><b>Follow Up Boss:</b> a real estate CRM known for lead routing, agent accountability and many lead source integrations.</li>
+<li><b>BoldTrail (formerly kvCORE):</b> CRM plus IDX websites and marketing, popular with brokerages.</li>
+<li><b>Lofty (formerly Chime):</b> CRM, IDX websites and AI tools in one platform.</li>
+<li><b>GoHighLevel:</b> an all-in-one platform (CRM, workflows, websites, booking, reviews, AI) that isn't real estate specific, so it needs a proper setup, but it's very flexible.</li>
+<li><b>UK agency software</b> (for example Reapit, Alto or Street): property and agency management for UK estate and letting agents, often paired with a separate tool for marketing and follow-up.</li>
+</ul>
+<p>Features and pricing change often, so check each provider for current details.</p>
+<h2>Why many teams combine tools</h2>
+<p>A common setup is a real estate CRM or agency system for agents and transactions, plus GoHighLevel for speed to lead, nurture, past client retention and reviews. It works well as long as the connection is clean and nobody gets messaged twice. See <a href="gohighlevel-vs-follow-up-boss">GoHighLevel vs Follow Up Boss</a>.</p>
+<h2>A quick way to decide</h2>
+<ol>
+<li>Write down where your leads come from and how many a month.</li>
+<li>Time how long your team takes to reply today.</li>
+<li>List what happens to a lead who isn't ready for six months.</li>
+<li>List what happens to a client after closing or completion.</li>
+</ol>
+<p>The gaps in your answers show what your CRM needs to do. For a free, honest review of your current setup, """ + BOOK + """.</p>
+""",
+ "faq": [
+  ("What is the best CRM for a real estate team?", "It depends on how your team works. Follow Up Boss, BoldTrail and Lofty are built for real estate; GoHighLevel is more flexible and covers marketing, booking and reviews. Many teams use a real estate CRM with GoHighLevel for follow-up."),
+  ("Is GoHighLevel a good CRM for real estate brokers?", "Yes, when it's set up for real estate: pipelines for buyers, sellers and past clients, instant replies, nurture and review requests. Out of the box it's generic."),
+  ("What CRM do UK estate agents use?", "Many use agency software such as Reapit, Alto or Street for listings and transactions, and add a marketing and follow-up tool such as GoHighLevel for fast replies and past client marketing."),
+ ],
+ "related": ["gohighlevel-vs-follow-up-boss", "gohighlevel-for-real-estate", "gohighlevel-cost"],
+},
+# ------------------------------------------------------------------ Zillow leads
+{
+ "slug": "zillow-lead-conversion",
+ "title": "Zillow Leads Not Converting? How to Convert Zillow Leads Into Clients · Vix Assist",
+ "desc": "Why Zillow leads often don't convert and how to fix it: instant response, the right first message, booking tours fast and long-term follow-up, automated with GoHighLevel.",
+ "eyebrow": "Zillow lead conversion",
+ "h1": "Zillow leads not converting? <em>It's usually the follow-up.</em>",
+ "lead": "Zillow leads are real people, but many are early in their search and talking to several agents at once. The agents who convert them respond fastest, ask the right first question, and keep following up after everyone else has stopped.",
+ "body": """
+<h2>Why Zillow leads feel hard to convert</h2>
+<ul>
+<li><b>Timing:</b> many are browsing months before they're ready to buy.</li>
+<li><b>Competition:</b> they may contact more than one agent; the first helpful reply often wins.</li>
+<li><b>Expectations:</b> they asked about one home, not about "working with an agent".</li>
+<li><b>Slow or generic replies:</b> a template that ignores the home they asked about gets ignored.</li>
+</ul>
+<h2>What to do in the first hour</h2>
+<ol>
+<li>Reply within minutes, by text and call, about the <b>exact home</b> they asked about.</li>
+<li>Ask one easy question: "Would you like to see it this week, or are you still exploring the area?"</li>
+<li>Offer two tour times or a booking link.</li>
+<li>If the home is gone, say so and offer two similar ones. Honesty builds trust fast.</li>
+</ol>
+<h2>What to do after that</h2>
+<ul>
+<li>Follow up several times in the first week, then move to long-term nurture with matching listings and market updates.</li>
+<li>Tag the lead source so you can see how many Zillow leads actually close, and how long they take.</li>
+<li>Review lost leads monthly: was it speed, the first message, or follow-up that dropped off?</li>
+</ul>
+<h2>Automating Zillow follow-up with GoHighLevel</h2>
+<p>Zillow leads can be routed into GoHighLevel (usually by email parsing or an integration), so each one triggers an instant personal text, a call task and a booking link, then a nurture sequence if they're not ready. If you use Follow Up Boss for routing, GoHighLevel can run alongside it. Zillow's own programs, rules and integrations change, so check what applies to your account.</p>
+<p>See the <a href="real-estate-lead-follow-up">real estate lead follow-up guide</a>, or """ + BOOK + """ and I'll look at your Zillow funnel with you.</p>
+""",
+ "faq": [
+  ("Why are my Zillow leads not converting?", "Usually slow replies, a generic first message, or follow-up that stops after a few days. Many Zillow leads are early in their search and convert months later with consistent, helpful contact."),
+  ("How fast should I respond to a Zillow lead?", "Within minutes, about the exact home they asked about, with a simple question and an easy way to book a tour."),
+  ("Can I automate Zillow lead follow-up?", "Yes. Leads can be routed into a CRM such as GoHighLevel to trigger an instant text, a call task, a booking link and a long-term nurture sequence."),
+ ],
+ "related": ["real-estate-lead-follow-up", "speed-to-lead", "best-crm-for-real-estate-teams"],
+},
+# ------------------------------------------------------------------ referral system
+{
+ "slug": "real-estate-referral-system",
+ "title": "Real Estate Referral System: How to Automate Referral Requests · Vix Assist",
+ "desc": "How to build a real estate referral system that asks past clients for referrals at the right moments, automated in GoHighLevel, without feeling pushy.",
+ "eyebrow": "Real estate referral system",
+ "h1": "A referral system that asks <em>at the right moment.</em>",
+ "lead": "Most agents agree referrals are their best business, and most never ask in a consistent way. A referral system makes the ask automatic, well timed and easy to say yes to.",
+ "body": """
+<h2>When to ask</h2>
+<ul>
+<li><b>Right after a great moment:</b> an accepted offer, keys handed over, or a thank-you message from the client.</li>
+<li><b>After a review:</b> someone who has just written a five-star review is already in the mood to recommend you.</li>
+<li><b>On anniversaries:</b> the one-year home anniversary is a natural, friendly time to check in.</li>
+<li><b>When their friends are likely moving:</b> spring market, new school year, end of a lease.</li>
+</ul>
+<h2>How to ask so it doesn't feel pushy</h2>
+<ul>
+<li>Be specific: "If you know anyone thinking of selling this year, I'd love to help them the way I helped you."</li>
+<li>Make it easy: a link or a simple reply ("just reply with their name and I'll take it from there").</li>
+<li>Thank every referral, whether or not it turns into a sale.</li>
+<li>Check local rules on referral gifts or fees before offering anything.</li>
+</ul>
+<h2>The automated referral system in GoHighLevel</h2>
+<ol>
+<li><b>Closing or completion:</b> the opportunity moves to "Closed", which starts the past client journey.</li>
+<li><b>Week 1:</b> thank-you message and review request.</li>
+<li><b>Week 3:</b> a friendly referral ask, from you.</li>
+<li><b>Every few months:</b> useful check-ins (home value update, local news).</li>
+<li><b>Anniversary:</b> a personal message, a review reminder if they haven't left one, and a gentle referral ask.</li>
+<li><b>Referral received:</b> the new lead gets an instant reply, and the referrer gets an automatic thank-you plus a task for you to call them.</li>
+</ol>
+<p>See <a href="past-client-retention-real-estate">past client retention</a>, or """ + BOOK + """ to get this set up.</p>
+""",
+ "faq": [
+  ("How do I ask past clients for referrals?", "At a happy moment (closing, a review, a home anniversary), with a specific, easy ask and a simple way to reply. Then thank them every time."),
+  ("Can referral requests be automated?", "Yes. A CRM such as GoHighLevel can send review and referral requests at set times after closing, and thank referrers automatically, while you make the personal calls."),
+  ("Can I give a gift for a real estate referral?", "Rules differ by state and country, and some places restrict referral fees or gifts. Check your local regulations and brokerage policy first."),
+ ],
+ "related": ["past-client-retention-real-estate", "gohighlevel-workflows", "gohighlevel-for-real-estate"],
+},
+# ------------------------------------------------------------------ past client retention
+{
+ "slug": "past-client-retention-real-estate",
+ "title": "Past Client Marketing: How to Keep Real Estate Clients Coming Back · Vix Assist",
+ "desc": "Past client marketing for real estate agents and estate agents: how to stay in touch after closing so clients come back and refer you, not your competitors, automated with GoHighLevel.",
+ "eyebrow": "Past client retention",
+ "h1": "Keep past clients coming back, <em>not going to competitors.</em>",
+ "lead": "Your past clients already trust you. Yet many will use a different agent next time, simply because nobody stayed in touch. Past client marketing fixes that, and it's the cheapest growth most agents ignore.",
+ "body": """
+<h2>Why past clients drift away</h2>
+<ul>
+<li>Contact stops the day after closing or completion.</li>
+<li>Generic newsletters get ignored or unsubscribed.</li>
+<li>Years later, they can't remember your name, but they remember the agent who sent them a home value update last month.</li>
+</ul>
+<h2>A past client plan that works</h2>
+<ul>
+<li><b>Right after closing:</b> thank you, review request, and helpful moving-in tips.</li>
+<li><b>Every one to two months:</b> something genuinely useful: an estimate of their home's value, local market news, maintenance reminders, a trusted tradesperson list.</li>
+<li><b>Home anniversary:</b> a personal message (and a small, permitted gesture if you like).</li>
+<li><b>Personal moments:</b> birthdays, a new baby, kids starting school, where they've shared them.</li>
+<li><b>Twice a year:</b> a personal call or voice note. Automation reminds you; you make the call.</li>
+<li><b>Regular referral asks</b> at the right moments (see <a href="real-estate-referral-system">referral system</a>).</li>
+</ul>
+<h2>Signs a past client might move again</h2>
+<ul>
+<li>They click on home value updates or listings in their area.</li>
+<li>They've been in the home for several years and their family has changed.</li>
+<li>They reply to check-ins with questions about the market.</li>
+</ul>
+<p>GoHighLevel can tag these signals and create a task for you to reach out personally, at exactly the right time.</p>
+<h2>Setting it up in GoHighLevel</h2>
+<p>A dedicated Past client pipeline, a nurture workflow with useful content, anniversary and birthday automations, review and referral requests, and alerts when someone shows interest. It's the core of what Vix Assist builds for agents: more repeat business and referrals from clients you've already earned. To see what it would look like for your database, """ + BOOK + """.</p>
+""",
+ "faq": [
+  ("What is past client marketing in real estate?", "Staying in useful, regular contact with people you've helped buy, sell or let, so they come back to you and refer friends instead of choosing another agent."),
+  ("How often should I contact past clients?", "Something useful every one to two months, plus personal moments like home anniversaries, and a personal call or voice note a couple of times a year."),
+  ("Can past client marketing be automated?", "Most of it can, with a CRM such as GoHighLevel: useful updates, anniversary messages, review and referral requests, and alerts for when to call personally."),
+ ],
+ "related": ["real-estate-referral-system", "gohighlevel-for-real-estate", "real-estate-lead-follow-up"],
+},
+]
+
+# Link the new guides from closely related existing ones (internal linking helps search engines).
+_extra = {"speed-to-lead": "real-estate-lead-follow-up", "gohighlevel-vs-follow-up-boss": "best-crm-for-real-estate-teams",
+          "gohighlevel-for-real-estate": "past-client-retention-real-estate", "database-reactivation": "zillow-lead-conversion",
+          "gohighlevel-workflows": "real-estate-referral-system"}
+for _g in GUIDES:
+    if _g["slug"] in _extra and _extra[_g["slug"]] not in _g["related"]:
+        _g["related"] = _g["related"] + [_extra[_g["slug"]]]
