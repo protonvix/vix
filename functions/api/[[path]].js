@@ -1360,11 +1360,13 @@ async function adminGoogleDisconnect(env) { await env.PORTAL.delete("google:oaut
    (or when the owner confirms it), never from an email address typed into a form. */
 const REVIEW_EXPERIENCES = {
   call: "Strategy call", ghl: "GoHighLevel setup", automation: "Follow-up automation", website: "Website design",
-  support: "Ongoing support", onboarding: "Onboarding and payments", other: "Other",
+  delivery: "Project delivery", support: "Ongoing support", onboarding: "Onboarding and payments",
+  site: "This website (design and ease of use)", other: "Other",
 };
 const publicReview = (r) => ({
   id: r.id, at: r.at, name: r.name, business: r.business, rating: r.rating, experience: r.experience,
   experienceLabel: REVIEW_EXPERIENCES[r.experience] || "Other", title: r.title, text: r.text, verified: !!r.verified,
+  about: r.delivery ? r.delivery.title : "",
   reply: r.reply || null, comments: (r.comments || []).filter((c) => c.status === "approved").map((c) => ({ id: c.id, at: c.at, name: c.name, text: c.text, owner: !!c.owner, verified: !!c.verified })),
 });
 async function reviewRate(env, req, what, max) {
@@ -1395,6 +1397,20 @@ async function reviewCreate(env, req) {
     title: clean(b.title, 120), text: clean(b.text, 3000),
     verified: !!client, clientId: client ? client.id : "", comments: [], read: false,
   };
+  // A review of a specific delivery, written from the client dashboard.
+  let pj = null;
+  if (client && b.projectId) {
+    const pid = clean(b.projectId, 60);
+    if (!(client.projectIds || []).includes(pid)) return fail(403, "That project is not on your account.");
+    pj = await get(env, "project:" + pid);
+    if (!pj) return fail(404, "Project not found.");
+    const did = clean(b.deliverableId, 40);
+    const d = did ? (pj.deliverables || []).find((x) => x.id === did) : null;
+    if (did && !d) return fail(404, "That delivery could not be found.");
+    if (pj.reviews && pj.reviews[did || "project"]) return fail(409, "You've already reviewed this " + (did ? "delivery" : "project") + ". Thank you!");
+    r.delivery = { projectId: pj.id, deliverableId: did, title: d ? d.title : pj.title };
+    if (!REVIEW_EXPERIENCES[b.experience]) r.experience = d ? "delivery" : ({ website: "website", ghl: "ghl" }[pj.type] || "other");
+  }
   if (!r.name) return fail(400, "Please add your name.");
   if (!(rating >= 1 && rating <= 5)) return fail(400, "Please choose a star rating.");
   if (r.text.length < 10) return fail(400, "Please tell us a little more about your experience.");
@@ -1404,13 +1420,14 @@ async function reviewCreate(env, req) {
   }
   await put(env, "review:" + r.id, r);
   const idx = (await get(env, "reviews:index")) || []; idx.push(r.id); await put(env, "reviews:index", idx.slice(-1000));
+  if (pj) { pj.reviews = Object.assign({}, pj.reviews, { [r.delivery.deliverableId || "project"]: r.id }); await put(env, "project:" + pj.id, pj); }
   await sendEmail(env, {
     subject: "⭐ New review to approve: " + rating + "/5 from " + r.name,
     replyTo: r.email,
-    text: (r.title ? r.title + "\n\n" : "") + r.text + "\n\n— — —\n" + r.name + (r.business ? " (" + r.business + ")" : "") + " · " + (REVIEW_EXPERIENCES[r.experience]) + (r.verified ? " · Verified client (logged in)" : r.hint ? " · " + r.hint : "") +
+    text: (r.title ? r.title + "\n\n" : "") + r.text + "\n\n— — —\n" + r.name + (r.business ? " (" + r.business + ")" : "") + " · " + (REVIEW_EXPERIENCES[r.experience]) + (r.delivery ? " · about: " + r.delivery.title : "") + (r.verified ? " · Verified client (logged in)" : r.hint ? " · " + r.hint : "") +
       "\nIt is not public yet. Approve, reply or hide it in Admin → Reviews: https://vixassist.com/portal/admin/",
   }).catch(() => {});
-  return json({ ok: true, verified: r.verified });
+  return json({ ok: true, verified: r.verified, id: r.id });
 }
 async function reviewComment(env, req) {
   const b = await req.json().catch(() => null);

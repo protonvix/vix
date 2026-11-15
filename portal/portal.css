@@ -272,3 +272,23 @@ details.box>div{padding:0 0 16px;display:grid;gap:12px}
 /* light theme surfaces */
 .card,.panel,.box{background:#FFFFFF}
 input,select,textarea{background:#F6F5F1!important;border-color:var(--line)!important;color:var(--ink)!important}
+
+/* ---------- Reviews from the dashboard ---------- */
+.rv-act{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:-4px 2px 4px;font-size:13px}
+.rv-act button{border:0;background:none;color:#1F5A45;font-weight:600;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;padding:4px 0}
+.rv-act .done{color:var(--soft);display:inline-flex;align-items:center;gap:6px}
+.rv-modal{position:fixed;inset:0;z-index:80;background:rgba(17,17,19,.45);display:grid;place-items:center;padding:16px}
+.rv-modal[hidden]{display:none}
+.rv-box{width:min(520px,100%);max-height:calc(100vh - 32px);overflow:auto;background:#fff;border-radius:22px;padding:24px;display:grid;gap:14px;box-shadow:0 30px 80px -30px rgba(0,0,0,.4)}
+.rv-box h2{margin:0;font-size:20px}
+.rv-box .x{justify-self:end;border:0;background:none;font-size:22px;cursor:pointer;margin:-8px -8px -16px 0;color:var(--soft)}
+.rv-box label{display:grid;gap:6px;font-size:13px;font-weight:600}
+.rv-box input,.rv-box textarea{width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--line);font:inherit;font-size:16px;background:#F6F5F1}
+.rv-stars{display:flex;gap:4px;align-items:center;flex-wrap:wrap}
+.rv-stars button{border:0;background:none;font-size:30px;line-height:1;cursor:pointer;color:#D9D5CB;padding:2px}
+.rv-stars button.on{color:#C98A00}
+.rv-stars span{margin-left:8px;font-size:13px;color:var(--soft);font-weight:500}
+.rv-ok{text-align:center;padding:12px 0}
+.rv-ok i{font-size:40px;color:#1F8A5B}
+.rv-ok b{display:block;font-size:18px;margin:8px 0 4px}
+.rv-cta{display:flex;gap:10px;flex-wrap:wrap}

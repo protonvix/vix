@@ -730,3 +730,11 @@ a.ex{transition:border-color .3s var(--ease)}a.ex:hover{border-color:var(--ink)}
 @media (max-width:900px){.rvw-top{grid-template-columns:1fr;gap:28px}.rvw-grid{grid-template-columns:1fr}}
 @media (max-width:520px){.rvw-card{padding:18px}.rvw-card header{flex-wrap:wrap}.rvw-card .rvw-stars{margin-left:52px}.rvw-write,.rvw-sum{padding:20px}}
 .rvw-write[hidden],.rvw-cform[hidden],.rvw-vnote[hidden],.rvw-filter[hidden],.rvw-cbtn[hidden],.rvw-email[hidden]{display:none}
+.rvw-site{margin-top:24px;display:flex;gap:14px;align-items:flex-start;padding:20px;border-radius:20px;background:var(--tint);border:1px solid #cfe0d6}
+.rvw-site>i{font-size:26px;color:var(--brand);flex:none}
+.rvw-site b{color:var(--ink)}
+.rvw-site p{margin:4px 0 12px;font-size:14px;line-height:22px;color:var(--body)}
+.fb-tab{position:fixed;right:0;top:50%;z-index:40;transform:translateY(-50%) rotate(180deg);writing-mode:vertical-rl;background:var(--ink);color:#fff;padding:14px 9px;border-radius:0 12px 12px 0;font-size:13px;font-weight:600;letter-spacing:.02em;text-decoration:none;display:flex;align-items:center;gap:8px;box-shadow:0 10px 30px -12px rgba(0,0,0,.5);transition:background .3s}
+.fb-tab:hover{background:var(--brand)}
+.fb-tab i{transform:rotate(90deg)}
+@media (max-width:900px){.fb-tab{display:none}}
