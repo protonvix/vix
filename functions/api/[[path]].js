@@ -862,6 +862,12 @@ async function adminFeed(env) {
     if (r.status === "pending") items.push({ kind: "review", id: r.id, at: r.at, unread: !r.read, title: "Review to approve: " + "★".repeat(r.rating) + " from " + r.name, sub: (r.title || r.text).slice(0, 140) + " · approve in Reviews" });
     for (const c of r.comments || []) if (c.status === "pending") items.push({ kind: "review", id: r.id, at: c.at, unread: !c.read, title: "Comment to approve from " + c.name, sub: c.text.slice(0, 140) + " · on " + r.name + "'s review" });
   }
+  for (const id of ((await get(env, "assist:index")) || []).slice(-60)) {
+    const a = await get(env, "assist:" + id); if (!a) continue;
+    items.push({ kind: "assist", id: a.id, at: a.at, unread: !a.read, clientId: a.clientId,
+      title: (a.escalated ? "Needs your help: " : a.upsell ? "Upgrade interest: " : "Next step: ") + a.client + (a.project ? " (" + a.project + ")" : ""),
+      sub: [a.escalated ? a.summary : "", a.upsell, a.nextSteps ? "Next step: " + a.nextSteps : "", "Asked: \"" + a.question + "\""].filter(Boolean).join(" · ") });
+  }
   items.sort((a, b) => String(b.at).localeCompare(String(a.at)));
   return json({ items: items.slice(0, 80), unread: items.filter((i) => i.unread).length });
 }
@@ -873,6 +879,10 @@ async function adminFeedSeen(env, req) {
   if (b.kind === "overdue") seen["od:" + clean(b.id, 50)] = 1;
   if (b.kind === "brief" || b.kind === "offer" || b.kind === "founding") { const it = await get(env, "brief:" + clean(b.id, 40)); if (it) { it.read = true; await put(env, "brief:" + it.id, it); } }
   if (b.kind === "call") { const k = await get(env, "booking:" + clean(b.id, 40)); if (k) { k.read = true; await put(env, "booking:" + k.id, k); } }
+  if (b.kind === "assist" || b.all) {
+    const ids = b.kind === "assist" && b.id ? [clean(b.id, 40)] : ((await get(env, "assist:index")) || []);
+    for (const id of ids) { const a = await get(env, "assist:" + id); if (a && !a.read) { a.read = true; await put(env, "assist:" + id, a, 90 * 86400); } }
+  }
   if (b.kind === "review" || b.all) {
     const ids = b.kind === "review" && b.id ? [clean(b.id, 40)] : ((await get(env, "reviews:index")) || []);
     for (const id of ids) {
@@ -1461,6 +1471,142 @@ async function chatAI(env, req) {
   } finally { clearTimeout(timer); }
 }
 
+/* ---------------- AI assistant inside the client dashboard ----------------
+   Same Claude setup as /api/chat, plus the logged-in client's own account details.
+   Replies are structured: the dashboard turns "actions" into buttons, "escalate" sends the
+   issue to the owner (project Messages + email + phone alert), and upgrade interest and
+   next steps are logged for the owner in Admin → Notifications. */
+const PORTAL_GUIDE = `YOU ARE NOW THE ASSISTANT INSIDE A CLIENT'S PRIVATE VIX ASSIST DASHBOARD (vixassist.com/portal). The person is an existing client (or their staff). Their live account details are given at the end, in ACCOUNT. Use them to answer specifically ("Your website is at the Build stage", "Your next payment is $200 due 3 Dec").
+
+THE DASHBOARD (what is where):
+- Top: a payment bar appears only when a payment is due, overdue or being confirmed, with a Pay now button.
+- Overview card: progress ring (percent complete), current status, start date, expected date, and the stages of the project (for example Brief received, Design, Build, Your review, Launched for websites; Discovery, Blueprint, Build & test, Launch & training, Live & optimising for GoHighLevel).
+- Your deliveries: files and links as they're ready, the live website and preview links. Finished work is locked until paid in full. Each delivery has "Review this delivery".
+- Your payments: payment plan, amounts paid, what's left, schedule, and Pay now.
+- Your growth: numbers like visitors, enquiries, leads and appointments once the system is live.
+- Project updates: everything the team has posted, newest first.
+- Messages: chat directly with the Vix Assist team; a real person replies, usually within one business day.
+- How are we doing: Review this project, Rate our website, Read reviews.
+- Need anything: WhatsApp UK, WhatsApp Nigeria, email. Several projects show as tabs at the top.
+
+HOW TO HELP
+- Answer the question first, using ACCOUNT details when relevant. Never invent project facts, dates or amounts that aren't in ACCOUNT; if something isn't there, say the team will confirm and offer to send it to them.
+- Navigation: when they need to go somewhere, add the matching action button (see "actions").
+- Problems, complaints, change requests, bugs, access issues, refunds, anything you can't resolve or anything that needs a human decision: set escalate to true and write a clear escalate_summary for the team (what they need, in one or two sentences). Tell them you've sent it to the team and that they'll see the reply in Messages.
+- Updates: if they ask what's new or what happens next, summarise the latest updates and the next step (from ACCOUNT: stage, status, next payment, new deliveries).
+- Upgrades: when it genuinely fits their situation and after answering their question, you may suggest one relevant upgrade, briefly and without pressure, at most once per conversation. Good fits: website project -> GoHighLevel follow-up so the new site's leads are answered instantly (Lead Response $300/month); one-off GoHighLevel build -> a monthly plan so it keeps improving (Growth $550/month adds nurture, old lead revival, reviews and referrals); Lead Response -> Growth; teams with several agents -> Brokerage $950/month; anyone -> database reactivation, review and referral system, or AI Employee. If they show interest, set upsell_interest to a short note (for example "Interested in Growth plan for nurture"), add a book_call or messages action, and say the team will follow up. Never invent discounts.
+- next_steps: one short line for the team summarising what this client needs next, or "" if nothing new.
+
+OUTPUT: reply (plain text, 1 to 5 short sentences, links as plain addresses), actions (0 to 3 buttons, each with a type and a short label like "Go to payments"), escalate, escalate_summary ("" if not escalating), upsell_interest ("" if none), next_steps ("" if none).
+Action types: progress (overview), deliveries, payments, pay_now (only if a payment is due), updates, messages, review_project, rate_website, book_call, whatsapp, pricing, guides.`;
+const ASSIST_SCHEMA = {
+  type: "object", additionalProperties: false,
+  required: ["reply", "actions", "escalate", "escalate_summary", "upsell_interest", "next_steps"],
+  properties: {
+    reply: { type: "string" },
+    actions: { type: "array", items: { type: "object", additionalProperties: false, required: ["type", "label"], properties: {
+      type: { type: "string", enum: ["progress", "deliveries", "payments", "pay_now", "updates", "messages", "review_project", "rate_website", "book_call", "whatsapp", "pricing", "guides"] },
+      label: { type: "string" } } } },
+    escalate: { type: "boolean" }, escalate_summary: { type: "string" }, upsell_interest: { type: "string" }, next_steps: { type: "string" },
+  },
+};
+function accountContext(c, projects) {
+  const fmt = (n, cur) => fmtMoney(n, cur);
+  const lines = [`ACCOUNT (today is ${new Date().toISOString().slice(0, 10)})`, `Client: ${c.name}${c.business ? ", " + c.business : ""}. Client since ${String(c.createdAt).slice(0, 10)}.`];
+  for (const p of projects) {
+    const stages = p.stages || STAGES[p.type] || STAGES.other;
+    lines.push(`\nPROJECT "${p.title}" (${p.type === "ghl" ? "GoHighLevel" : p.type}): stage ${(p.stage || 0) + 1} of ${stages.length} "${stages[p.stage || 0]}", ${p.progress || 0}% complete. Status: ${p.status || "n/a"}.${p.eta ? " Expected: " + p.eta + "." : ""}${p.liveUrl ? " Live site: " + p.liveUrl + "." : ""}${p.liveLocked ? " Live site ready but locked until paid in full." : ""}`);
+    const ups = (p.updates || []).slice(-5).reverse().map((u) => `- ${String(u.at).slice(0, 10)}: ${u.text}`);
+    if (ups.length) lines.push("Latest updates:\n" + ups.join("\n"));
+    const ds = (p.deliverables || []).map((d) => `- ${d.title}${d.locked ? " (locked until paid)" : ""}${d.isNew ? " (new)" : ""}${p.reviews && p.reviews[d.id] ? " (reviewed)" : ""}`);
+    lines.push(ds.length ? "Deliveries:\n" + ds.join("\n") : "Deliveries: none yet.");
+    const bl = p.billing;
+    if (bl) lines.push(`Payments: ${bl.label}. Paid ${fmt(bl.paid, bl.currency)} of ${fmt(bl.total, bl.currency)}.` + (bl.next ? ` Next payment ${fmt(bl.next.amount, bl.currency)}, due ${bl.next.due === "now" ? "now" : bl.next.due === "delivery" ? "on delivery" : bl.next.due} (${bl.next.state}${bl.next.claimed ? ", bank transfer being confirmed" : ""}).` : " Fully paid."));
+    else if (p.amount) lines.push(`Payments: paid ${fmt(p.amount, p.currency)}.`);
+    lines.push(`Unread messages from the team: ${p.unreadClient || 0}. Project reviewed: ${p.reviews && p.reviews.project ? "yes" : "no"}.`);
+  }
+  if (!projects.length) lines.push("No projects yet: their project will appear shortly.");
+  return lines.join("\n");
+}
+async function portalAssistant(env, req) {
+  const c = await clientFromSession(env, req);
+  if (!c) return fail(401, "Please log in.");
+  if (!env.ANTHROPIC_API_KEY) return json({ error: "The assistant isn't switched on yet.", fallback: true }, 503);
+  const b = await req.json().catch(() => null);
+  const msgs = [];
+  for (const m of (b && Array.isArray(b.messages) ? b.messages : []).slice(-12)) {
+    const role = m && m.role === "assistant" ? "assistant" : "user", text = clean(m && m.content, 1500);
+    if (!text) continue;
+    if (msgs.length && msgs[msgs.length - 1].role === role) msgs[msgs.length - 1].content += "\n" + text; else msgs.push({ role, content: text });
+  }
+  while (msgs.length && msgs[0].role !== "user") msgs.shift();
+  if (!msgs.length || msgs[msgs.length - 1].role !== "user") return fail(400, "Please type a question.");
+  const rk = "assistrate:" + c.id, n = +(await env.PORTAL.get(rk)) || 0;
+  if (n >= 60) return json({ error: "You've asked a lot in the last hour. Please message the team in Messages.", fallback: true }, 429);
+  await env.PORTAL.put(rk, String(n + 1), { expirationTtl: 3600 });
+  const raw = await loadProjects(env, c), projects = [];
+  for (const pj of raw) {
+    const q = pj.payreqId && (await get(env, "payreq:" + pj.payreqId));
+    const bill = q ? await billingFor(env, q, raw.filter((x) => x.payreqId === pj.payreqId)) : null;
+    projects.push({ ...withStages(lockProject(pj, bill)), billing: bill });
+  }
+  const current = projects.find((p) => p.id === clean(b.projectId, 60)) || projects[0];
+  const ctrl = new AbortController(); const timer = setTimeout(() => ctrl.abort(), 40000);
+  let out;
+  try {
+    const r = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST", signal: ctrl.signal,
+      headers: { "content-type": "application/json", "x-api-key": env.ANTHROPIC_API_KEY, "anthropic-version": "2026-10-21", "anthropic-beta": "server-side-fallback-2026-07-01" },
+      body: JSON.stringify({
+        model: CHAT_MODEL, max_tokens: 6000,
+        output_config: { effort: "low", format: { type: "json_schema", schema: ASSIST_SCHEMA } },
+        fallbacks: "default",
+        system: [
+          { type: "text", text: CHAT_KNOWLEDGE },
+          { type: "text", text: PORTAL_GUIDE, cache_control: { type: "ephemeral" } },
+          { type: "text", text: accountContext(c, projects) + (current ? `\n\nThe client is currently viewing the project "${current.title}".` : "") },
+        ],
+        messages: msgs,
+      }),
+    });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok) return json({ error: "The assistant is busy right now.", fallback: true }, 502);
+    if (d.stop_reason === "refusal") return json({ reply: "I can't help with that here, but the team can. Send it in Messages and a person will reply.", actions: [{ type: "messages", label: "Open Messages" }] });
+    const text = (d.content || []).filter((x) => x.type === "text").map((x) => x.text).join("");
+    out = JSON.parse(text);
+  } catch (e) {
+    return json({ error: "The assistant is busy right now.", fallback: true }, 502);
+  } finally { clearTimeout(timer); }
+  const ALLOWED = new Set(ASSIST_SCHEMA.properties.actions.items.properties.type.enum);
+  const actions = (Array.isArray(out.actions) ? out.actions : []).filter((a) => a && ALLOWED.has(a.type)).slice(0, 3).map((a) => ({ type: a.type, label: clean(a.label, 40) || "Open" }));
+  const reply = clean(out.reply, 2000) || "Sorry, I didn't catch that. Could you ask again?";
+  const question = msgs[msgs.length - 1].content;
+  let escalated = false;
+  // Send real issues to the owner: into the project's Messages, plus email/phone alert.
+  if (out.escalate && current) {
+    const summary = clean(out.escalate_summary, 600) || clean(question, 600);
+    const pj = await get(env, "project:" + current.id);
+    if (pj && pj.clientId === c.id) {
+      pj.messages = (pj.messages || []).concat({ at: now(), from: "client", text: "🤖 Sent by the dashboard assistant: " + summary + "\n\nClient asked: \"" + clean(question, 500) + "\"" }).slice(-200);
+      pj.unreadAdmin = (pj.unreadAdmin || 0) + 1;
+      await put(env, "project:" + pj.id, pj);
+      escalated = true;
+    }
+  }
+  const upsell = clean(out.upsell_interest, 300), nextSteps = clean(out.next_steps, 300);
+  if (escalated || upsell || nextSteps) {
+    const item = { id: rid(8), at: now(), clientId: c.id, client: c.business || c.name, project: current ? current.title : "", question: clean(question, 400), escalated, summary: escalated ? clean(out.escalate_summary, 600) : "", upsell, nextSteps, read: false };
+    await put(env, "assist:" + item.id, item, 90 * 86400);
+    const idx = (await get(env, "assist:index")) || []; idx.push(item.id); await put(env, "assist:index", idx.slice(-300));
+    if (escalated || upsell) await sendEmail(env, {
+      subject: (escalated ? "🆘 " : "💡 ") + (c.business || c.name) + (escalated ? ": needs your help" : ": interested in an upgrade"),
+      replyTo: c.email,
+      text: (escalated ? "Issue: " + item.summary + "\n" : "") + (upsell ? "Upgrade interest: " + upsell + "\n" : "") + (nextSteps ? "Next step: " + nextSteps + "\n" : "") + "\nThey asked the dashboard assistant: \"" + item.question + "\"\nProject: " + item.project + "\n\nReply in your admin page: " + new URL(req.url).origin + "/portal/admin/",
+    }).catch(() => {});
+  }
+  return json({ reply, actions, escalated });
+}
+
 /* ---------------- Reviews and comments ----------------
    Anyone can write a review or comment; nothing is public until the owner approves it in Admin → Reviews.
    "Verified client" is only set when the review comes from a logged-in client dashboard session
@@ -1640,6 +1786,7 @@ export async function onRequest(ctx) {
     if (path === "book" && m === "POST") return bookCreate(env, req, url.origin);
     if (path === "google/callback" && m === "GET") return googleCallback(env, req, url);
     if (path === "chat" && m === "POST") return chatAI(env, req);
+    if (path === "assistant" && m === "POST") return portalAssistant(env, req);
     if (path === "reviews" && m === "GET") return reviewsPublic(env);
     if (path === "reviews" && m === "POST") return reviewCreate(env, req);
     if (path === "reviews/comment" && m === "POST") return reviewComment(env, req);
