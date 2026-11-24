@@ -109,7 +109,7 @@ def footer(cta_h="Stop losing clients <em>to faster agents.</em>", cta2=("Get a 
 
 def scripts(extra=""):
     return f'''<script src="site.js?v={V}"></script>{extra}
-<script src="chatbot.js?v=8" defer></script>
+<script src="chatbot.js?v=9" defer></script>
 <script src="/book-widget.js?v=3" defer></script>
 </body>
 </html>
