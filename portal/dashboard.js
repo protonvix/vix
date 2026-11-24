@@ -37,6 +37,7 @@
     $("#project").innerHTML = view(p);
     wire(p);
     announce(p);
+    assistant.refresh(p);
   }
 
   function view(p) {
@@ -52,7 +53,7 @@
     } else if (bl && bl.next && bl.next.claimed) {
       html += '<section class="card c12 paybar claimed"><span class="pb-ic"><i class="ph-fill ph-hourglass-medium" aria-hidden="true"></i></span><div><b>We\'re confirming your bank transfer of ' + VX.money(bl.next.amount, bl.currency) + "</b><span>Thank you! We'll update this as soon as it arrives.</span></div></section>";
     }
-    html += '<section class="card c8"><div class="overview"><div class="ring"><svg viewBox="0 0 132 132"><circle class="t" cx="66" cy="66" r="56"/><circle class="v" cx="66" cy="66" r="56" stroke-dasharray="' + C + '" stroke-dashoffset="' + C + '" data-off="' + off + '"/></svg><b>' + p.progress + '%<small>complete</small></b></div>' +
+    html += '<section class="card c8" id="sec-progress"><div class="overview"><div class="ring"><svg viewBox="0 0 132 132"><circle class="t" cx="66" cy="66" r="56"/><circle class="v" cx="66" cy="66" r="56" stroke-dasharray="' + C + '" stroke-dashoffset="' + C + '" data-off="' + off + '"/></svg><b>' + p.progress + '%<small>complete</small></b></div>' +
       '<div><span class="badge' + (last ? " live" : "") + '"><i class="ph ' + t.icon + '" aria-hidden="true"></i>' + t.label + "</span>" +
       '<h2 class="ov-title">' + esc(p.title) + '</h2><p class="ov-status">' + esc(p.status) + "</p>" +
       '<div class="facts"><span><i class="ph ph-calendar-check" aria-hidden="true"></i>Started ' + VX.date(p.paidAt) + "</span>" +
@@ -72,12 +73,12 @@
       items += (p.reviews && p.reviews[d.id]) ? '<div class="rv-act"><span class="done"><i class="ph-fill ph-check-circle" aria-hidden="true"></i>You reviewed this delivery. Thank you!</span></div>'
         : '<div class="rv-act"><button type="button" data-rv-d="' + esc(d.id) + '" data-rv-t="' + esc(d.title) + '"><i class="ph ph-star" aria-hidden="true"></i>Review this delivery</button></div>';
     });
-    html += '<section class="card c4"><h2><i class="ph ph-package" aria-hidden="true"></i>Your deliveries</h2><div class="links">' + (items || '<div class="empty"><i class="ph ph-hourglass-medium" aria-hidden="true"></i>Your files and links will pop up here as soon as they\'re ready.</div>') + "</div></section>";
+    html += '<section class="card c4" id="sec-deliveries"><h2><i class="ph ph-package" aria-hidden="true"></i>Your deliveries</h2><div class="links">' + (items || '<div class="empty"><i class="ph ph-hourglass-medium" aria-hidden="true"></i>Your files and links will pop up here as soon as they\'re ready.</div>') + "</div></section>";
 
     // payments
     if (bl && bl.type !== "full") {
       var pct = Math.round(bl.paid / bl.total * 100);
-      html += '<section class="card c12"><h2><i class="ph ph-wallet" aria-hidden="true"></i>Your payments</h2><div class="pay-sum"><div><span class="muted">' + esc(bl.label) + "</span><b>" + VX.money(bl.paid, bl.currency) + ' <small>of ' + VX.money(bl.total, bl.currency) + " paid</small></b>" +
+      html += '<section class="card c12" id="sec-payments"><h2><i class="ph ph-wallet" aria-hidden="true"></i>Your payments</h2><div class="pay-sum"><div><span class="muted">' + esc(bl.label) + "</span><b>" + VX.money(bl.paid, bl.currency) + ' <small>of ' + VX.money(bl.total, bl.currency) + " paid</small></b>" +
         '<div class="pay-bar"><i style="width:' + pct + '%"></i></div></div>' + (bl.next && !bl.next.claimed ? '<a class="btn btn-p" href="' + esc(bl.payUrl) + '">Pay ' + VX.money(bl.next.amount, bl.currency) + (bl.next.state === "scheduled" || bl.next.state === "after-delivery" ? " early" : " now") + "</a>" : bl.fullyPaid ? '<span class="badge live">Paid in full ✓</span>' : "") + "</div>" +
         '<ol class="pay-sched">' + bl.items.map(function (x) {
           var st = x.status === "paid" ? "paid" : bl.next && bl.next.i === x.i ? bl.next.state : "upcoming";
@@ -104,18 +105,18 @@
     }
 
     // updates
-    html += '<section class="card c6"><h2><i class="ph ph-megaphone" aria-hidden="true"></i>Project updates</h2><ul class="feed">' + (p.updates || []).slice().reverse().map(function (u) { return "<li>" + esc(u.text) + "<time>" + VX.date(u.at, true) + "</time></li>"; }).join("") + "</ul></section>";
+    html += '<section class="card c6" id="sec-updates"><h2><i class="ph ph-megaphone" aria-hidden="true"></i>Project updates</h2><ul class="feed">' + (p.updates || []).slice().reverse().map(function (u) { return "<li>" + esc(u.text) + "<time>" + VX.date(u.at, true) + "</time></li>"; }).join("") + "</ul></section>";
 
     // messages
-    html += '<section class="card c6"><h2><i class="ph ph-chats-circle" aria-hidden="true"></i>Messages</h2><div class="chat" id="chat">' +
+    html += '<section class="card c6" id="sec-messages"><h2><i class="ph ph-chats-circle" aria-hidden="true"></i>Messages</h2><div class="chat" id="chat">' +
       ((p.messages || []).length ? p.messages.map(function (m) { return '<div class="msg ' + (m.from === "client" ? "mine" : "them") + '">' + esc(m.text) + "<time>" + (m.from === "client" ? "You" : "Vix Assist") + " · " + VX.date(m.at, true) + "</time></div>"; }).join("") : '<div class="empty"><i class="ph ph-chat-teardrop-text" aria-hidden="true"></i>Ask a question or request a change. We usually reply within one business day.</div>') +
       '</div><form class="send" id="send"><label class="sr" style="flex:1"><span hidden>Message</span><textarea name="text" rows="2" placeholder="Request a change or ask a question…" required></textarea></label><button class="btn btn-p" type="submit"><i class="ph ph-paper-plane-tilt" aria-hidden="true"></i>Send</button></form><p class="err" id="send-err"></p></section>';
 
     var reviewedProject = p.reviews && p.reviews.project;
-    html += '<section class="card c12 help"><div><h2><i class="ph ph-star" aria-hidden="true"></i>How are we doing?</h2><p class="muted">Review each delivery as it arrives, the project as a whole, or how easy our website is to use. Your reviews show a <b>Verified client</b> badge and appear on vixassist.com once approved.</p></div><div class="acts">' +
+    html += '<section class="card c12 help" id="sec-reviews"><div><h2><i class="ph ph-star" aria-hidden="true"></i>How are we doing?</h2><p class="muted">Review each delivery as it arrives, the project as a whole, or how easy our website is to use. Your reviews show a <b>Verified client</b> badge and appear on vixassist.com once approved.</p></div><div class="acts">' +
       (reviewedProject ? '<span class="note ok"><i class="ph-fill ph-check-circle" aria-hidden="true"></i> Project reviewed</span>' : '<button class="btn btn-p" type="button" data-rv-d="" data-rv-t="' + esc(p.title) + '"><i class="ph ph-pencil-simple" aria-hidden="true"></i>Review this project</button>') +
       '<button class="btn btn-g" type="button" data-rv-site><i class="ph ph-browser" aria-hidden="true"></i>Rate our website</button><a class="btn btn-g" href="/reviews.html#all" target="_blank" rel="noopener">Read reviews</a></div></section>';
-    html += '<section class="card c12 help"><div><h2>Need anything?</h2><p class="muted">Message us here, on WhatsApp or by email. A real person replies.</p></div><div class="acts"><a class="btn btn-wa" href="https://wa.me/447723149573" target="_blank" rel="noopener"><i class="ph-fill ph-whatsapp-logo" aria-hidden="true"></i>WhatsApp UK</a><a class="btn btn-g" href="https://wa.me/message/WV3WLO4FC656K" target="_blank" rel="noopener">WhatsApp Nigeria</a><a class="btn btn-g" href="mailto:support@vixassist.com">Email us</a></div></section>';
+    html += '<section class="card c12 help" id="sec-help"><div><h2>Need anything?</h2><p class="muted">Message us here, on WhatsApp or by email. A real person replies.</p></div><div class="acts"><a class="btn btn-wa" href="https://wa.me/447723149573" target="_blank" rel="noopener"><i class="ph-fill ph-whatsapp-logo" aria-hidden="true"></i>WhatsApp UK</a><a class="btn btn-g" href="https://wa.me/message/WV3WLO4FC656K" target="_blank" rel="noopener">WhatsApp Nigeria</a><a class="btn btn-g" href="mailto:support@vixassist.com">Email us</a></div></section>';
     return html + "</div>";
   }
 
@@ -222,6 +223,121 @@
     setTimeout(function () { $("#toast").classList.remove("show"); }, 9000);
     api("seen", { projectId: p.id }).catch(function () {});
   }
+
+  /* ---------- Dashboard assistant: answers questions about the account, takes the client
+     to the right section, sends issues to the team, and suggests a fitting upgrade ---------- */
+  var assistant = (function () {
+    var box, log, form, input, history = [], aiOff = false, busy = false, greetedFor = null;
+    var LINKS = { book_call: "/book/", pricing: "/#pricing", guides: "/gohighlevel-guides", whatsapp: "https://wa.me/447723149573" };
+    function cur() { return data && data.projects.find(function (x) { return x.id === current; }); }
+    function build() {
+      if (box) return;
+      var btn = document.createElement("button");
+      btn.type = "button"; btn.className = "as-btn"; btn.id = "as-btn"; btn.setAttribute("aria-controls", "as-panel"); btn.setAttribute("aria-expanded", "false");
+      btn.innerHTML = '<i class="ph-fill ph-sparkle" aria-hidden="true"></i><span>Ask assistant</span><b class="as-dot" hidden></b>';
+      box = document.createElement("section");
+      box.className = "as-panel"; box.id = "as-panel"; box.hidden = true; box.setAttribute("aria-label", "Dashboard assistant");
+      box.innerHTML = '<header><span class="as-av"><i class="ph-fill ph-sparkle" aria-hidden="true"></i></span><div><b>Your Vix Assist assistant</b><small>Answers about your project · sends issues to the team</small></div><button type="button" class="as-x" aria-label="Close assistant"><i class="ph ph-x" aria-hidden="true"></i></button></header>' +
+        '<div class="as-log" aria-live="polite"></div>' +
+        '<div class="as-quick"></div>' +
+        '<form class="as-form"><label class="sr" style="flex:1"><span hidden>Ask a question</span><input name="q" autocomplete="off" maxlength="1500" placeholder="Ask about your project, payments, anything…"></label><button class="btn btn-p btn-sm" type="submit" aria-label="Send"><i class="ph ph-paper-plane-tilt" aria-hidden="true"></i></button></form>';
+      document.body.appendChild(btn); document.body.appendChild(box);
+      log = box.querySelector(".as-log"); form = box.querySelector(".as-form"); input = form.elements.q;
+      btn.addEventListener("click", function () { toggle(box.hidden); });
+      box.querySelector(".as-x").addEventListener("click", function () { toggle(false); });
+      form.addEventListener("submit", function (e) { e.preventDefault(); var q = input.value.trim(); if (q) { input.value = ""; ask(q); } });
+      box.querySelector(".as-quick").addEventListener("click", function (e) { var b = e.target.closest("[data-q]"); if (b) ask(b.dataset.q); });
+      log.addEventListener("click", function (e) { var b = e.target.closest("[data-act]"); if (b) act(b.dataset.act); });
+      document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !box.hidden) toggle(false); });
+    }
+    function toggle(open) {
+      box.hidden = !open; var b = document.getElementById("as-btn"); b.setAttribute("aria-expanded", String(open)); b.classList.toggle("open", open);
+      if (open) { b.querySelector(".as-dot").hidden = true; setTimeout(function () { input.focus(); }, 50); log.scrollTop = log.scrollHeight; }
+    }
+    function fmt(t) {
+      return esc(t).replace(/\b((?:https?:\/\/)?(?:www\.)?vixassist\.com(?:\/[^\s<]*)?)/g, function (u) { var clean = u.replace(/[.,)]+$/, ""), rest = u.slice(clean.length); return '<a href="' + (clean.indexOf("http") === 0 ? clean : "https://" + clean) + '" target="_blank" rel="noopener">' + clean + "</a>" + rest; })
+        .replace(/\bsupport@vixassist\.com\b/g, '<a href="mailto:support@vixassist.com">support@vixassist.com</a>').replace(/\n/g, "<br>");
+    }
+    function add(who, html, actions) {
+      var d = document.createElement("div"); d.className = "as-msg " + (who === "me" ? "as-me" : "as-bot"); d.innerHTML = html;
+      if (actions && actions.length) d.innerHTML += '<div class="as-acts">' + actions.map(function (a) { return '<button type="button" class="btn btn-g btn-sm" data-act="' + esc(a.type) + '">' + esc(a.label) + "</button>"; }).join("") + "</div>";
+      log.appendChild(d); log.scrollTop = log.scrollHeight; return d;
+    }
+    function act(type) {
+      var p = cur();
+      var SEC = { progress: "sec-progress", deliveries: "sec-deliveries", payments: "sec-payments", updates: "sec-updates", messages: "sec-messages" };
+      if (SEC[type]) {
+        var el = document.getElementById(SEC[type]) || (type === "payments" ? document.getElementById("sec-progress") : null);
+        if (el) { if (window.innerWidth < 760) toggle(false); el.scrollIntoView({ behavior: "smooth", block: "start" }); el.classList.add("as-flash"); setTimeout(function () { el.classList.remove("as-flash"); }, 1800); if (type === "messages") { var ta = document.querySelector("#send textarea"); if (ta) setTimeout(function () { ta.focus({ preventScroll: true }); }, 500); } }
+        return;
+      }
+      if (type === "pay_now") { if (p && p.billing) location.href = p.billing.payUrl; else act("payments"); return; }
+      if (type === "review_project" && p) { reviewBox(p, "", p.title); return; }
+      if (type === "rate_website" && p) { reviewBox(p, null, "Our website"); return; }
+      if (LINKS[type]) window.open(LINKS[type], "_blank", "noopener");
+    }
+    function ctx(p) {
+      var bl = p.billing, ups = p.updates || [], last = ups[ups.length - 1], fresh = (p.deliverables || []).filter(function (d) { return d.isNew; });
+      return { bl: bl, last: last, fresh: fresh, stage: p.stages[p.stage] || "", due: bl && bl.next && !bl.next.claimed && /now|overdue|soon|delivery-due/.test(bl.next.state) };
+    }
+    /* first message: what's new and what's next, worked out from the account, no AI needed */
+    function greet(p) {
+      var x = ctx(p), first = (data.client.name || "").split(" ")[0], lines = [], actions = [];
+      lines.push("Hi " + esc(first || "there") + "! Here's where <b>" + esc(p.title) + "</b> stands:");
+      lines.push("• Stage: <b>" + esc(x.stage) + "</b>, " + p.progress + "% complete" + (p.eta ? " (expected " + esc(VX.date(p.eta)) + ")" : "") + ".");
+      if (x.last) lines.push("• Latest update: " + esc(x.last.text.length > 140 ? x.last.text.slice(0, 140) + "…" : x.last.text));
+      if (x.fresh.length) { lines.push("• New: " + esc(x.fresh.map(function (d) { return d.title; }).join(", ")) + "."); actions.push({ type: "deliveries", label: "See deliveries" }); }
+      if (x.due) { lines.push("• Next payment: <b>" + VX.money(x.bl.next.amount, x.bl.currency) + "</b>" + (x.bl.next.due === "delivery" ? " on delivery" : x.bl.next.due === "now" ? ", due now" : ", due " + esc(VX.date(x.bl.next.due))) + "."); actions.push({ type: "pay_now", label: "Pay now" }); }
+      else if (x.bl && x.bl.next && x.bl.next.claimed) lines.push("• We're confirming your bank transfer.");
+      if (p.unreadClient) { lines.push("• You have " + p.unreadClient + " unread update" + (p.unreadClient > 1 ? "s" : "") + " from the team."); actions.push({ type: "updates", label: "Read updates" }); }
+      lines.push("Ask me anything about your project, or tell me if something's wrong and I'll send it to the team.");
+      if (actions.length < 3) actions.push({ type: "messages", label: "Message the team" });
+      return { html: lines.join("<br>"), actions: actions.slice(0, 3), alert: !!(x.fresh.length || x.due || p.unreadClient) };
+    }
+    function quick(p) {
+      var x = ctx(p), qs = ["What happens next?", "Show my payments", "Where are my files?", "I have a problem", "How can I get more leads?"];
+      if (x.due) qs.splice(1, 1, "When is my next payment?");
+      box.querySelector(".as-quick").innerHTML = qs.map(function (q) { return '<button type="button" data-q="' + esc(q) + '">' + esc(q) + "</button>"; }).join("");
+    }
+    /* backup answers when the AI is off or busy */
+    function local(q, p) {
+      var t = q.toLowerCase(), x = ctx(p);
+      if (/pay|invoice|balance|owe|due|price paid|money/.test(t)) return { reply: x.bl ? "You've paid " + VX.money(x.bl.paid, x.bl.currency) + " of " + VX.money(x.bl.total, x.bl.currency) + "." + (x.bl.next ? " Next payment: " + VX.money(x.bl.next.amount, x.bl.currency) + (x.bl.next.due === "delivery" ? " on delivery." : x.bl.next.due === "now" ? ", due now." : ", due " + VX.date(x.bl.next.due) + ".") : " You're fully paid. Thank you!") : "Your payment details will show under Your payments.", actions: x.due ? [{ type: "pay_now", label: "Pay now" }, { type: "payments", label: "Go to payments" }] : [{ type: "payments", label: "Go to payments" }] };
+      if (/file|deliver|download|link|website ready|live/.test(t)) return { reply: (p.deliverables || []).length ? "Your files and links are under Your deliveries." + ((p.deliverables || []).some(function (d) { return d.locked; }) ? " Finished work unlocks once you've paid in full." : "") : "Nothing has been delivered yet. Your files will appear under Your deliveries as soon as they're ready.", actions: [{ type: "deliveries", label: "See deliveries" }] };
+      if (/next|status|progress|stage|when|update|eta/.test(t)) return { reply: "Your project is at the " + x.stage + " stage, " + p.progress + "% complete" + (p.eta ? ", expected " + VX.date(p.eta) : "") + "." + (x.last ? " Latest update: " + x.last.text : ""), actions: [{ type: "progress", label: "See progress" }, { type: "updates", label: "All updates" }] };
+      if (/problem|issue|wrong|bug|broken|error|not working|change|complain|refund|help/.test(t)) return { reply: "Sorry about that. Please tell the team in Messages exactly what's happening and a real person will reply, usually within one business day. For anything urgent, use WhatsApp.", actions: [{ type: "messages", label: "Message the team" }, { type: "whatsapp", label: "WhatsApp us" }] };
+      if (/lead|grow|more|upgrade|plan|follow|crm|gohighlevel|ghl|automation/.test(t)) return { reply: "Our monthly plans keep your system improving: Lead Response ($300/month) answers every new lead in seconds, Growth ($550/month) adds nurture, old lead revival, reviews and referrals, and Brokerage ($950/month) is for teams. Book a free call and we'll recommend the right fit.", actions: [{ type: "book_call", label: "Book a free call" }, { type: "pricing", label: "See plans" }] };
+      if (/review|rate|feedback/.test(t)) return { reply: "Thank you! You can review the project or rate our website here.", actions: [{ type: "review_project", label: "Review this project" }, { type: "rate_website", label: "Rate our website" }] };
+      return { reply: "I can help with your progress, deliveries, payments and messages. For anything else, the team will answer you in Messages.", actions: [{ type: "messages", label: "Message the team" }] };
+    }
+    function ask(q) {
+      var p = cur(); if (!p || busy) return;
+      add("me", esc(q)); history.push({ role: "user", content: q });
+      var typing = add("bot", '<span class="as-typing"><i></i><i></i><i></i></span>');
+      var done = function (r) {
+        typing.remove(); busy = false; form.querySelector("button").disabled = false;
+        var extra = r.escalated ? '<div class="as-note"><i class="ph-fill ph-paper-plane-tilt" aria-hidden="true"></i> Sent to the Vix Assist team. Their reply will appear in Messages.</div>' : "";
+        add("bot", fmt(r.reply) + extra, r.actions); history.push({ role: "assistant", content: r.reply });
+        history = history.slice(-12);
+        if (r.escalated) load();
+      };
+      busy = true; form.querySelector("button").disabled = true;
+      if (aiOff) return setTimeout(function () { done(local(q, p)); }, 350);
+      api("assistant", { projectId: p.id, messages: history }).then(done).catch(function (e) {
+        if (e.status === 503) aiOff = true;
+        if (e.status === 401) { showLogin(); return; }
+        done(local(q, p));
+      });
+    }
+    return {
+      refresh: function (p) {
+        build(); quick(p);
+        if (greetedFor === p.id) return; greetedFor = p.id; history = [];
+        var g = greet(p); log.innerHTML = ""; add("bot", g.html, g.actions);
+        var b = document.getElementById("as-btn"); if (g.alert && box.hidden) b.querySelector(".as-dot").hidden = false;
+      },
+    };
+  })();
 
   load();
 })();

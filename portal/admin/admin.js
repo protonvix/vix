@@ -201,8 +201,8 @@
   }
 
   /* ---------- notifications: everything new, in bold, live ---------- */
-  var ICON = { payment: "ph-currency-circle-dollar", transfer: "ph-bank", brief: "ph-file-text", offer: "ph-gift", founding: "ph-star", overdue: "ph-warning-circle", message: "ph-chat-circle-dots", call: "ph-video-camera", review: "ph-star" };
-  var NLABEL = { payment: "Payment", transfer: "Bank transfer to confirm", brief: "Brief / enquiry", offer: "Free design request", founding: "Founding client application", overdue: "Payment overdue", message: "Client message", call: "Strategy call", review: "Review" };
+  var ICON = { payment: "ph-currency-circle-dollar", transfer: "ph-bank", brief: "ph-file-text", offer: "ph-gift", founding: "ph-star", overdue: "ph-warning-circle", message: "ph-chat-circle-dots", call: "ph-video-camera", review: "ph-star", assist: "ph-sparkle" };
+  var NLABEL = { payment: "Payment", transfer: "Bank transfer to confirm", brief: "Brief / enquiry", offer: "Free design request", founding: "Founding client application", overdue: "Payment overdue", message: "Client message", call: "Strategy call", review: "Review", assist: "Dashboard assistant" };
   var lastUnread = null, onBell = false, known = {};
   function chime() {
     try {
@@ -275,7 +275,7 @@
     $("#main").innerHTML = '<div class="card"><div class="help"><div><h2 style="margin:0"><i class="ph ph-bell-ringing" aria-hidden="true"></i> Notifications</h2><p class="muted">New payments, briefs, messages and reviews, newest first. Updates every 30 seconds.</p></div>' +
       '<div class="acts">' + (perm === "default" ? '<button class="btn btn-p btn-sm" type="button" id="alerts-on"><i class="ph ph-bell-simple-ringing" aria-hidden="true"></i>Turn on pop-up alerts</button>' : perm === "granted" ? '<span class="note ok">Pop-up alerts on ✓</span>' : "") +
       '<button class="btn btn-g btn-sm" type="button" id="all-read">Mark all as read</button></div></div>' + phoneBox() +
-      '<div class="kpi-row" style="margin-top:16px"><div><span>Payments</span><b>' + (count("payment") + count("transfer") + count("overdue")) + '</b></div><div><span>Briefs &amp; founding</span><b>' + (count("brief") + count("founding")) + '</b></div><div><span>Free design requests</span><b>' + count("offer") + '</b></div><div><span>Client messages</span><b>' + count("message") + '</b></div><button type="button" id="kpi-rev" style="text-align:left;cursor:pointer;font:inherit;color:inherit"><span>Reviews to approve</span><b>' + count("review") + "</b></button></div>" +
+      '<div class="kpi-row" style="margin-top:16px"><div><span>Payments</span><b>' + (count("payment") + count("transfer") + count("overdue")) + '</b></div><div><span>Briefs &amp; founding</span><b>' + (count("brief") + count("founding")) + '</b></div><div><span>Free design requests</span><b>' + count("offer") + '</b></div><div><span>Client messages</span><b>' + count("message") + '</b></div><div><span>Assistant: help &amp; upgrades</span><b>' + count("assist") + '</b></div><button type="button" id="kpi-rev" style="text-align:left;cursor:pointer;font:inherit;color:inherit"><span>Reviews to approve</span><b>' + count("review") + "</b></button></div>" +
       '<div class="feed-list">' + (d.items.map(function (i) {
         return '<button type="button" class="nf k-' + i.kind + (i.unread ? " unread" : "") + (freshIds[i.kind + i.id] ? " fresh" : "") + '" data-kind="' + i.kind + '" data-id="' + esc(i.id) + '" data-client="' + esc(i.clientId || "") + '"><span class="ic"><i class="ph-fill ' + ICON[i.kind] + '" aria-hidden="true"></i></span><div><b>' + esc(i.title) + "</b><span>" + esc(NLABEL[i.kind] + " · " + i.sub) + "</span></div><time>" + VX.date(i.at, true) + "</time></button>";
       }).join("") || '<div class="empty"><i class="ph ph-bell-simple" aria-hidden="true"></i>Nothing yet. New payments, briefs and messages will appear here in bold.</div>') + "</div></div>";
@@ -286,7 +286,7 @@
     $("#main").querySelectorAll(".nf").forEach(function (b) {
       b.onclick = function () {
         var k = b.dataset.kind, id = b.dataset.id, cid = b.dataset.client;
-        var go = function () { onBell = false; if (k === "transfer" || k === "overdue") { payments(); } else if (k === "brief" || k === "offer" || k === "founding") { inbox(); } else if (k === "call") { callsView(); } else if (k === "review") { reviewsView(); } else if (k === "message" && cid) { sel = null; refresh().then(function () { drawList(); chats(cid); }); } else if (cid) { sel = cid; refresh(true).then(function () { drawList(); showClient(cid); }); } };
+        var go = function () { onBell = false; if (k === "transfer" || k === "overdue") { payments(); } else if (k === "brief" || k === "offer" || k === "founding") { inbox(); } else if (k === "call") { callsView(); } else if (k === "review") { reviewsView(); } else if ((k === "message" || k === "assist") && cid) { sel = null; refresh().then(function () { drawList(); chats(cid); }); } else if (cid) { sel = cid; refresh(true).then(function () { drawList(); showClient(cid); }); } };
         if (k === "message") go(); else api("admin/feed/seen", { kind: k, id: id }).then(go, go);
       };
     });
