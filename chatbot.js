@@ -38,6 +38,10 @@
   // ===== Knowledge base =====
   // Each topic: keywords that trigger it, and the reply (trusted HTML).
   var TOPICS = [
+    { id: "why", boost: 6, keys: ["why choose", "why should", "why you", "why vix", "what makes you different", "different from", "better than", "why work with", "choose you", "choose vix"],
+      reply: "Why businesses choose Vix Assist:<br>• We focus on what makes you money: every lead answered fast, followed up until ready, and past clients coming back with referrals.<br>• Fixed price agreed before any work starts.<br>• You own everything: your account, data and campaigns. No lock-in.<br>• Every automation is tested and handed over with video walkthroughs.<br>• Direct access to the person building your system, plus your own client dashboard.<br>Start with a <a href=\"/book.html\">free strategy call</a> and get a written plan, no obligation." },
+    { id: "crm_problem", boost: 6, keys: ["leads go cold", "losing leads", "lose leads", "slow follow", "no follow", "don't come back", "dont come back", "clients leave", "customers leave", "competitor", "competitors", "retain", "retention", "repeat clients", "referrals", "messy crm", "crm problem", "customer relationship"],
+      reply: "Here's how we fix the most common customer relationship problems:<br>• <b>Slow replies:</b> every lead gets a personal text within seconds, day or night.<br>• <b>Leads going cold:</b> follow-up that runs for months until they're ready.<br>• <b>Old leads unused:</b> campaigns that restart conversations.<br>• <b>Past clients drifting away:</b> useful check-ins so they come back and refer you.<br>• <b>Messy pipeline:</b> clear stages and alerts so nothing slips.<br>Try the <a href=\"/#leak\">revenue leak calculator</a> or <a href=\"/book.html\">book a free call</a> and we'll show you where you're losing the most." },
     { id: "greeting", keys: ["hi", "hello", "hey", "good morning", "good afternoon", "good evening", "howdy"],
       reply: "Hi there! 👋 I help real estate brokers, teams and agents win more closings from the leads they already have, and keep past clients coming back. Ask me about pricing, how it works or the free revenue audit." },
     { id: "pricing", keys: ["price", "pricing", "cost", "how much", "package", "packages", "plan", "plans", "quote", "fee", "fees", "rate", "rates", "charge", "budget", "expensive", "cheap"],
@@ -99,13 +103,12 @@
   ];
 
   var QUICK = [
-    ["🎁 Free website design", "Is the free website design offer real?"],
+    ["Why choose Vix Assist?", "Why should a company choose Vix Assist?"],
+    ["Fix my follow-up", "Our leads go cold and clients don't come back. How can you help?"],
     ["Pricing", "How much does it cost?"],
     ["Services", "What services do you offer?"],
-    ["TikTok", "Tell me about TikTok marketing"],
-    ["Websites", "Do you design websites?"],
+    ["🎁 Free website design", "Is the free website design offer real?"],
     ["How to pay", "How can I pay?"],
-    ["Timeline", "How long does it take?"],
     ["Book a call", "I want to book a call"],
     ["My dashboard", "How do I access my client dashboard?"],
     ["Talk to a person", "I want to talk to a person"]
