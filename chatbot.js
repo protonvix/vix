@@ -208,12 +208,44 @@
     }, 550);
   }
 
+  // AI answers (Claude, via /api/chat). Falls back to the built-in answers below if it's unavailable.
+  var history = [], aiOff = false;
+  function escHtml(s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+  function formatAI(text) {
+    return escHtml(text)
+      .replace(/\*\*(.+?)\*\*/g, "<b>$1</b>")
+      .replace(/(^|[\s(])((?:https?:\/\/)?(?:www\.)?(?:vixassist\.com|design\.vixassist\.com)[^\s<)]*|support@vixassist\.com)/g, function (m, pre, link) {
+        var trail = (link.match(/[.,!?;:]+$/) || [""])[0]; link = link.slice(0, link.length - trail.length);
+        var href = /@/.test(link) ? "mailto:" + link : (/^https?:/.test(link) ? link : "https://" + link);
+        return pre + '<a href="' + href + '"' + (/@/.test(link) ? "" : ' target="_blank" rel="noopener"') + ">" + link + "</a>" + trail;
+      })
+      .replace(/\n/g, "<br>");
+  }
+  function localAnswer(text) { var topic = findTopic(text); return topic ? topic.reply : fallback(text); }
   function ask(text) {
     text = text.trim();
     if (!text) return;
     addMessage("user", text, false);
-    var topic = findTopic(text);
-    botReply(topic ? topic.reply : fallback(text));
+    if (aiOff || !window.fetch) { botReply(localAnswer(text)); return; }
+    history.push({ role: "user", content: text });
+    var typing = addMessage("bot", "", false);
+    typing.classList.add("vx-typing");
+    typing.innerHTML = "<i></i><i></i><i></i>";
+    fetch("/api/chat", { method: "POST", headers: { "content-type": "application/json", "x-vix": "1" }, body: JSON.stringify({ messages: history.slice(-12) }) })
+      .then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { return { ok: r.ok, status: r.status, d: d }; }); })
+      .then(function (res) {
+        typing.classList.remove("vx-typing");
+        if (res.ok && res.d.reply) {
+          history.push({ role: "assistant", content: res.d.reply });
+          typing.innerHTML = formatAI(res.d.reply);
+        } else {
+          if (res.status === 503) aiOff = true; // AI not set up: use built-in answers from now on
+          history.pop();
+          typing.innerHTML = localAnswer(text);
+        }
+        log.scrollTop = log.scrollHeight;
+      })
+      .catch(function () { typing.classList.remove("vx-typing"); history.pop(); typing.innerHTML = localAnswer(text); log.scrollTop = log.scrollHeight; });
   }
 
   if (!offerLive) QUICK = QUICK.filter(function (q) { return !/^🎁/.test(q[0]); });
