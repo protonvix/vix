@@ -428,7 +428,7 @@ GUIDES = [
 <p>Industry guides quote a wide range for professional setup, from a few hundred dollars for a focused setup to several thousand for a full multi-pipeline build. At Vix Assist:</p>
 <ul>
 <li><b>One-off build or rescue:</b> from $499, fixed price.</li>
-<li><b>Monthly plans (setup plus ongoing management):</b> $300 (Lead Response), $550 (Growth) and $950 (Brokerage) a month, with no long contract.</li>
+<li><b>Monthly plans (setup plus ongoing management):</b> $300 (Lead Response), $500 (Growth) and $670 (Brokerage) a month, with no long contract.</li>
 <li><b>Free revenue audit</b> and written plan before you commit.</li>
 </ul>
 <h2>Is it worth it?</h2>
