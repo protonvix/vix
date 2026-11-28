@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Contact and Booking | Luxe Dental Clinic, Ikeja GRA</title>
+  <meta name="description" content="Book an appointment at Luxe Dental Clinic in Ikeja GRA, Lagos. Call, WhatsApp or send a booking request.">
+  <meta name="theme-color" content="#0a3532">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header" id="site-header"></header>
+
+  <main id="main">
+    <section class="page-head">
+      <div class="container">
+        <h1>Book a visit</h1>
+        <p>Call or WhatsApp us for the fastest reply, or send a booking request and we'll get back to you to confirm.</p>
+      </div>
+    </section>
+
+    <section class="section" id="book">
+      <div class="container contact-grid">
+        <div>
+          <h2>Get in touch</h2>
+          <ul class="contact-list">
+            <li><small>Call</small><a data-tel></a></li>
+            <li><small>WhatsApp</small><a data-wa="Hello Luxe Dental, I'd like to book an appointment." target="_blank" rel="noopener">Chat with us on WhatsApp</a></li>
+            <li><small>Email</small><a href="mailto:info@luxedental.com.ng">info@luxedental.com.ng</a></li>
+            <li><small>Visit</small>Ikeja GRA, Lagos<br><span class="muted" style="font-size:.9rem">Full address to be confirmed</span></li>
+            <li><small>Opening hours</small><span class="muted">To be confirmed with the clinic</span></li>
+          </ul>
+          <div class="photo map" role="img" aria-label="Map goes here"><span class="photo-label">Google Map of the clinic goes here</span></div>
+        </div>
+
+        <form class="booking" novalidate>
+          <h3>Booking request</h3>
+          <div class="form-row">
+            <div class="field"><label for="name">Full name</label><input id="name" name="name" autocomplete="name" required></div>
+            <div class="field"><label for="phone">Phone or WhatsApp</label><input id="phone" name="phone" type="tel" autocomplete="tel" required></div>
+          </div>
+          <div class="field"><label for="email">Email (optional)</label><input id="email" name="email" type="email" autocomplete="email"></div>
+          <div class="form-row">
+            <div class="field">
+              <label for="treatment">Treatment</label>
+              <select id="treatment" name="treatment" required>
+                <option value="">Choose one</option>
+                <option>Check-up and cleaning</option>
+                <option>Braces or aligners</option>
+                <option>Dental implants</option>
+                <option>Teeth whitening</option>
+                <option>Tooth pain / root canal</option>
+                <option>Smile makeover</option>
+                <option>Children's dentistry</option>
+                <option>Not sure yet</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="day">Preferred day</label>
+              <select id="day" name="day">
+                <option>Any day</option>
+                <option>Monday</option><option>Tuesday</option><option>Wednesday</option>
+                <option>Thursday</option><option>Friday</option><option>Saturday</option>
+              </select>
+            </div>
+          </div>
+          <div class="field">
+            <label for="hmo">Paying with an HMO?</label>
+            <select id="hmo" name="hmo">
+              <option>No, paying myself</option>
+              <option>Yes, I have an HMO</option>
+              <option>Not sure</option>
+            </select>
+          </div>
+          <div class="field"><label for="notes">Anything we should know? (optional)</label><textarea id="notes" name="notes" rows="3"></textarea></div>
+          <button type="submit" class="btn btn-primary" style="width:100%">Send booking request</button>
+          <p class="form-note">We'll call or WhatsApp you to confirm a time.</p>
+          <div class="form-done" role="status">Thank you! This is a design preview, so the request wasn't sent. In the live site it goes straight to the clinic.</div>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer" id="site-footer"></footer>
+  <script src="app.js"></script>
+</body>
+</html>
